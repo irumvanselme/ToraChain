@@ -4,7 +4,7 @@ const App: React.FC = () => {
       <h1>Welcome to ToraChain!</h1>
       <p>This is the frontend application.</p>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

@@ -3,8 +3,12 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun run  --watch app/server.ts"
+  },
   "dependencies": {
-    "@tora-chain/be-common": "workspace:*"
+    "@tora-chain/be-common": "workspace:*",
+    "elysia": "^1.4.28"
   },
   "devDependencies": {
     "@types/bun": "latest"

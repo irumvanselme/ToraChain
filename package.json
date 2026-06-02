@@ -7,6 +7,9 @@
     "auth-backend",
     "packages/*"
   ],
+  "scripts": {
+    "format": "bun run prettier --write ."
+  },
   "type": "module",
   "private": true,
   "devDependencies": {
@@ -14,5 +17,8 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "prettier": "^3.8.3"
   }
 }

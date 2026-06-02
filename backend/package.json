@@ -1,0 +1,18 @@
+{
+  "name": "backend",
+  "module": "app/server.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run app/server.ts --watch"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "elysia": "^1.4.28"
+  }
+}

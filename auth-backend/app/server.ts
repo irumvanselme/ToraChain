@@ -6,7 +6,6 @@ import { config } from "./config/env.ts";
 import { auth } from "./auth.ts";
 import { database } from "./db";
 
-
 export class AuthServer {
   private readonly app;
   private readonly log: Logger;
@@ -17,31 +16,29 @@ export class AuthServer {
   }
 
   private buildApp() {
-    return (
-      new Elysia()
-        .use(
-          cors({
-            origin: config.trustedOrigins,
-            credentials: true,
-            methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-          }),
-        )
-        .onError(({ code, error, path }) => {
-          this.log.error("Request error", {
-            code,
-            path,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        })
-        .get("/health", async () => {
-          const dbHealthy = await database.ping();
-          return {
-            status: dbHealthy ? "ok" : "degraded",
-            database: dbHealthy ? "up" : "down",
-          };
-        })
-        .all(`${config.basePath}/*`, ({ request }) => auth.handler(request))
-    );
+    return new Elysia()
+      .use(
+        cors({
+          origin: config.trustedOrigins,
+          credentials: true,
+          methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        }),
+      )
+      .onError(({ code, error, path }) => {
+        this.log.error("Request error", {
+          code,
+          path,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      })
+      .get("/health", async () => {
+        const dbHealthy = await database.ping();
+        return {
+          status: dbHealthy ? "ok" : "degraded",
+          database: dbHealthy ? "up" : "down",
+        };
+      })
+      .all(`${config.basePath}/*`, ({ request }) => auth.handler(request));
   }
 
   async start(): Promise<void> {

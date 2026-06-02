@@ -9,7 +9,6 @@ import { db } from "./db";
 import { config } from "./config/env.ts";
 import * as schema from "./db/schema.ts";
 
-
 export const auth = betterAuth({
   baseURL: config.betterAuthUrl,
   basePath: config.basePath,
@@ -25,12 +24,7 @@ export const auth = betterAuth({
     enabled: true,
   },
 
-  plugins: [
-    admin(),
-    organization(),
-    jwt(),
-    openAPI()
-  ],
+  plugins: [admin(), organization(), jwt(), openAPI()],
 });
 
 export type Auth = typeof auth;

@@ -1,0 +1,36 @@
+services:
+  elections-db:
+    image: postgres:17-alpine
+    container_name: tora-elections-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: elections
+      POSTGRES_PASSWORD: elections
+      POSTGRES_DB: elections
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./local-data/elections-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elections -d elections"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-db:
+    image: postgres:17-alpine
+    container_name: tora-auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: auth
+      POSTGRES_DB: auth
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./local-data/auth-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth -d auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

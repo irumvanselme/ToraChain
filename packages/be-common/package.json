@@ -1,11 +1,8 @@
 {
-  "name": "auth-backend",
+  "name": "@tora-chain/be-common",
   "module": "index.ts",
   "type": "module",
   "private": true,
-  "dependencies": {
-    "@tora-chain/be-common": "workspace:*"
-  },
   "devDependencies": {
     "@types/bun": "latest"
   },

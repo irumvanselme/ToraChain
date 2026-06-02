@@ -13,6 +13,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "elysia": "^1.4.28"
+    "elysia": "^1.4.28",
+    "@tora-chain/be-common": "workspace:*"
   }
 }

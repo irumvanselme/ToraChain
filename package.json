@@ -4,7 +4,8 @@
     "backend",
     "frontend",
     "cryptography",
-    "auth-backend"
+    "auth-backend",
+    "packages/*"
   ],
   "type": "module",
   "private": true,

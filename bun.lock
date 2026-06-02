@@ -13,6 +13,9 @@
     },
     "auth-backend": {
       "name": "auth-backend",
+      "dependencies": {
+        "@tora-chain/be-common": "workspace:*",
+      },
       "devDependencies": {
         "@types/bun": "latest",
       },
@@ -23,6 +26,7 @@
     "backend": {
       "name": "backend",
       "dependencies": {
+        "@tora-chain/be-common": "workspace:*",
         "elysia": "^1.4.28",
       },
       "devDependencies": {
@@ -34,6 +38,9 @@
     },
     "cryptography": {
       "name": "cryptography",
+      "dependencies": {
+        "@tora-chain/be-common": "workspace:*",
+      },
       "devDependencies": {
         "@types/bun": "latest",
       },
@@ -61,6 +68,15 @@
         "typescript": "~6.0.2",
         "typescript-eslint": "^8.59.2",
         "vite": "^8.0.12",
+      },
+    },
+    "packages/be-common": {
+      "name": "@tora-chain/be-common",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
       },
     },
   },
@@ -182,6 +198,8 @@
     "@tokenizer/inflate": ["@tokenizer/inflate@0.4.1", "", { "dependencies": { "debug": "^4.4.3", "token-types": "^6.1.1" } }, "sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA=="],
 
     "@tokenizer/token": ["@tokenizer/token@0.3.0", "", {}, "sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A=="],
+
+    "@tora-chain/be-common": ["@tora-chain/be-common@workspace:packages/be-common"],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.2", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-RoBvJ2X0wuKlWFIjrwffGw1IqZHKQqzIchKaadZZfnNpsAYp2mM0h36JtPCjNDAHGgYez/15uMBpfGwchhiMgg=="],
 

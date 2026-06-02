@@ -1,11 +1,6 @@
 {
-  "name": "torachain",
-  "workspaces": [
-    "backend",
-    "frontend",
-    "cryptography",
-    "auth-backend"
-  ],
+  "name": "auth-backend",
+  "module": "index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {

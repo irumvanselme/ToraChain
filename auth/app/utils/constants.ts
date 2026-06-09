@@ -1,2 +1,3 @@
 import { status } from "elysia";
-export const ok = () => status(200, { ok: true });
+export const okResponse = { ok: true };
+export const ok = () => status(200, okResponse);

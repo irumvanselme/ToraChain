@@ -8,7 +8,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["tests/**/*.test.{ts,tsx}"],
+    include: ["./**/*.test.{ts,tsx}"],
     // Dummy values so config/auth modules can be imported without a real DB.
     env: {
       BETTER_AUTH_SECRET: "test-secret",

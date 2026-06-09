@@ -1,19 +1,17 @@
 import { Elysia } from "elysia";
+import { html } from "@elysia/html";
 import { Logger } from "@tora-chain/be-common";
 
-import { html } from "@elysia/html";
 import { Login } from "./Login.tsx";
-import { Register } from "./Register.tsx";
-import { ResetPassword } from "./ResetPassword.tsx";
-import { appRegistry } from "../_apps.ts";
 import { ok } from "app/utils/constants";
+import { Register } from "./Register.tsx";
+import { AppRegistry } from "../_apps.ts";
+import { ResetPassword } from "./ResetPassword.tsx";
 
-export const WebRouter = () => {
+export const WebRouter = (appRegistry: AppRegistry) => {
   const web = new Elysia();
-
   const logger = new Logger({ name: "web-router" });
-
-  for (const app of appRegistry().apps) {
+  for (const app of appRegistry.apps) {
     logger.debug(`Registering ${app.userType} routes`);
     web.use(
       new Elysia({ prefix: `/${app.userType}` })

@@ -6,7 +6,7 @@ import { config } from "./env.ts";
 import { AppHealth } from "./health.ts";
 import { WebRouter } from "./pages/router.ts";
 import { AuthRouter } from "./auth/_router";
-import { appRegistry } from "./_apps.ts";
+import { AppRegistry } from "./_apps.ts";
 import { VotersApp } from "./auth/voters.ts";
 import { AdminApp } from "./auth/admins.ts";
 import { AuditorsApp } from "./auth/auditors.ts";
@@ -14,12 +14,15 @@ import { AuditorsApp } from "./auth/auditors.ts";
 export class AuthServer {
   private readonly app;
 
-  constructor(private log = new Logger({ name: "auth-backend.server" })) {
+  constructor(
+    private log = new Logger({ name: "auth-backend.server" }),
+    private appRegistry = new AppRegistry(),
+  ) {
     this.app = this.buildApp();
   }
 
   private buildApp() {
-    appRegistry()
+    this.appRegistry
       .registerApp(new VotersApp())
       .registerApp(new AdminApp())
       .registerApp(new AuditorsApp());
@@ -39,9 +42,9 @@ export class AuthServer {
           error: error instanceof Error ? error.message : String(error),
         });
       })
-      .use(WebRouter())
-      .use(AppHealth())
-      .use(AuthRouter());
+      .use(WebRouter(this.appRegistry))
+      .use(AppHealth(this.appRegistry))
+      .use(AuthRouter(this.appRegistry));
   }
 
   async start(): Promise<void> {
@@ -56,7 +59,7 @@ export class AuthServer {
   async stop(): Promise<void> {
     this.log.info("Shutting down auth backend");
     await this.app.stop();
-    await Promise.all(appRegistry().apps.map(({ dbPool }) => dbPool.end()));
+    await Promise.all(this.appRegistry.apps.map(({ dbPool }) => dbPool.end()));
   }
 
   private registerShutdownHandlers(): void {

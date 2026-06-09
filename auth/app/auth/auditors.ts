@@ -1,5 +1,5 @@
 import { EUserType } from "../types.ts";
-import { createAuth } from "./shared";
+import { createAuth } from "./create";
 import type { App } from "../_apps.ts";
 
 export class AuditorsApp implements App {

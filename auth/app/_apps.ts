@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import type { createAuth } from "./auth/shared.ts";
+import type { createAuth } from "./auth/create";
 import type { EUserType } from "./types.ts";
 
 export interface App {

@@ -5,3 +5,9 @@ exports[`constants > ok > response should match snapshots 1`] = `
   "ok": true,
 }
 `;
+
+exports[`constants ok response should match snapshots 1`] = `
+{
+  "ok": true,
+}
+`;

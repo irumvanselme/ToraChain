@@ -1,12 +1,12 @@
 import { Elysia } from "elysia";
-import { appRegistry } from "./_apps.ts";
+import { AppRegistry } from "./_apps";
 
-export async function AppHealth() {
+export async function AppHealth(appRegistry: AppRegistry) {
   return new Elysia({
     prefix: "health",
   }).get("", async () => {
     const checks = await Promise.all(
-      appRegistry().apps.map(async ({ userType, dbPool }) => {
+      appRegistry.apps.map(async ({ userType, dbPool }) => {
         try {
           await dbPool.query("select 1");
           return [userType, "up"] as const;

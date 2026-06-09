@@ -1,6 +1,6 @@
-import { EUserType } from "../types.ts";
-import { createAuth } from "./shared";
-import type { App } from "../_apps.ts";
+import { EUserType } from "../types";
+import { createAuth } from "./create";
+import type { App } from "../_apps";
 
 export class AdminApp implements App {
   userType;

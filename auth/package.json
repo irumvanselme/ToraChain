@@ -8,6 +8,8 @@
     "start": "bun run app/server.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "health-check": "bun run scripts/health-check.ts",

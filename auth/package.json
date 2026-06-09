@@ -10,6 +10,7 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "health-check": "bun run scripts/health-check.ts",
     "generate:voters": "bunx @better-auth/cli@latest generate --config app/auth/voters.ts --output migrations/voters.sql -y",
     "generate:admins": "bunx @better-auth/cli@latest generate --config app/auth/admins.ts --output migrations/admins.sql -y",
     "generate:auditors": "bunx @better-auth/cli@latest generate --config app/auth/auditors.ts --output migrations/auditors.sql -y",

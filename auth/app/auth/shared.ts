@@ -15,6 +15,8 @@ export function createAuth(
 ) {
   logger.info(`Creating auth for ${userType}`);
   const dbPool = new Pool({ connectionString: config.databases[userType] });
+  dbPool.on("connect", () => logger.info(`Connected to ${userType} database`));
+  dbPool.on("error", (err) => logger.error(`Database error: ${err.message}`));
   const appName = `tora-chain-${userType}`;
   const auth = betterAuth({
     appName,

@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import {appRegistry} from "./_apps.ts";
+import { appRegistry } from "./_apps.ts";
 
 export async function AppHealth() {
   return new Elysia({
@@ -17,6 +17,6 @@ export async function AppHealth() {
     );
     const databases = Object.fromEntries(checks);
     const healthy = checks.every(([, s]) => s === "up");
-    return { status: healthy ? "ok" : "degraded", databases };
+    return { ok: healthy, databases };
   });
 }

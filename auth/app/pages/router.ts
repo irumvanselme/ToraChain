@@ -5,8 +5,8 @@ import { html } from "@elysia/html";
 import { Login } from "./Login.tsx";
 import { Register } from "./Register.tsx";
 import { ResetPassword } from "./ResetPassword.tsx";
-import {appRegistry} from "../_apps.ts";
-import {ok} from "app/utils/constants";
+import { appRegistry } from "../_apps.ts";
+import { ok } from "app/utils/constants";
 
 export const WebRouter = () => {
   const web = new Elysia();

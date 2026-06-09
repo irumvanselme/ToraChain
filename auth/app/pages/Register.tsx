@@ -4,11 +4,15 @@ import type { EUserType } from "app/types.ts";
 import { Layout } from "./layout.tsx";
 import { formScript } from "./script.ts";
 
-export function Login({ userType }: { userType: EUserType }) {
+export function Register({ userType }: { userType: EUserType }) {
   const base = `/${userType}/api`;
   return (
-    <Layout userType={userType} heading="Sign in">
-      <form id="login-form">
+    <Layout userType={userType} heading="Create account">
+      <form id="register-form">
+        <label>
+          Name
+          <input type="text" name="name" autocomplete="name" required />
+        </label>
         <label>
           Email
           <input type="email" name="email" autocomplete="email" required />
@@ -18,23 +22,23 @@ export function Login({ userType }: { userType: EUserType }) {
           <input
             type="password"
             name="password"
-            autocomplete="current-password"
+            autocomplete="new-password"
+            minlength="8"
             required
           />
         </label>
-        <button type="submit">Sign in</button>
+        <button type="submit">Create account</button>
         <p class="message" role="status"></p>
       </form>
       <nav class="links">
-        <a href={`/${userType}/register`}>Create account</a>
-        <a href={`/${userType}/reset-password`}>Forgot password?</a>
+        <a href={`/${userType}/login`}>Have an account? Sign in</a>
       </nav>
       <script>
         {formScript({
-          formId: "login-form",
-          endpoint: `${base}/sign-in/email`,
-          successMessage: "Signed in. Redirecting…",
-          redirectTo: "/",
+          formId: "register-form",
+          endpoint: `${base}/sign-up/email`,
+          successMessage: "Account created. Redirecting to sign in…",
+          redirectTo: `/${userType}/login`,
         })}
       </script>
     </Layout>

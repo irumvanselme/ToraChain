@@ -6,6 +6,9 @@ out
 dist
 *.tgz
 
+# better-auth CLI generated schema (regenerate with `bun run generate:*`)
+migrations/*.sql
+
 # code coverage
 coverage
 *.lcov

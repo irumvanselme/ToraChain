@@ -1,23 +1,29 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { html, Html } from '@elysia/html'
-import { Logger, logger as rootLogger } from "@tora-chain/be-common";
+import { Logger } from "@tora-chain/be-common/logging";
 
-import { config } from "./config/env.ts";
-import { auth } from "./auth.ts";
-import { database } from "./db";
-import { Login } from "./pages/Login.tsx";
+import { config } from "./env.ts";
+import { AppHealth } from "./health.ts";
+import { WebRouter } from "./pages/router.ts";
+import { AuthRouter } from "./auth/_router";
+import { appRegistry } from "./_apps.ts";
+import { VotersApp } from "./auth/voters.ts";
+import { AdminApp } from "./auth/admins.ts";
+import { AuditorsApp } from "./auth/auditors.ts";
 
 export class AuthServer {
   private readonly app;
-  private readonly log: Logger;
 
-  constructor(logger: Logger = rootLogger) {
-    this.log = logger.child({ service: "auth-backend", component: "http" });
+  constructor(private log = new Logger({ name: "auth-backend.server" })) {
     this.app = this.buildApp();
   }
 
   private buildApp() {
+    appRegistry()
+      .registerApp(new VotersApp())
+      .registerApp(new AdminApp())
+      .registerApp(new AuditorsApp());
+
     return new Elysia()
       .use(
         cors({
@@ -26,7 +32,6 @@ export class AuthServer {
           methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         }),
       )
-        .use(html())
       .onError(({ code, error, path }) => {
         this.log.error("Request error", {
           code,
@@ -34,35 +39,24 @@ export class AuthServer {
           error: error instanceof Error ? error.message : String(error),
         });
       })
-      .get("/health", async () => {
-        const dbHealthy = await database.ping();
-        return {
-          status: dbHealthy ? "ok" : "degraded",
-          database: dbHealthy ? "up" : "down",
-        };
-      })
-        .get("/login", Login)
-      .all(`${config.basePath}/*`, ({ request }) => auth.handler(request));
+      .use(WebRouter())
+      .use(AppHealth())
+      .use(AuthRouter());
   }
 
   async start(): Promise<void> {
-    await database.connect();
-
     this.app.listen(config.port, () => {
-      this.log.info("Auth backend listening", {
-        url: config.betterAuthUrl,
-        authBasePath: config.basePath,
-        port: config.port,
-      });
+      this.log.info(
+        `Auth backend listening on ${config.baseURL}:${config.port}`,
+      );
     });
-
     this.registerShutdownHandlers();
   }
 
   async stop(): Promise<void> {
     this.log.info("Shutting down auth backend");
     await this.app.stop();
-    await database.close();
+    await Promise.all(appRegistry().apps.map(({ dbPool }) => dbPool.end()));
   }
 
   private registerShutdownHandlers(): void {
@@ -76,6 +70,9 @@ export class AuthServer {
 }
 
 const server = new AuthServer();
-await server.start();
+
+if (import.meta.main) {
+  await server.start();
+}
 
 export { server };

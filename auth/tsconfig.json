@@ -16,6 +16,7 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
+    "baseUrl": "./",
 
     // Best practices
     "strict": true,

@@ -1,4 +1,6 @@
+import { sql } from "drizzle-orm";
 import { Pool, type PoolConfig } from "pg";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import { Logger, logger as defaultLogger } from "../logging/logger.ts";
 

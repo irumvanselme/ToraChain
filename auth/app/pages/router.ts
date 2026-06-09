@@ -2,11 +2,12 @@ import { Elysia } from "elysia";
 import { html } from "@elysia/html";
 import { Logger } from "@tora-chain/be-common";
 
-import { Login } from "./Login.tsx";
 import { ok } from "app/utils/constants";
-import { Register } from "./Register.tsx";
 import { AppRegistry } from "../_apps.ts";
-import { ResetPassword } from "./ResetPassword.tsx";
+
+import { Login } from "./login.tsx";
+import { Register } from "./register.tsx";
+import { ResetPassword } from "./reset-password.tsx";
 
 export const WebRouter = (appRegistry: AppRegistry) => {
   const web = new Elysia();

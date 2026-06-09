@@ -17,6 +17,14 @@ export type LayoutProps = PropsWithChildren<{
   heading: string;
 }>;
 
+const FONT_STYLES = `
+* {
+    font-family: "DM Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+  }
+`;
+
 /** Shared chrome + styling for every auth page. */
 export function Layout({ userType, heading, children }: LayoutProps) {
   return (
@@ -25,6 +33,13 @@ export function Layout({ userType, heading, children }: LayoutProps) {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title safe>{`ToraChain · ${domainTitle(userType)} ${heading}`}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
+          rel="stylesheet"
+        />
+        <style>{FONT_STYLES}</style>
         <style>{CSS}</style>
       </head>
       <body>
@@ -52,8 +67,8 @@ body {
   background: #f3f4f6; color: #111827; padding: 1.5rem;
 }
 .card {
-  width: 100%; max-width: 380px; background: #fff; border-radius: 14px;
-  padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  width: 100%; max-width: 380px; background: #fff;
+  padding: 2rem;;
 }
 .brand { display: flex; flex-direction: column; gap: .15rem; margin-bottom: 1.25rem; }
 .logo { font-weight: 700; letter-spacing: .02em; color: var(--accent); }
@@ -62,12 +77,12 @@ h1 { font-size: 1.4rem; margin: 0 0 1.25rem; }
 form { display: flex; flex-direction: column; gap: .85rem; }
 label { display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; font-weight: 600; }
 input {
-  padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 8px;
+  padding: .6rem .7rem; border: 1px solid var(--border);
   font-size: 1rem; background: #fff; color: inherit;
 }
 input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
 button {
-  margin-top: .4rem; padding: .65rem; border: 0; border-radius: 8px;
+  margin-top: .4rem; padding: .65rem; border: 0;
   background: var(--accent); color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer;
 }
 button:disabled { opacity: .6; cursor: progress; }

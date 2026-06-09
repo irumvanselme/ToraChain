@@ -49,9 +49,7 @@ export class AuthServer {
 
   async start(): Promise<void> {
     this.app.listen(config.port, () => {
-      this.log.info(
-        `Auth backend listening on ${config.baseURL}:${config.port}`,
-      );
+      this.log.info(`Auth backend listening on ${config.baseURL}}`);
     });
     this.registerShutdownHandlers();
   }

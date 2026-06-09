@@ -23,7 +23,6 @@ export function Login({ userType }: { userType: EUserType }) {
           />
         </label>
         <button type="submit">Sign in</button>
-        <p class="message" role="status"></p>
       </form>
       <nav class="links">
         <a href={`/${userType}/register`}>Create account</a>

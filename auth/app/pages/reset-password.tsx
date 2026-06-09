@@ -17,7 +17,6 @@ export function ResetPassword({ userType }: { userType: EUserType }) {
         </label>
         <input type="hidden" name="redirectTo" value={redirectTo} />
         <button type="submit">Send reset link</button>
-        <p class="message" role="status"></p>
       </form>
       <nav class="links">
         <a href={`/${userType}/login`}>Back to sign in</a>

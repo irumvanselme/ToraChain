@@ -23,6 +23,10 @@ jobs:
         working-directory: ./auth
         run: bun run format:check
 
+      - name: check-types
+        working-directory: ./auth
+        run: bun run check-types
+
       - name: linting
         working-directory: ./auth
         run: bun run lint

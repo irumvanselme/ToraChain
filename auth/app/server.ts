@@ -1,10 +1,12 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
+import { html, Html } from '@elysia/html'
 import { Logger, logger as rootLogger } from "@tora-chain/be-common";
 
 import { config } from "./config/env.ts";
 import { auth } from "./auth.ts";
 import { database } from "./db";
+import { Login } from "./pages/Login.tsx";
 
 export class AuthServer {
   private readonly app;
@@ -24,6 +26,7 @@ export class AuthServer {
           methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         }),
       )
+        .use(html())
       .onError(({ code, error, path }) => {
         this.log.error("Request error", {
           code,
@@ -38,6 +41,7 @@ export class AuthServer {
           database: dbHealthy ? "up" : "down",
         };
       })
+        .get("/login", Login)
       .all(`${config.basePath}/*`, ({ request }) => auth.handler(request));
   }
 

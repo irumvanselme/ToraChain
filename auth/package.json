@@ -1,0 +1,26 @@
+{
+  "name": "@torachain/auth",
+  "module": "app/server.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch app/server.ts",
+    "start": "bun run app/server.ts"
+  },
+  "dependencies": {
+    "@elysia/html": "^1.4.1",
+    "@elysiajs/cors": "^1.4.2",
+    "@tora-chain/be-common": "workspace:*",
+    "better-auth": "^1.6.14",
+    "elysia": "^1.4.28",
+    "pg": "^8.21.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.20.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -1,11 +1,11 @@
-name: Auth CI
+name: auth-ci
 
 on:
   workflow_call:
 
 jobs:
-  lint:
-    name: lint
+  ci:
+    name: ci
     runs-on: ubuntu-latest
     steps:
       - name: checkout

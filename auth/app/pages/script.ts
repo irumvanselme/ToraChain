@@ -20,6 +20,7 @@ export function formScript(opts: {
     msg.className = "message";
     msg.textContent = "";
     button.disabled = true;
+    button.classList.add("loading");
     const body = Object.fromEntries(new FormData(form).entries());
     try {
       const res = await fetch(${JSON.stringify(endpoint)}, {
@@ -40,8 +41,86 @@ export function formScript(opts: {
       msg.textContent = err.message;
     } finally {
       button.disabled = false;
+      button.classList.remove("loading");
     }
   });
+})();
+`;
+}
+
+/**
+ * Generate the inline client script for the profile page. Loads the current
+ * session from better-auth (credentials included), fills in the profile
+ * fields, and wires the sign-out button. Redirects to login when there is no
+ * active session.
+ */
+export function profileScript(opts: {
+  sessionEndpoint: string;
+  signOutEndpoint: string;
+  loginRedirect: string;
+}): string {
+  const { sessionEndpoint, signOutEndpoint, loginRedirect } = opts;
+  return `
+(() => {
+  const root = document.getElementById("profile");
+  const msg = document.getElementById("profile-message");
+  const signout = document.getElementById("signout");
+
+  const setMsg = (text, kind) => {
+    msg.className = "message" + (kind ? " " + kind : "");
+    msg.textContent = text || "";
+  };
+  const setField = (name, value) => {
+    const el = root.querySelector('[data-field="' + name + '"]');
+    if (el) el.textContent = value;
+  };
+
+  const load = async () => {
+    try {
+      const res = await fetch(${JSON.stringify(sessionEndpoint)}, {
+        credentials: "include",
+        headers: { accept: "application/json" },
+      });
+      const data = await res.json().catch(() => null);
+      const user = data && data.user;
+      if (!res.ok || !user) {
+        setMsg("You're not signed in. Redirecting…", "error");
+        setTimeout(() => { window.location.href = ${JSON.stringify(loginRedirect)}; }, 800);
+        return;
+      }
+      setField("name", user.name || "—");
+      setField("email", user.email || "—");
+      setField("emailVerified", user.emailVerified ? "Yes" : "No");
+      setField("createdAt", user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—");
+      setMsg("");
+      root.hidden = false;
+    } catch (err) {
+      setMsg(err.message || "Could not load profile.", "error");
+    }
+  };
+
+  signout.addEventListener("click", async () => {
+    signout.disabled = true;
+    signout.classList.add("loading");
+    setMsg("");
+    try {
+      const res = await fetch(${JSON.stringify(signOutEndpoint)}, {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      });
+      if (!res.ok) throw new Error("Sign out failed (" + res.status + ")");
+      setMsg("Signed out. Redirecting…", "success");
+      setTimeout(() => { window.location.href = ${JSON.stringify(loginRedirect)}; }, 600);
+    } catch (err) {
+      setMsg(err.message, "error");
+      signout.disabled = false;
+      signout.classList.remove("loading");
+    }
+  });
+
+  load();
 })();
 `;
 }

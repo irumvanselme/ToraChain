@@ -35,6 +35,21 @@ jobs:
         working-directory: ./backend
         run: bun run test
 
+  integration:
+    name: integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: install dependencies
+        run: bun install --frozen-lockfile
+
       - name: integration-tests
         working-directory: ./backend
         env:

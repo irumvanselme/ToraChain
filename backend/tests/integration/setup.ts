@@ -6,8 +6,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import { Database } from "@tora-chain/be-common/database";
 
-export const TEST_DB_URL =
-  process.env.TEST_DATABASE_URI;
+export const TEST_DB_URL = process.env.TEST_DATABASE_URI;
 export const hasTestDb = Boolean(TEST_DB_URL);
 
 const migrationsFolder = resolve(

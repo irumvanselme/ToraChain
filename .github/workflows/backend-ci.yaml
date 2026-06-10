@@ -1,0 +1,36 @@
+name: backend-ci
+
+on:
+  workflow_call:
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: formatting
+        working-directory: ./backend
+        run: bun run format:check
+
+      - name: check-types
+        working-directory: ./backend
+        run: bun run check-types
+
+      - name: linting
+        working-directory: ./backend
+        run: bun run lint
+
+      - name: unit-tests
+        working-directory: ./backend
+        run: bun run test

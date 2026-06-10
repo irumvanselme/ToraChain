@@ -10,3 +10,7 @@ jobs:
   auth:
     name: auth-ci
     uses: ./.github/workflows/auth-ci.yaml
+
+  backend:
+    name: backend-ci
+    uses: ./.github/workflows/backend-ci.yaml

@@ -34,7 +34,7 @@ export const voters = pgTable("voters", {
 
 /** A voter's eligibility (and ballot status) for a single election. */
 export const eligibilities = pgTable(
-  "eligibility",
+  "eligibilities",
   {
     eligibilityId: uuid("eligibility_id").defaultRandom().primaryKey(),
     // 216-bit server-assigned identifier.
@@ -49,10 +49,21 @@ export const eligibilities = pgTable(
       .references(() => elections.electionId, { onDelete: "cascade" }),
     hasVoted: boolean("has_voted").notNull().default(false),
     deleted: boolean("deleted").notNull().default(false),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    // Millisecond precision so the JS `Date` used in keyset cursors
+    // round-trips exactly — otherwise the residual microseconds make the
+    // boundary row satisfy `created_at > cursor` and reappear on the next page.
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+      precision: 3,
+    })
       .notNull()
       .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+      precision: 3,
+    })
       .notNull()
       .defaultNow(),
   },

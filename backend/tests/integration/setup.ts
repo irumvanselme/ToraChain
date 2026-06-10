@@ -6,7 +6,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import { Database } from "@tora-chain/be-common/database";
 
-export const TEST_DB_URL = process.env.TEST_DATABASE_URI;
+export const TEST_DB_URL = process.env.VITE_TEST_DATABASE_URI;
 export const hasTestDb = Boolean(TEST_DB_URL);
 
 const migrationsFolder = resolve(
@@ -21,8 +21,11 @@ export async function bootstrapDatabase(): Promise<Database> {
 
   const database = new Database<Record<string, never>>({ url: TEST_DB_URL! });
 
-  // Clean slate, then migrate.
+  // Clean slate, then migrate. Drop the `drizzle` schema too: it holds
+  // Drizzle's migration-tracking table, and if it survives a reset `migrate`
+  // treats the migrations as already applied and skips recreating the tables.
   await database.db.execute(sql`drop schema if exists public cascade`);
+  await database.db.execute(sql`drop schema if exists drizzle cascade`);
   await database.db.execute(sql`create schema public`);
   await migrate(database.db, { migrationsFolder });
 
@@ -30,7 +33,14 @@ export async function bootstrapDatabase(): Promise<Database> {
 }
 
 export async function truncateAll(database: Database): Promise<void> {
-  await database.db.execute(
-    sql`truncate table votes, eligibilities, candidates, voters, elections restart identity cascade`,
-  );
+  try {
+    await database.db.execute(
+      sql`truncate table votes, eligibilities, candidates, voters, elections restart identity cascade`,
+    );
+  } catch (err: unknown) {
+    console.warn(
+      "Error truncating tables; check that the test database is configured correctly and has the expected schema.",
+      err,
+    );
+  }
 }

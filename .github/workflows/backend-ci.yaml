@@ -34,3 +34,9 @@ jobs:
       - name: unit-tests
         working-directory: ./backend
         run: bun run test
+
+      - name: integration-tests
+        working-directory: ./backend
+        env:
+          VITE_TEST_DATABASE_URI: ${{ secrets.VITE_TEST_DATABASE_URI }}
+        run: bun run test:integration

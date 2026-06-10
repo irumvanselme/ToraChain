@@ -32,8 +32,8 @@ CREATE TABLE "eligibilities" (
 	"election_id" uuid NOT NULL,
 	"has_voted" boolean DEFAULT false NOT NULL,
 	"deleted" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_at" timestamp (3) with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp (3) with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "eligibilities_voting_number_unique" UNIQUE("voting_number")
 );
 --> statement-breakpoint
@@ -65,5 +65,5 @@ ALTER TABLE "votes" ADD CONSTRAINT "votes_eligibility_id_eligibilities_eligibili
 CREATE INDEX "candidates_election_idx" ON "candidates" USING btree ("election_id");--> statement-breakpoint
 CREATE INDEX "elections_status_idx" ON "elections" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "eligibilities_election_idx" ON "eligibilities" USING btree ("election_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "eligibilities_voter_election_uq" ON "eligibilities" USING btree ("voter_id","election_id") WHERE "eligibility"."deleted" = false;--> statement-breakpoint
+CREATE UNIQUE INDEX "eligibilities_voter_election_uq" ON "eligibilities" USING btree ("voter_id","election_id") WHERE "eligibilities"."deleted" = false;--> statement-breakpoint
 CREATE INDEX "votes_election_idx" ON "votes" USING btree ("election_id");

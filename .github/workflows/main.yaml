@@ -14,3 +14,4 @@ jobs:
   backend:
     name: backend-ci
     uses: ./.github/workflows/backend-ci.yaml
+    secrets: inherit

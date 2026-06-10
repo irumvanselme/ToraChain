@@ -23,6 +23,7 @@ export function Login({ userType }: { userType: EUserType }) {
           />
         </label>
         <button type="submit">Sign in</button>
+        <p class="message"></p>
       </form>
       <nav class="links">
         <a href={`/${userType}/register`}>Create account</a>
@@ -33,7 +34,7 @@ export function Login({ userType }: { userType: EUserType }) {
           formId: "login-form",
           endpoint: `${base}/sign-in/email`,
           successMessage: "Signed in. Redirecting…",
-          redirectTo: "/",
+          redirectTo: `/${userType}/profile`,
         })}
       </script>
     </Layout>

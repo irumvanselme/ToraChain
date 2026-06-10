@@ -28,6 +28,7 @@ export function Register({ userType }: { userType: EUserType }) {
           />
         </label>
         <button type="submit">Create account</button>
+        <p class="message"></p>
       </form>
       <nav class="links">
         <a href={`/${userType}/login`}>Have an account? Sign in</a>

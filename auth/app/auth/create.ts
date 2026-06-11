@@ -1,11 +1,12 @@
-import { betterAuth, type BetterAuthOptions } from "better-auth";
-import { openAPI } from "better-auth/plugins";
-import { jwt } from "better-auth/plugins/jwt";
 import { Pool } from "pg";
+import { jwt } from "better-auth/plugins/jwt";
+import { openAPI } from "better-auth/plugins";
+import { betterAuth, type BetterAuthOptions } from "better-auth";
+
+import { Logger } from "@tora-chain/be-common";
 
 import { config } from "../env.ts";
-import { EUserType } from "../types.ts";
-import { Logger } from "@tora-chain/be-common";
+import { EUserType, tableNames } from "../types.ts";
 
 const logger = new Logger({ name: "auth.shared" });
 
@@ -20,6 +21,8 @@ export function createAuth(
   dbPool.on("error", (err) => logger.error(`Database error: ${err.message}`));
   const appName = `tora-chain-${userType}`;
 
+  const tables = tableNames(userType);
+
   const auth = betterAuth({
     appName,
     baseURL: config.baseURL,
@@ -30,7 +33,15 @@ export function createAuth(
     emailAndPassword: {
       enabled: true,
     },
-    plugins: [jwt(), openAPI(), ...(extraPlugins ?? [])],
+    user: { modelName: tables.user },
+    session: { modelName: tables.session },
+    account: { modelName: tables.account },
+    verification: { modelName: tables.verification },
+    plugins: [
+      jwt({ schema: { jwks: { modelName: tables.jwks } } }),
+      openAPI(),
+      ...(extraPlugins ?? []),
+    ],
   });
 
   return { auth, dbPool };

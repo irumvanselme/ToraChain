@@ -18,8 +18,11 @@ export const ListQuerySchema = t.Object({
   trash: t.Optional(t.Boolean()),
 });
 
+// Grant by `voterUserId` (looked up via the auth /core API) or by `email`
+// directly. At least one must be supplied (validated in the service).
 export const GrantBodySchema = t.Object({
-  email: t.String({ format: "email" }),
+  email: t.Optional(t.String({ format: "email" })),
+  voterUserId: t.Optional(t.String({ minLength: 1 })),
 });
 
 export const PatchBodySchema = t.Object({

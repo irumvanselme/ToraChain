@@ -21,6 +21,8 @@ import { VotersService } from "./voters/service.ts";
 import { VotersController } from "./voters/controller.ts";
 import type { AuthDirectory } from "./voters/auth-directory.ts";
 import { NullAuthDirectory } from "./voters/auth-directory.ts";
+import type { AuthCoreClient } from "./auth/AuthCoreService.ts";
+import { NullAuthCore } from "./auth/AuthCoreService.ts";
 
 import { DrizzleVotesRepository } from "./votes/repository.ts";
 import { VotesService } from "./votes/service.ts";
@@ -36,6 +38,7 @@ export interface Services {
 export function buildServices(
   db: NodePgDatabase,
   directory: AuthDirectory = new NullAuthDirectory(),
+  authCore: AuthCoreClient = new NullAuthCore(),
 ): Services {
   const electionsRepo = new DrizzleElectionsRepository(db);
   const candidatesRepo = new DrizzleCandidatesRepository(db);
@@ -44,7 +47,7 @@ export function buildServices(
 
   const elections = new ElectionsService(electionsRepo);
   const candidates = new CandidatesService(candidatesRepo, elections);
-  const voters = new VotersService(votersRepo, elections, directory);
+  const voters = new VotersService(votersRepo, elections, directory, authCore);
   const votes = new VotesService(
     elections,
     votersRepo,

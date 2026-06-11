@@ -59,7 +59,7 @@ export function VotersController(service: VotersService) {
         detail: {
           summary: "Grant eligibility",
           description:
-            "Grants a voter eligibility for the election (looking up / verifying their account by email) with a server-assigned `votingNumber`. Returns `409 ALREADY_ELIGIBLE` if already granted.",
+            "Grants a voter eligibility for the election with a server-assigned `votingNumber`. Provide `voterUserId` to resolve the voter via the auth /core API, or `email` to verify against the auth directory. Returns `409 ALREADY_ELIGIBLE` if already granted.",
         },
       },
     )

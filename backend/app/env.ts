@@ -5,6 +5,10 @@ const EnvSchema = z.object({
   AUTH_SERVICE_URL: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(3001),
   TRUSTED_ORIGINS: z.string().optional(),
+  // Auth /core API for voter lookups by user id. Both must be set to enable it;
+  // AUTH_CORE_URL defaults to AUTH_SERVICE_URL when only the key is provided.
+  AUTH_CORE_URL: z.string().optional(),
+  AUTH_CORE_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -16,6 +20,10 @@ export interface AppConfig {
   readonly trustedOrigins: string[];
   /** Connection string to the voters identity DB, if configured. */
   readonly votersAuthDbUrl?: string;
+  /** Base URL of the auth /core API (voter lookups), if configured. */
+  readonly authCoreUrl?: string;
+  /** API key used to authenticate against the auth /core API, if configured. */
+  readonly authCoreApiKey?: string;
 }
 
 function buildConfig(env: Env): AppConfig {
@@ -30,6 +38,8 @@ function buildConfig(env: Env): AppConfig {
     baseURL: env.AUTH_SERVICE_URL,
     port: env.PORT,
     trustedOrigins,
+    authCoreUrl: env.AUTH_CORE_URL ?? env.AUTH_SERVICE_URL,
+    authCoreApiKey: env.AUTH_CORE_API_KEY,
   };
 }
 

@@ -8,10 +8,16 @@ import {
   PgAuthDirectory,
   type AuthDirectory,
 } from "./voters/auth-directory.ts";
+import {
+  AuthCoreService,
+  NullAuthCore,
+  type AuthCoreClient,
+} from "./auth/AuthCoreService.ts";
 
 export class BackendServer {
   private readonly app;
   private readonly directory: AuthDirectory;
+  private readonly authCore: AuthCoreClient;
 
   constructor(private log = new Logger({ name: "backend.server" })) {
     this.directory = config.votersAuthDbUrl
@@ -24,7 +30,18 @@ export class BackendServer {
       );
     }
 
-    const services = buildServices(db, this.directory);
+    this.authCore =
+      config.authCoreUrl && config.authCoreApiKey
+        ? new AuthCoreService(config.authCoreUrl, config.authCoreApiKey)
+        : new NullAuthCore();
+
+    if (!this.authCore.enabled) {
+      this.log.warn(
+        "AUTH_CORE_API_KEY is not set — voters cannot be granted by voterUserId via the auth /core API.",
+      );
+    }
+
+    const services = buildServices(db, this.directory, this.authCore);
     this.app = buildApp(services, database);
   }
 

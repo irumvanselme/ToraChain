@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import { ElectionsService } from "../elections/service.ts";
 import {
+  FakeAuthCore,
   FakeAuthDirectory,
   InMemoryElectionsRepository,
   InMemoryVotersRepository,
@@ -11,6 +12,7 @@ import { VotersService } from "./service.ts";
 let elections: InMemoryElectionsRepository;
 let voters: InMemoryVotersRepository;
 let directory: FakeAuthDirectory;
+let authCore: FakeAuthCore;
 let service: VotersService;
 let electionId: string;
 
@@ -18,10 +20,12 @@ beforeEach(() => {
   elections = new InMemoryElectionsRepository();
   voters = new InMemoryVotersRepository();
   directory = new FakeAuthDirectory(true);
+  authCore = new FakeAuthCore(true);
   service = new VotersService(
     voters,
     new ElectionsService(elections),
     directory,
+    authCore,
   );
   electionId = elections.seed().electionId;
 });
@@ -89,6 +93,36 @@ describe("grant", () => {
     });
     expect(again.eligibilityId).toBe(first.eligibilityId);
     expect(again.deleted).toBe(false);
+  });
+
+  test("grants by voterUserId, resolving email + accountId from auth core", async () => {
+    authCore.add({
+      id: "auth-user-1",
+      email: "Voter@Example.com",
+      name: "Ada",
+    });
+    const eligibility = await service.grant(electionId, {
+      voterUserId: "auth-user-1",
+    });
+    expect(eligibility.accountId).toBe("auth-user-1");
+    // The voter is stored under the normalized email from the auth service.
+    expect(await voters.findVoterByEmail("voter@example.com")).not.toBeNull();
+  });
+
+  test("404 when the voterUserId is unknown to auth core", async () => {
+    await expectError(
+      () => service.grant(electionId, { voterUserId: "ghost" }),
+      "RESOURCE_NOT_FOUND",
+      404,
+    );
+  });
+
+  test("400 when neither email nor voterUserId is provided", async () => {
+    await expectError(
+      () => service.grant(electionId, {}),
+      "VALIDATION_ERROR",
+      400,
+    );
   });
 });
 

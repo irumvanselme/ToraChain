@@ -8,6 +8,7 @@ import {
 } from "../common/pagination.ts";
 import type { ElectionsService } from "../elections/service.ts";
 import type { AuthDirectory } from "./auth-directory.ts";
+import { NullAuthCore, type AuthCoreClient } from "../auth/AuthCoreService.ts";
 import {
   serializeEligibility,
   type EligibilityDTO,
@@ -22,7 +23,9 @@ export interface ListVotersQuery extends EligibilityListFilter {
 }
 
 export interface GrantEligibilityInput {
-  email: string;
+  email?: string;
+  /** Voter user id in the auth service; resolved via the /core API. */
+  voterUserId?: string;
 }
 
 export interface PatchVoterInput {
@@ -34,6 +37,7 @@ export class VotersService {
     private readonly repo: VotersRepository,
     private readonly elections: ElectionsService,
     private readonly directory: AuthDirectory,
+    private readonly authCore: AuthCoreClient = new NullAuthCore(),
   ) {}
 
   /** Load an eligibility row joined with its voter, or throw 404. */
@@ -91,21 +95,48 @@ export class VotersService {
     );
   }
 
+  /**
+   * Resolve the voter's canonical email + account id from the grant input —
+   * either by looking the voter up in the auth /core API by user id, or by
+   * verifying the supplied email against the auth directory.
+   */
+  private async resolveIdentity(
+    input: GrantEligibilityInput,
+  ): Promise<{ email: string; accountId: string | null }> {
+    if (input.voterUserId) {
+      const voter = await this.authCore.getVoter(input.voterUserId);
+      if (!voter) {
+        throw AppError.notFound(
+          `No voter account was found for user ${input.voterUserId}.`,
+          { voterUserId: input.voterUserId },
+        );
+      }
+      return { email: normalizeEmail(voter.email), accountId: voter.id };
+    }
+
+    if (input.email) {
+      const email = normalizeEmail(input.email);
+      // Verify the voter has an account in the auth backend (when enforced).
+      const account = await this.directory.findAccountByEmail(email);
+      if (this.directory.enforced && !account) {
+        throw AppError.notFound(`No voter account was found for ${email}.`, {
+          email,
+        });
+      }
+      return { email, accountId: account?.accountId ?? null };
+    }
+
+    throw AppError.validation(
+      "Provide either an email or a voterUserId to grant eligibility.",
+    );
+  }
+
   async grant(
     electionId: string,
     input: GrantEligibilityInput,
   ): Promise<EligibilityDTO> {
     await this.elections.getRow(electionId);
-    const email = normalizeEmail(input.email);
-
-    // Verify the voter has an account in the auth backend (when enforced).
-    const account = await this.directory.findAccountByEmail(email);
-    if (this.directory.enforced && !account) {
-      throw AppError.notFound(`No voter account was found for ${email}.`, {
-        email,
-      });
-    }
-    const accountId = account?.accountId ?? null;
+    const { email, accountId } = await this.resolveIdentity(input);
 
     // Find or create the underlying voter.
     let voter = await this.repo.findVoterByEmail(email);

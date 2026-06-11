@@ -3,7 +3,7 @@
   "workspaces": [
     "backend",
     "frontend",
-    "cryptography",
+    "blockchain",
     "auth",
     "packages/*"
   ],

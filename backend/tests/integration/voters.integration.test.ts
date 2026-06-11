@@ -21,6 +21,43 @@ integrationSuite("Voters", (ctx) => {
     expect(grant.body.voterId).toBeTypeOf("string");
   });
 
+  test("grants eligibility by voterUserId via the mocked auth core", async () => {
+    const { call, authCore } = ctx();
+    authCore.add({
+      id: "auth-user-1",
+      email: "by-id@example.com",
+      name: "Ada",
+    });
+    const { electionId } = await createElection(call, { title: "By id" });
+
+    const grant = await call<{ accountId: string | null; voterId: string }>(
+      "POST",
+      `/elections/${electionId}/voters`,
+      { voterUserId: "auth-user-1" },
+    );
+    expect(grant.status).toBe(201);
+    expect(grant.body.accountId).toBe("auth-user-1");
+
+    // The same voter is now listed for the election.
+    const list = await call<{ data: { voterId: string }[] }>(
+      "GET",
+      `/elections/${electionId}/voters`,
+    );
+    expect(list.body.data.map((v) => v.voterId)).toContain(grant.body.voterId);
+  });
+
+  test("404 when granting by an unknown voterUserId", async () => {
+    const { call } = ctx();
+    const { electionId } = await createElection(call, { title: "Unknown" });
+    const res = await call<{ code: string }>(
+      "POST",
+      `/elections/${electionId}/voters`,
+      { voterUserId: "does-not-exist" },
+    );
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe("RESOURCE_NOT_FOUND");
+  });
+
   test("rejects a duplicate eligibility grant", async () => {
     const { call } = ctx();
     const { electionId } = await createElection(call, { title: "Roll" });

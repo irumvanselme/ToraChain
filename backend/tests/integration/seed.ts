@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe } from "vitest";
 import type { Database } from "@tora-chain/be-common/database";
 
+import { FakeAuthCore } from "../../app/test-helpers/fakes.ts";
 import { bootstrapDatabase, hasTestDb, truncateAll } from "./setup.ts";
 
 export interface TestApp {
@@ -22,6 +23,8 @@ export interface TestContext {
   database: Database;
   app: TestApp;
   call: Call;
+  /** The mocked auth /core client — never hits the network in tests. */
+  authCore: FakeAuthCore;
 }
 
 /** Boot the elections app against the (freshly migrated) test database. */
@@ -30,7 +33,13 @@ export async function setupContext(): Promise<TestContext> {
   const { buildServices, buildApp } = await import("../../app/app.ts");
   const { NullAuthDirectory } =
     await import("../../app/voters/auth-directory.ts");
-  const services = buildServices(database.db, new NullAuthDirectory());
+  // The auth /core API is mocked in integration tests — no network access.
+  const authCore = new FakeAuthCore(true);
+  const services = buildServices(
+    database.db,
+    new NullAuthDirectory(),
+    authCore,
+  );
   const app = buildApp(services, database) as TestApp;
 
   const call: Call = async (method, path, body) => {
@@ -44,7 +53,7 @@ export async function setupContext(): Promise<TestContext> {
     return { status: res.status, body: (await res.json()) as never };
   };
 
-  return { database, app, call };
+  return { database, app, call, authCore };
 }
 
 /**

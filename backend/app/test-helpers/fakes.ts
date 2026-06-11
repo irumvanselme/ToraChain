@@ -25,6 +25,7 @@ import type {
 } from "../voters/repository.ts";
 import type { RecordVoteInput, VotesRepository } from "../votes/repository.ts";
 import type { AuthAccount, AuthDirectory } from "../voters/auth-directory.ts";
+import type { AuthCoreClient, CoreVoter } from "../auth/AuthCoreService.ts";
 
 /** Monotonic clock so created_at ordering is deterministic across inserts. */
 let clock = 0;
@@ -372,5 +373,31 @@ export class FakeAuthDirectory implements AuthDirectory {
 
   async findAccountByEmail(email: string) {
     return this.accounts.get(email.toLowerCase()) ?? null;
+  }
+}
+
+// ---- Auth /core client ---------------------------------------------------
+
+/** In-memory stand-in for the auth /core API used in unit + integration tests. */
+export class FakeAuthCore implements AuthCoreClient {
+  readonly enabled: boolean;
+  private readonly voters = new Map<string, CoreVoter>();
+
+  constructor(enabled = true) {
+    this.enabled = enabled;
+  }
+
+  add(voter: Partial<CoreVoter> & { id: string; email: string }): this {
+    this.voters.set(voter.id, {
+      id: voter.id,
+      name: voter.name ?? "Test Voter",
+      email: voter.email,
+      emailVerified: voter.emailVerified ?? true,
+    });
+    return this;
+  }
+
+  async getVoter(voterUserId: string): Promise<CoreVoter | null> {
+    return this.voters.get(voterUserId) ?? null;
   }
 }

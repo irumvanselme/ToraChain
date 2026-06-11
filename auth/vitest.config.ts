@@ -13,9 +13,7 @@ export default defineConfig({
     env: {
       BETTER_AUTH_SECRET: "test-secret",
       BETTER_AUTH_URL: "http://localhost:3000",
-      VOTERS_AUTH_DB_URI: "postgres://test:test@localhost:5432/voters_auth",
-      ADMINS_AUTH_DB_URI: "postgres://test:test@localhost:5432/admins_auth",
-      AUDITORS_AUTH_DB_URI: "postgres://test:test@localhost:5432/auditors_auth",
+      AUTH_DB_URI: "postgres://test:test@localhost:5432/tora_auth",
     },
   },
 });

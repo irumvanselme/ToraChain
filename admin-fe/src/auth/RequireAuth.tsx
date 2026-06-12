@@ -13,8 +13,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      const here = window.location.pathname + window.location.search;
-      window.location.href = loginUrl(here);
+      window.location.href = loginUrl(window.location.href);
     }
   }, [loading, user]);
 

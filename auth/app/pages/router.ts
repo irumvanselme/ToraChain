@@ -3,6 +3,7 @@ import { html } from "@elysia/html";
 import { Logger } from "@tora-chain/be-common";
 
 import { links, ok } from "app/utils/constants";
+import { config } from "../env.ts";
 import { AppRegistry } from "../_apps.ts";
 
 import { Login } from "./login.tsx";
@@ -10,16 +11,43 @@ import { Profile } from "./profile.tsx";
 import { Register } from "./register.tsx";
 import { ResetPassword } from "./reset-password.tsx";
 
+/** Origins we are willing to redirect back to: our own + trusted SPAs. */
+const allowedOrigins = new Set(
+  [config.baseURL, ...config.trustedOrigins].flatMap((entry) => {
+    try {
+      return [new URL(entry).origin];
+    } catch {
+      return []; // Ignore malformed config entries.
+    }
+  }),
+);
+
 /**
- * Only honor same-origin, absolute-path redirects (e.g. `/elections`). This
- * blocks open-redirects to external hosts (`//evil.com`, `https://…`) while
- * still letting a SPA served from the same gateway send the admin back to where
- * they came from after signing in.
+ * Decide where to send the user after sign-in. Two shapes are honored:
+ *
+ *  - an absolute, same-origin path (e.g. `/elections`); or
+ *  - a full URL whose origin is one of the configured `trustedOrigins` (or this
+ *    service's own `baseURL`). A SPA hosted on a *different* domain than the
+ *    auth service passes its full URL so we can send the admin back there.
+ *
+ * Everything else — protocol-relative `//evil.com`, untrusted hosts, junk — is
+ * rejected to block open-redirects.
  */
 function safeRedirect(raw: unknown): string | undefined {
   if (typeof raw !== "string" || !raw) return undefined;
-  if (!raw.startsWith("/") || raw.startsWith("//")) return undefined;
-  return raw;
+
+  // Absolute same-origin path. `//host` is protocol-relative (a cross-origin
+  // redirect in disguise), so reject it.
+  if (raw.startsWith("/")) {
+    return raw.startsWith("//") ? undefined : raw;
+  }
+
+  // Otherwise it must be a well-formed URL on a trusted origin.
+  try {
+    return allowedOrigins.has(new URL(raw).origin) ? raw : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export const WebRouter = (appRegistry: AppRegistry) => {

@@ -8,7 +8,8 @@
     "packages/*"
   ],
   "scripts": {
-    "format": "bun run prettier --write ."
+    "format": "bun run prettier --write .",
+    "seed": "bun run scripts/seed.ts"
   },
   "type": "module",
   "private": true,

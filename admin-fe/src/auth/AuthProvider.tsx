@@ -3,10 +3,9 @@ import { loginUrl } from "../config.ts";
 import { getSession, signOut, type AuthUser } from "../lib/auth.ts";
 import { AuthContext, type AuthState } from "./context.ts";
 
-/** Send the browser to the server-rendered sign-in page, preserving the path. */
+/** Send the browser to the server-rendered sign-in page, preserving the full URL. */
 function redirectToLogin(): void {
-  const here = window.location.pathname + window.location.search;
-  window.location.href = loginUrl(here);
+  window.location.href = loginUrl(window.location.href);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

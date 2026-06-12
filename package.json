@@ -2,7 +2,7 @@
   "name": "torachain",
   "workspaces": [
     "backend",
-    "frontend",
+    "admin-fe",
     "blockchain",
     "auth",
     "packages/*"

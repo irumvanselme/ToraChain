@@ -4,8 +4,15 @@ import type { EUserType } from "app/types.ts";
 import { Layout } from "./layout.tsx";
 import { formScript } from "./script.ts";
 
-export function Login({ userType }: { userType: EUserType }) {
+export function Login({
+  userType,
+  redirectTo,
+}: {
+  userType: EUserType;
+  redirectTo?: string;
+}) {
   const base = `/${userType}/api`;
+  const target = redirectTo ?? `/${userType}/profile`;
   return (
     <Layout userType={userType} heading="Sign in">
       <form id="login-form">
@@ -34,7 +41,7 @@ export function Login({ userType }: { userType: EUserType }) {
           formId: "login-form",
           endpoint: `${base}/sign-in/email`,
           successMessage: "Signed in. Redirecting…",
-          redirectTo: `/${userType}/profile`,
+          redirectTo: target,
         })}
       </script>
     </Layout>

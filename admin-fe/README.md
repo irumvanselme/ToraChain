@@ -1,73 +1,60 @@
-# React + TypeScript + Vite
+# admin-fe
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Admin SPA for ToraChain — React 19 + Vite, styled with Tailwind CSS v4 +
+DaisyUI, built from the shared `@tora-chain/ui-components` library. Admins sign
+in against the **admins** identity domain of the auth service and manage
+elections (CRUD) through the elections backend API.
 
-Currently, two official plugins are available:
+## Running locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The SPA talks to two backend services and relies on the better-auth session
+cookie (`SameSite=Lax`), so everything must be **same-origin**. The Vite dev
+server proxies both services to satisfy this (see `vite.config.ts`):
 
-## React Compiler
+| Path in the SPA | Proxied to          | Purpose                                         |
+| --------------- | ------------------- | ----------------------------------------------- |
+| `/admins/*`     | auth (`:3000`)      | sign-in pages + better-auth API                 |
+| `/api/*`        | elections (`:3001`) | elections API (`/api/elections` → `/elections`) |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Start the backends, then the SPA:
 
-## Expanding the ESLint configuration
+```bash
+# auth service (serves /admins/login, /admins/api/*)
+cd auth && bun run dev
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# elections backend (serves /elections, …)
+cd backend && bun run dev
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# admin SPA (http://localhost:5173)
+cd admin-fe && bun run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Override the proxy targets with `AUTH_TARGET` / `API_TARGET` env vars if the
+services run elsewhere.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Auth flow
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Every route under `/` is wrapped in `RequireAuth`, which checks the session
+   via `GET /admins/api/get-session`.
+2. With no session, the browser is sent to the server-rendered sign-in page at
+   `/admins/login?redirect=<current-path>`.
+3. On success the auth page redirects back to `<current-path>` (the auth
+   `WebRouter` only honors same-origin, absolute-path redirects), the session
+   cookie is set, and the SPA renders.
+4. "Sign out" calls `POST /admins/api/sign-out` and returns to the login page.
+
+## Scripts
+
+```bash
+bun run dev          # Vite dev server (with proxy)
+bun run build        # tsc -b && vite build
+bun run check-types  # tsc -b
+bun run lint         # eslint .
+bun run preview      # preview the production build
 ```
+
+## Production
+
+Serve the SPA, auth service, and elections API behind a single gateway so they
+share an origin. Override the API bases with `VITE_AUTH_BASE` / `VITE_API_BASE`
+if the gateway paths differ from the dev defaults (`/admins`, `/api`).

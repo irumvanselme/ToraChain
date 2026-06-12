@@ -1,0 +1,84 @@
+# Demo stack: two Postgres databases + the auth, backend, and admin-fe services.
+#
+# Everything is reached same-origin through the admin-fe dev server on :5173,
+# which proxies /admins/* -> auth and /api/* -> backend (so the better-auth
+# session cookie works). Only :5173 is published.
+#
+#   docker compose -f docker-compose.demo.yaml up --build
+#   open http://localhost:5173   (register an admin at /admins/register)
+#
+# NOT for production: secrets are inline and database data is ephemeral.
+
+name: torachain-demo
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: torachain-demo:latest
+  restart: unless-stopped
+
+services:
+  auth-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: auth
+      POSTGRES_DB: auth
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth -d auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  elections-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: elections
+      POSTGRES_PASSWORD: elections
+      POSTGRES_DB: elections
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elections -d elections"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  auth:
+    <<: *app
+    working_dir: /app/auth
+    command: sh -c "bun run migrate:all && bun run start"
+    environment:
+      BETTER_AUTH_SECRET: demo-secret-change-me
+      BETTER_AUTH_URL: http://localhost:5173
+      TRUSTED_ORIGINS: http://localhost:5173
+      AUTH_DB_URI: postgres://auth:auth@auth-db:5432/auth
+      PORT: "3000"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+
+  backend:
+    <<: *app
+    working_dir: /app/backend
+    command: sh -c "bun run db:migrate && bun run start"
+    environment:
+      ELECTIONS_DB_URI: postgres://elections:elections@elections-db:5432/elections
+      AUTH_SERVICE_URL: http://auth:3000
+      TRUSTED_ORIGINS: http://localhost:5173
+      PORT: "3001"
+    depends_on:
+      elections-db:
+        condition: service_healthy
+
+  admin-fe:
+    <<: *app
+    working_dir: /app/admin-fe
+    command: bunx vite --host 0.0.0.0 --port 5173
+    environment:
+      AUTH_TARGET: http://auth:3000
+      API_TARGET: http://backend:3001
+    ports:
+      - "5173:5173"
+    depends_on:
+      - auth
+      - backend

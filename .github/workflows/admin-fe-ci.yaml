@@ -1,0 +1,32 @@
+name: admin-fe-ci
+
+on:
+  workflow_call:
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: check-types
+        working-directory: ./admin-fe
+        run: bun run check-types
+
+      - name: linting
+        working-directory: ./admin-fe
+        run: bun run lint
+
+      - name: build
+        working-directory: ./admin-fe
+        run: bun run build

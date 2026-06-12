@@ -10,6 +10,18 @@ import { Profile } from "./profile.tsx";
 import { Register } from "./register.tsx";
 import { ResetPassword } from "./reset-password.tsx";
 
+/**
+ * Only honor same-origin, absolute-path redirects (e.g. `/elections`). This
+ * blocks open-redirects to external hosts (`//evil.com`, `https://…`) while
+ * still letting a SPA served from the same gateway send the admin back to where
+ * they came from after signing in.
+ */
+function safeRedirect(raw: unknown): string | undefined {
+  if (typeof raw !== "string" || !raw) return undefined;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return undefined;
+  return raw;
+}
+
 export const WebRouter = (appRegistry: AppRegistry) => {
   const web = new Elysia();
   const logger = new Logger({ name: "web-router" });
@@ -22,7 +34,14 @@ export const WebRouter = (appRegistry: AppRegistry) => {
       new Elysia({ prefix: `/${app.userType}` })
         .use(html())
         .get(`/ok`, ok)
-        .get(`/login`, async () => Login({ userType: app.userType }))
+        .get(`/login`, async ({ query }) =>
+          Login({
+            userType: app.userType,
+            redirectTo: safeRedirect(
+              (query as Record<string, string | undefined>).redirect,
+            ),
+          }),
+        )
         .get(`/register`, async () => Register({ userType: app.userType }))
         .get(`/reset-password`, async () =>
           ResetPassword({ userType: app.userType }),

@@ -15,3 +15,7 @@ jobs:
     name: backend-ci
     uses: ./.github/workflows/backend-ci.yaml
     secrets: inherit
+
+  admin-fe:
+    name: admin-fe-ci
+    uses: ./.github/workflows/admin-fe-ci.yaml

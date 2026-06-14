@@ -3,6 +3,8 @@
   "workspaces": [
     "backend",
     "admin-fe",
+    "auditing-fe",
+    "voting-fe",
     "blockchain",
     "auth",
     "packages/*"

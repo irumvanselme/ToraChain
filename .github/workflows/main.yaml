@@ -19,3 +19,11 @@ jobs:
   admin-fe:
     name: admin-fe-ci
     uses: ./.github/workflows/admin-fe-ci.yaml
+
+  auditing-fe:
+    name: auditing-fe-ci
+    uses: ./.github/workflows/auditing-fe-ci.yaml
+
+  voting-fe:
+    name: voting-fe-ci
+    uses: ./.github/workflows/voting-fe-ci.yaml

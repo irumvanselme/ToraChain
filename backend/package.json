@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "@tora-chain/backend",
   "module": "app/server.ts",
   "type": "module",
   "private": true,
@@ -34,6 +34,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.3.0",
     "globals": "^17.6.0",
+    "prettier": "^3.8.4",
     "typescript-eslint": "^8.59.2",
     "vitest": "^3.2.4"
   },

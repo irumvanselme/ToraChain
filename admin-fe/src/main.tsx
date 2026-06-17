@@ -6,9 +6,11 @@ import {
   createBrowserRouter,
 } from "react-router-dom";
 
+import { AuthProvider, RequireAuth } from "@tora-chain/fe-common";
+import { Spinner } from "@tora-chain/ui-components";
+
 import "./index.css";
-import { AuthProvider } from "./auth/AuthProvider.tsx";
-import { RequireAuth } from "./auth/RequireAuth.tsx";
+import { AUTH_API, loginUrl } from "./config.ts";
 import { Layout } from "./components/Layout.tsx";
 import { ElectionsListPage } from "./pages/ElectionsListPage.tsx";
 import { ElectionCreatePage } from "./pages/ElectionCreatePage.tsx";
@@ -16,11 +18,19 @@ import { ElectionEditPage } from "./pages/ElectionEditPage.tsx";
 import { ElectionDetailPage } from "./pages/ElectionDetailPage.tsx";
 import { NotFoundPage } from "./pages/NotFoundPage.tsx";
 
+const authConfig = { authApi: AUTH_API, loginUrl };
+
+const checkingSession = (
+  <div className="flex min-h-screen items-center justify-center">
+    <Spinner size="lg" label="Checking your session" />
+  </div>
+);
+
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <RequireAuth>
+      <RequireAuth fallback={checkingSession}>
         <Layout />
       </RequireAuth>
     ),
@@ -37,7 +47,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
+    <AuthProvider config={authConfig}>
       <RouterProvider router={router} />
     </AuthProvider>
   </StrictMode>,

@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: setup bun
         uses: oven-sh/setup-bun@v2
@@ -30,3 +30,5 @@ jobs:
       - name: build
         working-directory: ./auditing-fe
         run: bun run build
+        env:
+          NEXT_PUBLIC_AUTH_BASE: http://auth-be:8001

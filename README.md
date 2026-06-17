@@ -12,6 +12,16 @@ A blockchain-backed elections/voting system, built as a **Bun monorepo**.
 | [`packages/be-common`](./packages/be-common/README.md)         | Shared backend library (logging, database, config)         | Bun · pino · Drizzle                  |
 | [`packages/ui-components`](./packages/ui-components/README.md) | Shared React component library                             | React 19 · Tailwind · DaisyUI         |
 
+## Services
+
+| #   | Service     | Path                  |
+| --- | ----------- | --------------------- |
+| 1   | Backend     | http://localhost:8000 |
+| 2   | Auth        | http://localhost:8001 |
+| 3   | Admin-fe    | http://localhost:3000 |
+| 4   | Voting-fe   | http://localhost:3001 |
+| 5   | Auditing-fe | http://localhost:3002 |
+
 ## Prerequisites
 
 - [Bun](https://bun.sh) ≥ 1.3

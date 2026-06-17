@@ -10,7 +10,7 @@
 # Combined commands (fan out across all relevant sub-projects)
 # ===========================================================================
 
-.PHONY: help install build test lint lint-fix format format-check check-types migrate ci clean
+.PHONY: help install dev build test lint lint-fix format format-check check-types migrate ci clean
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -19,6 +19,16 @@ help: ## Show this help
 
 install: ## Install all workspace dependencies
 	bun install
+
+dev: ## Run all dev services concurrently
+	npx concurrently -n backend,auth,admin-fe,voting-fe,auditing-fe,blockchain \
+		-c blue,green,magenta,cyan,yellow,red \
+		"cd backend && bun run dev" \
+		"cd auth && bun run dev" \
+		"cd admin-fe && bun run dev" \
+		"cd voting-fe && bun run dev" \
+		"cd auditing-fe && bun run dev" \
+		"cd blockchain && bun run dev"
 
 build: admin-fe-build auditing-fe-build voting-fe-build ## Build all buildable projects
 

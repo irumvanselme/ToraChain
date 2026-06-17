@@ -1,5 +1,5 @@
 {
-  "name": "@torachain/auth",
+  "name": "@tora-chain/auth",
   "module": "app/server.ts",
   "type": "module",
   "private": true,
@@ -40,6 +40,7 @@
     "@types/pg": "^8.20.0",
     "eslint": "^10.3.0",
     "globals": "^17.6.0",
+    "prettier": "^3.8.4",
     "typescript-eslint": "^8.59.2",
     "vitest": "^3.2.4"
   },

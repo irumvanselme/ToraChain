@@ -1,27 +1,20 @@
-import { AUTH_API } from "../config.ts";
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  name: string | null;
-  emailVerified: boolean;
-  createdAt: string;
-}
+import type { AuthUser } from "./types";
 
 interface SessionResponse {
   user?: AuthUser | null;
 }
 
 /**
- * Resolve the current admin session via better-auth's `get-session`. Returns
- * the user when signed in, or `null` for any unauthenticated / error response
- * (the caller treats both the same way: send them to sign in).
+ * Resolve the current session via better-auth's `get-session`. Returns the user
+ * when signed in, or `null` for any unauthenticated / error response (the
+ * caller treats both the same way: send them to sign in).
  */
 export async function getSession(
+  authApi: string,
   signal?: AbortSignal,
 ): Promise<AuthUser | null> {
   try {
-    const res = await fetch(`${AUTH_API}/get-session`, {
+    const res = await fetch(`${authApi}/get-session`, {
       credentials: "include",
       headers: { accept: "application/json" },
       signal,
@@ -36,9 +29,9 @@ export async function getSession(
 }
 
 /** End the current session. Resolves even if the request fails. */
-export async function signOut(): Promise<void> {
+export async function signOut(authApi: string): Promise<void> {
   try {
-    await fetch(`${AUTH_API}/sign-out`, {
+    await fetch(`${authApi}/sign-out`, {
       method: "POST",
       credentials: "include",
       headers: { "content-type": "application/json" },

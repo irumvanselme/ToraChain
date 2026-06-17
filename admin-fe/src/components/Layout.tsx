@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Button } from "@tora-chain/ui-components";
-import { useAuth } from "../auth/context.ts";
+import { useAuth } from "@tora-chain/fe-common";
 
 export function Layout() {
   const { user, logout } = useAuth();

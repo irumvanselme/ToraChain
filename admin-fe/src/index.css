@@ -5,9 +5,7 @@
 @source "../../packages/ui-components/src/**/*.tsx";
 
 @plugin "daisyui" {
-  themes:
-    corporate --default,
-    business --prefersdark;
+  themes: corporate --default;
 }
 
 html,

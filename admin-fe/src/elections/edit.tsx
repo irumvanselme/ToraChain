@@ -6,9 +6,9 @@ import {
   updateElection,
   type Election,
   type ElectionInput,
-} from "../lib/elections.ts";
-import { ApiError } from "../lib/api.ts";
-import { ElectionForm } from "../components/ElectionForm.tsx";
+} from "lib/elections.ts";
+import { ApiError } from "lib/api.ts";
+import { ElectionForm } from "components/ElectionForm.tsx";
 
 export function ElectionEditPage() {
   const { id = "" } = useParams();
@@ -54,7 +54,7 @@ export function ElectionEditPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 py-6">
       <PageHeader title="Edit election" />
       <Card>
         {loading ? (

@@ -19,24 +19,14 @@ export function Login({
   return (
     <Layout userType={userType} heading="Sign in">
       {devLogin && (
-        <>
-          <button
-            type="button"
-            id="dev-login"
-            class="dev-login"
-            title={`Sign in as ${devLogin.email}`}
-          >
-            ⚡ Default login (dev)
-          </button>
-          <script>
-            {devLoginScript({
-              formId: "login-form",
-              buttonId: "dev-login",
-              email: devLogin.email,
-              password: devLogin.password,
-            })}
-          </script>
-        </>
+        <button
+          type="button"
+          id="dev-login"
+          class="dev-login"
+          title={`Sign in as ${devLogin.email}`}
+        >
+          ⚡ Default login (dev)
+        </button>
       )}
       <form id="login-form">
         <label>
@@ -67,6 +57,16 @@ export function Login({
           redirectTo: target,
         })}
       </script>
+      {devLogin && (
+        <script>
+          {devLoginScript({
+            formId: "login-form",
+            buttonId: "dev-login",
+            email: devLogin.email,
+            password: devLogin.password,
+          })}
+        </script>
+      )}
     </Layout>
   );
 }

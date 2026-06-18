@@ -21,7 +21,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "card border border-base-300 bg-base-100 shadow-sm",
+        "card border border-base-300 bg-base-100 rounded-none shadow-sm",
         className,
       )}
       {...rest}

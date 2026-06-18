@@ -20,7 +20,7 @@ help: ## Show this help
 install: ## Install all workspace dependencies
 	bun install
 
-dev: ## Run all dev services concurrently
+dev: prepare-assets ## Run all dev services concurrently
 	npx concurrently -n backend,auth,admin-fe,voting-fe,auditing-fe,blockchain \
 		-c blue,green,magenta,cyan,yellow,red \
 		"cd backend && bun run dev" \
@@ -30,7 +30,7 @@ dev: ## Run all dev services concurrently
 		"cd auditing-fe && bun run dev" \
 		"cd blockchain && bun run dev"
 
-build: admin-fe-build auditing-fe-build voting-fe-build ## Build all buildable projects
+build: prepare-assets admin-fe-build auditing-fe-build voting-fe-build ## Build all buildable projects
 
 test: backend-test auth-test ## Run all tests
 
@@ -52,6 +52,10 @@ ci: format-check check-types lint test ## Run the full CI gate locally
 clean: ## Remove build artifacts and installed dependencies
 	rm -rf node_modules */node_modules packages/*/node_modules \
 		admin-fe/dist auditing-fe/.next voting-fe/.next
+prepare-assets:
+	cp -r ./assets ./admin-fe/public/_assets    && \
+	cp -r ./assets ./voting-fe/public/_assets   && \
+	cp -r ./assets ./auditing-fe/public/_assets    \
 
 # ===========================================================================
 # Backend

@@ -231,7 +231,6 @@ export function DevLinks({
                   padding: "8px 12px",
                   borderRadius: 8,
                   whiteSpace: "nowrap",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
                 }}
               >
                 {link.label}
@@ -246,7 +245,6 @@ export function DevLinks({
                   borderRadius: "9999px",
                   background: link.color,
                   color: "#ffffff",
-                  boxShadow: `0 4px 14px ${link.color}66`,
                   flexShrink: 0,
                 }}
               >
@@ -278,7 +276,6 @@ export function DevLinks({
         cursor: "pointer",
         background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
         color: "#ffffff",
-        boxShadow: "0 6px 20px rgba(79,70,229,0.45)",
         transition: "transform 160ms ease",
         transform: open ? "rotate(90deg)" : "rotate(0deg)",
       }}
@@ -301,7 +298,6 @@ export function DevLinks({
           background: "#fbbf24",
           padding: "1px 5px",
           borderRadius: 6,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
           transform: open ? "rotate(-90deg)" : "rotate(0deg)",
         }}
       >

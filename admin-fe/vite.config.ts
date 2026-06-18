@@ -9,6 +9,9 @@ const API_TARGET = process.env.API_TARGET ?? "http://localhost:3001";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    tsconfigPaths: true,
+  },
   server: {
     port: 5173,
     proxy: {

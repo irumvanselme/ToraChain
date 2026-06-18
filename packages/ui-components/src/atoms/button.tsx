@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
-import { cn } from "./cn.ts";
+import { cn } from "../cn.ts";
 
 type Variant =
   | "primary"
@@ -11,6 +11,7 @@ type Variant =
   | "error"
   | "success"
   | "warning";
+
 type Size = "xs" | "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
@@ -54,7 +55,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "btn",
+        "btn rounded-none",
         VARIANTS[variant],
         SIZES[size],
         outline && "btn-outline",

@@ -8,10 +8,10 @@ import {
   PageHeader,
   Spinner,
 } from "@tora-chain/ui-components";
-import { getElection, type Election } from "../lib/elections.ts";
-import { ApiError } from "../lib/api.ts";
-import { formatDateTime } from "../lib/format.ts";
-import { StatusBadge } from "../components/StatusBadge.tsx";
+import { ApiError } from "lib/api.ts";
+import { formatDateTime } from "lib/format.ts";
+import { StatusBadge } from "components/StatusBadge.tsx";
+import { getElection, type Election } from "lib/elections.ts";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -52,7 +52,7 @@ export function ElectionDetailPage() {
   }, [id]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 py-6">
       <PageHeader
         title={election?.title ?? "Election"}
         actions={

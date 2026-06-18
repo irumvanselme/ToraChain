@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, PageHeader } from "@tora-chain/ui-components";
-import { createElection, type ElectionInput } from "../lib/elections.ts";
-import { ApiError } from "../lib/api.ts";
-import { ElectionForm } from "../components/ElectionForm.tsx";
+
+import { ApiError } from "lib/api.ts";
+import { createElection, type ElectionInput } from "lib/elections.ts";
+import { ElectionForm } from "components/ElectionForm.tsx";
 
 export function ElectionCreatePage() {
   const navigate = useNavigate();

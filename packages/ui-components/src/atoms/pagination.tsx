@@ -1,4 +1,5 @@
-import { cn } from "./cn.ts";
+import { cn } from "../cn.ts";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 
 export interface PaginationProps {
   page: number;
@@ -19,11 +20,11 @@ export function Pagination({
     <div className={cn("join", className)}>
       <button
         type="button"
-        className="btn btn-sm join-item"
+        className="btn btn-sm btn-square join-item"
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
       >
-        «
+        <ChevronsLeft size={18} />
       </button>
       <button
         type="button"
@@ -33,11 +34,11 @@ export function Pagination({
       </button>
       <button
         type="button"
-        className="btn btn-sm join-item"
+        className="btn btn-sm btn-square join-item"
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
       >
-        »
+        <ChevronsRight size={18} />
       </button>
     </div>
   );

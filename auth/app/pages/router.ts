@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { html } from "@elysia/html";
-import { Logger } from "@tora-chain/be-common";
+import { Logger, isProduction } from "@tora-chain/be-common";
+import { getDevCredential, type DevUserType } from "@tora-chain/dev-configs";
 
 import { links, ok } from "app/utils/constants";
 import { config } from "../env.ts";
@@ -56,8 +57,21 @@ export const WebRouter = (appRegistry: AppRegistry) => {
 
   web.get("/", links(appRegistry));
 
+  // Outside production, surface the known dev account so the login page can
+  // offer a one-click "Default login". `EUserType`'s values mirror
+  // `DevUserType` exactly.
+  const showDevLogin = !isProduction();
+
   for (const app of appRegistry.apps) {
     logger.debug(`Registering ${app.userType} routes`);
+    const devLogin = showDevLogin
+      ? (() => {
+          const { email, password } = getDevCredential(
+            app.userType as DevUserType,
+          );
+          return { email, password };
+        })()
+      : undefined;
     web.use(
       new Elysia({ prefix: `/${app.userType}` })
         .use(html())
@@ -68,6 +82,7 @@ export const WebRouter = (appRegistry: AppRegistry) => {
             redirectTo: safeRedirect(
               (query as Record<string, string | undefined>).redirect,
             ),
+            devLogin,
           }),
         )
         .get(`/register`, async () => Register({ userType: app.userType }))

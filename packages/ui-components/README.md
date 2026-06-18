@@ -5,8 +5,8 @@ and **DaisyUI** and consumed via `workspace:*`. Dependency-free (ships
 TypeScript source; the consuming app bundles it).
 
 Components: `Button`, `Input`, `Textarea`, `Select`, `Card`, `Badge`, `Alert`,
-`Spinner`, `Modal`, `Table`, `Pagination`, `PageHeader`, `EmptyState`, plus a
-`cn()` class-name helper.
+`Spinner`, `Modal`, `Table`, `Pagination`, `PageHeader`, `EmptyState`,
+`DevLinks`, plus a `cn()` class-name helper.
 
 ```tsx
 import { Button, Card, Table } from "@tora-chain/ui-components";

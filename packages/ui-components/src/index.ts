@@ -39,3 +39,6 @@ export type { PaginationProps } from "./Pagination.tsx";
 
 export { PageHeader } from "./PageHeader.tsx";
 export type { PageHeaderProps } from "./PageHeader.tsx";
+
+export { DevLinks, DEFAULT_DEV_LINKS } from "./DevLinks.tsx";
+export type { DevLinksProps, DevLink, DevLinkIcon } from "./DevLinks.tsx";

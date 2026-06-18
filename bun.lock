@@ -8,6 +8,7 @@
         "prettier": "^3.8.3",
       },
       "devDependencies": {
+        "@tora-chain/dev-configs": "workspace:*",
         "@types/bun": "latest",
         "concurrently": "^9.1.2",
       },
@@ -48,6 +49,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@tora-chain/fe-common": "workspace:*",
+        "@tora-chain/ui-components": "workspace:*",
         "next": "16.2.9",
         "react": "19.2.4",
         "react-dom": "19.2.4",
@@ -71,6 +73,7 @@
         "@elysiajs/cors": "^1.4.2",
         "@elysiajs/openapi": "^1.4.0",
         "@tora-chain/be-common": "workspace:*",
+        "@tora-chain/dev-configs": "workspace:*",
         "better-auth": "^1.6.14",
         "elysia": "^1.4.28",
         "pg": "^8.21.0",
@@ -145,6 +148,13 @@
         "typescript": "^5",
       },
     },
+    "packages/dev-configs": {
+      "name": "@tora-chain/dev-configs",
+      "version": "0.0.0",
+      "devDependencies": {
+        "typescript": "~6.0.2",
+      },
+    },
     "packages/fe-common": {
       "name": "@tora-chain/fe-common",
       "version": "0.0.0",
@@ -161,6 +171,10 @@
     "packages/ui-components": {
       "name": "@tora-chain/ui-components",
       "version": "0.0.0",
+      "dependencies": {
+        "@tora-chain/dev-configs": "workspace:*",
+        "lucide-react": "^1.20.0",
+      },
       "devDependencies": {
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
@@ -176,6 +190,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@tora-chain/fe-common": "workspace:*",
+        "@tora-chain/ui-components": "workspace:*",
         "next": "16.2.9",
         "react": "19.2.4",
         "react-dom": "19.2.4",
@@ -591,6 +606,8 @@
     "@tora-chain/be-common": ["@tora-chain/be-common@workspace:packages/be-common"],
 
     "@tora-chain/blockchain": ["@tora-chain/blockchain@workspace:blockchain"],
+
+    "@tora-chain/dev-configs": ["@tora-chain/dev-configs@workspace:packages/dev-configs"],
 
     "@tora-chain/fe-common": ["@tora-chain/fe-common@workspace:packages/fe-common"],
 
@@ -1136,6 +1153,8 @@
 
     "lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
 
+    "lucide-react": ["lucide-react@1.20.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-jhXLeC/7m0/tjL1nzMdKk6x256zWA6AtbhTVreHOiKPoeX2d6MK4FbyIQPpVq0E6iPWBisyy1TW+pEge/uMEuQ=="],
+
     "magic-string": ["magic-string@0.30.21", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
 
     "math-intrinsics": ["math-intrinsics@1.1.0", "", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
@@ -1533,6 +1552,8 @@
     "@tora-chain/backend/prettier": ["prettier@3.8.4", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q=="],
 
     "@tora-chain/blockchain/vitest": ["vitest@4.1.8", "", { "dependencies": { "@vitest/expect": "4.1.8", "@vitest/mocker": "4.1.8", "@vitest/pretty-format": "4.1.8", "@vitest/runner": "4.1.8", "@vitest/snapshot": "4.1.8", "@vitest/spy": "4.1.8", "@vitest/utils": "4.1.8", "es-module-lexer": "^2.0.0", "expect-type": "^1.3.0", "magic-string": "^0.30.21", "obug": "^2.1.1", "pathe": "^2.0.3", "picomatch": "^4.0.3", "std-env": "^4.0.0-rc.1", "tinybench": "^2.9.0", "tinyexec": "^1.0.2", "tinyglobby": "^0.2.15", "tinyrainbow": "^3.1.0", "vite": "^6.0.0 || ^7.0.0 || ^8.0.0", "why-is-node-running": "^2.3.0" }, "peerDependencies": { "@edge-runtime/vm": "*", "@opentelemetry/api": "^1.9.0", "@types/node": "^20.0.0 || ^22.0.0 || >=24.0.0", "@vitest/browser-playwright": "4.1.8", "@vitest/browser-preview": "4.1.8", "@vitest/browser-webdriverio": "4.1.8", "@vitest/coverage-istanbul": "4.1.8", "@vitest/coverage-v8": "4.1.8", "@vitest/ui": "4.1.8", "happy-dom": "*", "jsdom": "*" }, "optionalPeers": ["@edge-runtime/vm", "@opentelemetry/api", "@types/node", "@vitest/browser-playwright", "@vitest/browser-preview", "@vitest/browser-webdriverio", "@vitest/coverage-istanbul", "@vitest/coverage-v8", "@vitest/ui", "happy-dom", "jsdom"], "bin": { "vitest": "vitest.mjs" } }, "sha512-flY6ScbCIt9HThs+C5HS7jvGOB560DJtk/Z15IQROTA6zEy49Nh8T/dofWTQL+n3vswqn87sbJNiuqw1SDp5Ig=="],
+
+    "@tora-chain/dev-configs/typescript": ["typescript@6.0.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw=="],
 
     "@tora-chain/fe-common/typescript": ["typescript@6.0.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw=="],
 

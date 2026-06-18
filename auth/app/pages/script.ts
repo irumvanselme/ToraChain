@@ -49,6 +49,35 @@ export function formScript(opts: {
 }
 
 /**
+ * Generate the inline client script for the dev "Default login" button. On
+ * click it fills the form's email/password fields with the known dev
+ * credentials and submits, so developers don't have to remember them. Only
+ * emitted in non-production environments.
+ */
+export function devLoginScript(opts: {
+  formId: string;
+  buttonId: string;
+  email: string;
+  password: string;
+}): string {
+  const { formId, buttonId, email, password } = opts;
+  return `
+(() => {
+  const form = document.getElementById(${JSON.stringify(formId)});
+  const button = document.getElementById(${JSON.stringify(buttonId)});
+  if (!form || !button) return;
+  button.addEventListener("click", () => {
+    const email = form.querySelector('[name="email"]');
+    const password = form.querySelector('[name="password"]');
+    if (email) email.value = ${JSON.stringify(email)};
+    if (password) password.value = ${JSON.stringify(password)};
+    form.requestSubmit();
+  });
+})();
+`;
+}
+
+/**
  * Generate the inline client script for the profile page. Loads the current
  * session from better-auth (credentials included), fills in the profile
  * fields, and wires the sign-out button. Redirects to login when there is no

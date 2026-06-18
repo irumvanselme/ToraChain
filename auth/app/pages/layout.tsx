@@ -87,6 +87,13 @@ button {
   background: var(--accent); color: #fff; font-size: 1.125rem; font-weight: 600; cursor: pointer;
 }
 button:disabled { opacity: .6; cursor: progress; }
+.dev-login {
+  margin: 0 0 1.5rem; padding: .75rem; width: 100%;
+  background: transparent; color: var(--accent);
+  border: 1px dashed var(--accent); border-radius: 6px;
+  font-size: .95rem; font-weight: 600; cursor: pointer;
+}
+.dev-login:hover { background: rgba(79, 70, 229, .06); }
 button.loading { color: transparent; pointer-events: none; }
 button.loading::after {
   content: ""; position: absolute; top: 50%; left: 50%;

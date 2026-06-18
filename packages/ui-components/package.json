@@ -9,6 +9,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./DevLinks": {
+      "types": "./src/DevLinks.tsx",
+      "default": "./src/DevLinks.tsx"
     }
   },
   "scripts": {
@@ -22,5 +26,9 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "typescript": "~6.0.2"
+  },
+  "dependencies": {
+    "@tora-chain/dev-configs": "workspace:*",
+    "lucide-react": "^1.20.0"
   }
 }

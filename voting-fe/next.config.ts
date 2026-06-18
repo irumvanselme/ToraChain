@@ -1,9 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // `@tora-chain/fe-common` ships raw TS/TSX source, so Next must compile it
+  // These workspace packages ship raw TS/TSX source, so Next must compile them
   // (node_modules is not transpiled by default).
-  transpilePackages: ["@tora-chain/fe-common"],
+  transpilePackages: [
+    "@tora-chain/fe-common",
+    "@tora-chain/ui-components",
+    "@tora-chain/dev-configs",
+  ],
 };
 
 export default nextConfig;

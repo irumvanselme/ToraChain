@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 
 import { AuthProvider, RequireAuth } from "@tora-chain/fe-common";
-import { Spinner } from "@tora-chain/ui-components";
+import { DevLinks, Spinner } from "@tora-chain/ui-components";
 
 import "./index.css";
 import { AUTH_API, loginUrl } from "./config.ts";
@@ -50,5 +50,7 @@ createRoot(document.getElementById("root")!).render(
     <AuthProvider config={authConfig}>
       <RouterProvider router={router} />
     </AuthProvider>
+    {/* Dev-only floating links to the other ToraChain services. */}
+    <DevLinks />
   </StrictMode>,
 );

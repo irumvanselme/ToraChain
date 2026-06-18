@@ -16,6 +16,7 @@
   "type": "module",
   "private": true,
   "devDependencies": {
+    "@tora-chain/dev-configs": "workspace:*",
     "@types/bun": "latest",
     "concurrently": "^9.1.2"
   },

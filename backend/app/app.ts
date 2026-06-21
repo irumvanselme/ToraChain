@@ -6,6 +6,7 @@ import type { Database } from "@tora-chain/be-common/database";
 
 import { config } from "./env.ts";
 import { errorHandler } from "./common/error-handler.ts";
+import { reqLogger } from "./common/req-logger.ts";
 import { AppHealth } from "./health.ts";
 
 import { DrizzleElectionsRepository } from "./elections/repository.ts";
@@ -84,6 +85,7 @@ const openapiPlugin = openapi({
 
 export function buildApp(services: Services, database?: Database) {
   const app = new Elysia()
+    .use(reqLogger)
     .use(errorHandler)
     .use(openapiPlugin)
     .use(

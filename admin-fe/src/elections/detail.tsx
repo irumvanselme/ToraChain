@@ -12,6 +12,8 @@ import { ApiError } from "lib/api.ts";
 import { formatDateTime } from "lib/format.ts";
 import { StatusBadge } from "components/StatusBadge.tsx";
 import { getElection, type Election } from "lib/elections.ts";
+import { ElectionCandidatesTable } from "../candidates/election-candidates-table.tsx";
+import { ElectionVotersTable } from "../voters/election-voters-table.tsx";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -107,6 +109,41 @@ export function ElectionDetailPage() {
           </div>
         )}
       </Card>
+
+      {election && (
+        <div className="tabs tabs-lift">
+          <input
+            type="radio"
+            name="my_tabs_3"
+            className="tab"
+            aria-label="Candidates"
+            defaultChecked
+          />
+          <div className="tab-content bg-base-100 border-base-300 p-6">
+            <ElectionCandidatesTable electionId={election.electionId} />
+          </div>
+
+          <input
+            type="radio"
+            name="my_tabs_3"
+            className="tab"
+            aria-label="Voters"
+          />
+          <div className="tab-content bg-base-100 border-base-300 p-6">
+            <ElectionVotersTable electionId={election.electionId} />
+          </div>
+
+          <input
+            type="radio"
+            name="my_tabs_3"
+            className="tab"
+            aria-label="Integrations"
+          />
+          <div className="tab-content bg-base-100 border-base-300 p-6">
+            Integrations
+          </div>
+        </div>
+      )}
     </div>
   );
 }

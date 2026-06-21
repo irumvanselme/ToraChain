@@ -138,35 +138,27 @@ export function ElectionsListPage() {
                 </div>
                 <dl className="flex flex-col gap-1.5 text-sm text-base-content/70">
                   {row.startTime ? (
-
-                      <div className="flex items-center gap-2" title="Start">
-                        <dt>
-                          <CalendarArrowUp className="size-4 shrink-0 text-success" />
-                          <span className="sr-only">Start</span>
-                        </dt>
-                        <dd>{formatDateTime(row.startTime)}</dd>
-                      </div>
-                  ): (
-                      <div className={"italic"}>
-                        Start time not specified
-                      </div>
+                    <div className="flex items-center gap-2" title="Start">
+                      <dt>
+                        <CalendarArrowUp className="size-4 shrink-0 text-success" />
+                        <span className="sr-only">Start</span>
+                      </dt>
+                      <dd>{formatDateTime(row.startTime)}</dd>
+                    </div>
+                  ) : (
+                    <div className={"italic"}>Start time not specified</div>
                   )}
-                  {
-                    row.endTime ? (
-                        <div className="flex items-center gap-2" title="End">
-                          <dt>
-                            <CalendarArrowDown className="size-4 shrink-0 text-error" />
-                            <span className="sr-only">End</span>
-                          </dt>
-                          <dd>{formatDateTime(row.endTime)}</dd>
-                        </div>
-                    ) : (
-                        <div className={"italic"}>
-                          End time not specified
-                        </div>
-                    )
-                  }
-
+                  {row.endTime ? (
+                    <div className="flex items-center gap-2" title="End">
+                      <dt>
+                        <CalendarArrowDown className="size-4 shrink-0 text-error" />
+                        <span className="sr-only">End</span>
+                      </dt>
+                      <dd>{formatDateTime(row.endTime)}</dd>
+                    </div>
+                  ) : (
+                    <div className={"italic"}>End time not specified</div>
+                  )}
                 </dl>
                 <div
                   className="flex justify-end gap-1"

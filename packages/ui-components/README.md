@@ -17,5 +17,5 @@ lives outside the app's source root, point Tailwind at it so its utility
 classes are emitted:
 
 ```css
-@source "../../packages/ui-components/src/**/*.tsx";
+@source "../../../packages/ui-components/src/**/*.tsx";
 ```

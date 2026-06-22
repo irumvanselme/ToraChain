@@ -20,15 +20,15 @@ jobs:
         run: bun install --frozen-lockfile --filter @tora-chain/voting-frontend
 
       - name: formatting
-        working-directory: ./voting-fe
+        working-directory: ./apps/voting-fe
         run: bun run format:check
 
       - name: linting
-        working-directory: ./voting-fe
+        working-directory: ./apps/voting-fe
         run: bun run lint
 
       - name: build
-        working-directory: ./voting-fe
+        working-directory: ./apps/voting-fe
         run: bun run build
         env:
           NEXT_PUBLIC_AUTH_BASE: http://auth-be:8001

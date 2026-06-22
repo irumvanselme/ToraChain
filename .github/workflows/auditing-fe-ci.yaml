@@ -20,15 +20,15 @@ jobs:
         run: bun install --frozen-lockfile --filter @tora-chain/auditing-frontend
 
       - name: formatting
-        working-directory: ./auditing-fe
+        working-directory: ./apps/auditing-fe
         run: bun run format:check
 
       - name: linting
-        working-directory: ./auditing-fe
+        working-directory: ./apps/auditing-fe
         run: bun run lint
 
       - name: build
-        working-directory: ./auditing-fe
+        working-directory: ./apps/auditing-fe
         run: bun run build
         env:
           NEXT_PUBLIC_AUTH_BASE: http://auth-be:8001

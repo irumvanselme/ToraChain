@@ -20,19 +20,19 @@ jobs:
         run: bun install --frozen-lockfile --filter @tora-chain/backend
 
       - name: formatting
-        working-directory: ./backend
+        working-directory: ./apps/backend
         run: bun run format:check
 
       - name: check-types
-        working-directory: ./backend
+        working-directory: ./apps/backend
         run: bun run check-types
 
       - name: linting
-        working-directory: ./backend
+        working-directory: ./apps/backend
         run: bun run lint
 
       - name: unit-tests
-        working-directory: ./backend
+        working-directory: ./apps/backend
         run: bun run test
 
   integration:
@@ -51,7 +51,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: integration-tests
-        working-directory: ./backend
+        working-directory: ./apps/backend
         env:
           VITE_TEST_DATABASE_URI: ${{ secrets.VITE_TEST_DATABASE_URI }}
         run: bun run test:integration

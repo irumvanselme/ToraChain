@@ -20,17 +20,17 @@ jobs:
         run: bun install --frozen-lockfile --filter @tora-chain/auth
 
       - name: formatting
-        working-directory: ./auth
+        working-directory: ./apps/auth
         run: bun run format:check
 
       - name: check-types
-        working-directory: ./auth
+        working-directory: ./apps/auth
         run: bun run check-types
 
       - name: linting
-        working-directory: ./auth
+        working-directory: ./apps/auth
         run: bun run lint
 
       - name: unit-tests
-        working-directory: ./auth
+        working-directory: ./apps/auth
         run: bun run test

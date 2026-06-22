@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@tora-chain/fe-common";
 import {
@@ -15,6 +15,7 @@ import {
   CalendarArrowDown,
   CalendarArrowUp,
   CheckCircle2,
+  ClipboardCheck,
   Vote,
 } from "lucide-react";
 import {
@@ -29,8 +30,30 @@ import {
   type CastResult,
   type BallotCandidate,
 } from "../../lib/elections";
+import {
+  getIntegration,
+  checkEligibility,
+  enrollVoter,
+  type Integration,
+  type FormField,
+} from "../../lib/integrations";
 import { ApiError } from "../../lib/api";
 import { formatDateTime, statusLabel, STATUS_TONE } from "../../lib/format";
+
+// ---- Eligibility state machine ------------------------------------------
+
+type EligibilityPhase =
+  | "loading" // fetching voter status from backend
+  | "admin_granted" // voter is already enrolled (admin-granted or prior self-enroll)
+  | "not_eligible" // failed integration check or no eligibility
+  | "no_integration" // no integration configured — admin-only enrollment
+  | "idle" // integration loaded, voter hasn't checked yet
+  | "checking" // calling /eligibility-check
+  | "eligible" // check passed, awaiting enroll click
+  | "enrolling" // calling /enroll
+  | "enrolled"; // self-enrolled, can now vote
+
+// ---- Page component -----------------------------------------------------
 
 export default function ElectionDetailPage({
   params,
@@ -45,12 +68,17 @@ export default function ElectionDetailPage({
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [ballot, setBallot] = useState<Ballot | null>(null);
   const [voterId, setVoterId] = useState<string | null>(null);
+  const [integration, setIntegration] = useState<Integration | null>(null);
 
   const [loadingMain, setLoadingMain] = useState(true);
-  const [loadingBallot, setLoadingBallot] = useState(false);
   const [electionError, setElectionError] = useState<string | null>(null);
-  const [ballotError, setBallotError] = useState<string | null>(null);
-  const [notEligible, setNotEligible] = useState(false);
+
+  const [eligibilityPhase, setEligibilityPhase] =
+    useState<EligibilityPhase>("loading");
+  const [eligibilityError, setEligibilityError] = useState<string | null>(null);
+
+  // Form field values keyed by field id.
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -58,8 +86,13 @@ export default function ElectionDetailPage({
   const [voteResult, setVoteResult] = useState<CastResult | null>(null);
   const [voteError, setVoteError] = useState<string | null>(null);
 
+  // Track whether we've already kicked off the ballot/eligibility lookup so
+  // the effect that depends on `election` + `user` doesn't re-run on every render.
+  const lookupStarted = useRef(false);
+
   const loadMain = useCallback(
     (signal?: AbortSignal) => {
+      lookupStarted.current = false;
       Promise.resolve()
         .then(() => {
           setLoadingMain(true);
@@ -67,11 +100,13 @@ export default function ElectionDetailPage({
           return Promise.all([
             getElection(id, signal),
             listCandidates(id, { limit: 100 }, signal),
+            getIntegration(id, signal),
           ]);
         })
-        .then(([el, cands]) => {
+        .then(([el, cands, intg]) => {
           setElection(el);
           setCandidates(cands.data);
+          setIntegration(intg);
           setLoadingMain(false);
         })
         .catch((err: unknown) => {
@@ -91,46 +126,90 @@ export default function ElectionDetailPage({
     return () => controller.abort();
   }, [loadMain]);
 
+  // After election + user are known, determine the voter's current eligibility state.
   useEffect(() => {
     if (!election || !user || election.status === "draft") return;
+    if (lookupStarted.current) return;
+    lookupStarted.current = true;
 
     const controller = new AbortController();
 
-    Promise.resolve()
-      .then(() => {
-        setLoadingBallot(true);
-        setBallotError(null);
-        setNotEligible(false);
-        return getVotersByEmail(id, user.email, controller.signal);
-      })
+    setEligibilityPhase("loading");
+    setEligibilityError(null);
+
+    getVotersByEmail(id, user.email, controller.signal)
       .then((envelope) => {
         const match = envelope.data.find((v) => v.accountId === user.id);
         if (!match) {
-          setNotEligible(true);
-          setLoadingBallot(false);
+          // Voter is not yet enrolled. Choose phase based on integration presence.
+          setEligibilityPhase(integration ? "idle" : "no_integration");
           return null;
         }
+        // Already enrolled — fetch the ballot.
         setVoterId(match.voterId);
+        setEligibilityPhase("admin_granted");
         return getBallot(id, match.voterId, controller.signal);
       })
       .then((b) => {
         if (b) setBallot(b);
-        setLoadingBallot(false);
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         if (err instanceof ApiError && err.status === 403) {
-          setNotEligible(true);
+          setEligibilityPhase(integration ? "idle" : "no_integration");
         } else {
-          setBallotError(
-            err instanceof Error ? err.message : "Failed to load ballot.",
+          setEligibilityError(
+            err instanceof Error ? err.message : "Failed to load voter status.",
           );
+          setEligibilityPhase("idle");
         }
-        setLoadingBallot(false);
       });
 
     return () => controller.abort();
-  }, [election, user, id]);
+  }, [election, user, id, integration]);
+
+  const handleCheck = useCallback(async () => {
+    if (!user || !integration) return;
+    setEligibilityPhase("checking");
+    setEligibilityError(null);
+    try {
+      const result = await checkEligibility(id, user.id, fieldValues);
+      setEligibilityPhase(result.eligible ? "eligible" : "not_eligible");
+    } catch (err: unknown) {
+      setEligibilityError(
+        err instanceof ApiError
+          ? err.message
+          : "Eligibility check failed. Please try again.",
+      );
+      setEligibilityPhase("idle");
+    }
+  }, [id, user, integration, fieldValues]);
+
+  const handleEnroll = useCallback(async () => {
+    if (!user || !integration) return;
+    setEligibilityPhase("enrolling");
+    setEligibilityError(null);
+    try {
+      const eligibility = await enrollVoter(
+        id,
+        user.id,
+        user.email,
+        fieldValues,
+      );
+      setVoterId(eligibility.voterId);
+      setEligibilityPhase("enrolled");
+      // Fetch the ballot now that the voter is enrolled.
+      const b = await getBallot(id, eligibility.voterId);
+      setBallot(b);
+    } catch (err: unknown) {
+      setEligibilityError(
+        err instanceof ApiError
+          ? err.message
+          : "Enrollment failed. Please try again.",
+      );
+      setEligibilityPhase("eligible");
+    }
+  }, [id, user, integration, fieldValues]);
 
   const handleCastVote = useCallback(async () => {
     if (!voterId || !selectedId) return;
@@ -174,11 +253,12 @@ export default function ElectionDetailPage({
   const isActive = election.status === "active";
   const isClosed =
     election.status === "closed" || election.status === "archived";
+  const isEnrolled =
+    eligibilityPhase === "admin_granted" || eligibilityPhase === "enrolled";
   const hasVoted = ballot?.voter.hasVoted ?? false;
   const canVote =
-    isActive && !hasVoted && !notEligible && !voteResult && ballot !== null;
+    isActive && !hasVoted && isEnrolled && !voteResult && ballot !== null;
 
-  // Prefer ballot's candidate list (has vote tallies when closed).
   const displayCandidates: BallotCandidate[] =
     ballot?.candidates ??
     candidates.map((c) => ({
@@ -233,23 +313,33 @@ export default function ElectionDetailPage({
 
       <div className="divider my-0" />
 
+      {/* Eligibility section (only shown when election is not draft) */}
+      {election.status !== "draft" && user && (
+        <EligibilitySection
+          phase={eligibilityPhase}
+          error={eligibilityError}
+          integration={integration}
+          fieldValues={fieldValues}
+          onFieldChange={(id, value) =>
+            setFieldValues((prev) => ({ ...prev, [id]: value }))
+          }
+          onCheck={handleCheck}
+          onEnroll={handleEnroll}
+        />
+      )}
+
+      <div className="divider my-0" />
+
       {/* Candidates */}
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Candidates</h2>
 
-        {loadingBallot ? (
+        {eligibilityPhase === "loading" ? (
           <div className="flex justify-center py-10">
             <Spinner size="md" />
           </div>
         ) : (
           <>
-            {/* Eligibility / vote status banners */}
-            {ballotError && <Alert tone="error">{ballotError}</Alert>}
-            {notEligible && (
-              <Alert tone="warning">
-                You are not eligible to vote in this election.
-              </Alert>
-            )}
             {(voteResult || hasVoted) && (
               <Alert tone="success" className="flex items-center gap-2">
                 <CheckCircle2 className="size-5 shrink-0" />
@@ -338,6 +428,169 @@ export default function ElectionDetailPage({
     </div>
   );
 }
+
+// ---- Eligibility section -------------------------------------------------
+
+interface EligibilitySectionProps {
+  phase: EligibilityPhase;
+  error: string | null;
+  integration: Integration | null;
+  fieldValues: Record<string, string>;
+  onFieldChange: (fieldId: string, value: string) => void;
+  onCheck: () => void;
+  onEnroll: () => void;
+}
+
+function EligibilitySection({
+  phase,
+  error,
+  integration,
+  fieldValues,
+  onFieldChange,
+  onCheck,
+  onEnroll,
+}: EligibilitySectionProps) {
+  if (phase === "loading") return null;
+
+  // Voter is already enrolled — show a subtle confirmation, not a big form.
+  if (phase === "admin_granted" || phase === "enrolled") {
+    return (
+      <div className="flex items-center gap-2 text-sm text-success">
+        <CheckCircle2 className="size-4 shrink-0" />
+        <span>You are enrolled in this election.</span>
+      </div>
+    );
+  }
+
+  if (phase === "no_integration") {
+    return (
+      <Alert tone="warning">
+        Eligibility for this election is managed by an administrator. Contact
+        the election organiser if you believe you should be eligible.
+      </Alert>
+    );
+  }
+
+  if (!integration) return null;
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <ClipboardCheck className="size-5 text-primary shrink-0" />
+        <h2 className="text-lg font-semibold">Eligibility Check</h2>
+      </div>
+
+      {error && <Alert tone="error">{error}</Alert>}
+
+      {phase === "not_eligible" && (
+        <Alert tone="error">
+          You are not eligible to vote in this election based on the information
+          provided.
+        </Alert>
+      )}
+
+      {phase === "eligible" && (
+        <Alert tone="success">
+          You are eligible for this election! Click <strong>Enroll</strong> to
+          register your participation.
+        </Alert>
+      )}
+
+      {(phase === "idle" ||
+        phase === "not_eligible" ||
+        phase === "checking") && (
+        <EligibilityForm
+          fields={integration.formFields}
+          values={fieldValues}
+          onChange={onFieldChange}
+          onSubmit={onCheck}
+          loading={phase === "checking"}
+        />
+      )}
+
+      {phase === "eligible" && (
+        <div className="flex justify-end">
+          <Button onClick={onEnroll} className="gap-1">
+            <CheckCircle2 className="size-4" />
+            Enroll in election
+          </Button>
+        </div>
+      )}
+
+      {phase === "enrolling" && (
+        <div className="flex items-center gap-2 text-sm text-base-content/60">
+          <Spinner size="sm" />
+          Enrolling…
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ---- Eligibility form ---------------------------------------------------
+
+interface EligibilityFormProps {
+  fields: FormField[];
+  values: Record<string, string>;
+  onChange: (fieldId: string, value: string) => void;
+  onSubmit: () => void;
+  loading: boolean;
+}
+
+function EligibilityForm({
+  fields,
+  values,
+  onChange,
+  onSubmit,
+  loading,
+}: EligibilityFormProps) {
+  if (fields.length === 0) {
+    return (
+      <div className="flex justify-end">
+        <Button onClick={onSubmit} loading={loading} className="gap-1">
+          <ClipboardCheck className="size-4" />
+          Check eligibility
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm text-base-content/60">
+        Fill in the fields below to verify your eligibility.
+      </p>
+      {fields.map((field) => (
+        <div key={field.id} className="flex flex-col gap-1">
+          <label className="text-sm font-medium">
+            {field.label}
+            {field.description && (
+              <span className="text-xs text-base-content/50 ml-1.5 font-normal">
+                — {field.description}
+              </span>
+            )}
+          </label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            placeholder={field.label}
+            value={values[field.id] ?? ""}
+            onChange={(e) => onChange(field.id, e.target.value)}
+            disabled={loading}
+          />
+        </div>
+      ))}
+      <div className="flex justify-end">
+        <Button onClick={onSubmit} loading={loading} className="gap-1">
+          <ClipboardCheck className="size-4" />
+          Check eligibility
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ---- Sub-components ------------------------------------------------------
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (

@@ -52,6 +52,7 @@ const VOTER_COLUMNS = {
   electionId: eligibilities.electionId,
   hasVoted: eligibilities.hasVoted,
   deleted: eligibilities.deleted,
+  externalVoterId: eligibilities.externalVoterId,
   createdAt: eligibilities.createdAt,
   updatedAt: eligibilities.updatedAt,
   email: voters.email,

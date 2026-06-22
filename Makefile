@@ -21,14 +21,15 @@ install: ## Install all workspace dependencies
 	bun install
 
 dev: prepare-assets ## Run all dev services concurrently
-	npx concurrently -n backend,auth,admin-fe,voting-fe,auditing-fe,blockchain \
-		-c blue,green,magenta,cyan,yellow,red \
+	npx concurrently -n backend,auth,admin-fe,voting-fe,auditing-fe,blockchain,example-voters \
+		-c blue,green,magenta,cyan,yellow,red,gray \
 		"cd backend && bun run dev" \
 		"cd auth && bun run dev" \
 		"cd admin-fe && bun run dev" \
 		"cd voting-fe && bun run dev" \
 		"cd auditing-fe && bun run dev" \
-		"cd blockchain && bun run dev"
+		"cd blockchain && bun run dev" \
+		"cd examples/simple-voters-database && bun run dev"
 
 build: prepare-assets admin-fe-build auditing-fe-build voting-fe-build ## Build all buildable projects
 
@@ -209,3 +210,15 @@ auditing-fe-lint: ## Lint auditing frontend
 
 blockchain-dev: ## Run blockchain in watch mode
 	cd blockchain && bun run dev
+
+# ===========================================================================
+# Examples
+# ===========================================================================
+
+.PHONY: example-voters-dev example-voters-seed
+
+example-voters-dev: ## Run the simple-voters-database example app (port 3002)
+	cd examples/simple-voters-database && bun run dev
+
+example-voters-seed: ## Seed the simple-voters-database with example data
+	cd examples/simple-voters-database && bun run seed

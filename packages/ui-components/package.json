@@ -13,6 +13,10 @@
     "./DevLinks": {
       "types": "./src/DevLinks.tsx",
       "default": "./src/DevLinks.tsx"
+    },
+    "./LogoSquare": {
+      "types": "./src/branding/logo-square.tsx",
+      "default": "./src/branding/logo-square.tsx"
     }
   },
   "scripts": {

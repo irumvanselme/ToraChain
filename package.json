@@ -7,7 +7,8 @@
     "voting-fe",
     "blockchain",
     "auth",
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
     "format": "bun run prettier --write .",

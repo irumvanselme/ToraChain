@@ -12,6 +12,7 @@ export interface Eligibility {
   electionId: string;
   hasVoted: boolean;
   deleted: boolean;
+  externalVoterId: string | null;
 }
 
 export interface CursorPagination {

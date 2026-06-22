@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Emit utilities used by the shared component library. */
+@source "../../../packages/ui-components/src/**/*.tsx";
+
+@plugin "daisyui" {
+  themes: corporate --default;
+}

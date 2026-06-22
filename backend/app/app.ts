@@ -29,11 +29,16 @@ import { DrizzleVotesRepository } from "./votes/repository.ts";
 import { VotesService } from "./votes/service.ts";
 import { VotesController } from "./votes/controller.ts";
 
+import { DrizzleIntegrationsRepository } from "./integrations/repository.ts";
+import { IntegrationsService } from "./integrations/service.ts";
+import { IntegrationsController } from "./integrations/controller.ts";
+
 export interface Services {
   elections: ElectionsService;
   candidates: CandidatesService;
   voters: VotersService;
   votes: VotesService;
+  integrations: IntegrationsService;
 }
 
 export function buildServices(
@@ -45,6 +50,7 @@ export function buildServices(
   const candidatesRepo = new DrizzleCandidatesRepository(db);
   const votersRepo = new DrizzleVotersRepository(db);
   const votesRepo = new DrizzleVotesRepository(db);
+  const integrationsRepo = new DrizzleIntegrationsRepository(db);
 
   const elections = new ElectionsService(electionsRepo);
   const candidates = new CandidatesService(candidatesRepo, elections);
@@ -55,8 +61,13 @@ export function buildServices(
     candidatesRepo,
     votesRepo,
   );
+  const integrations = new IntegrationsService(
+    integrationsRepo,
+    elections,
+    votersRepo,
+  );
 
-  return { elections, candidates, voters, votes };
+  return { elections, candidates, voters, votes, integrations };
 }
 
 const openapiPlugin = openapi({
@@ -79,6 +90,10 @@ const openapiPlugin = openapi({
         description: "Manage voter eligibility for an election.",
       },
       { name: "Voting", description: "Cast and inspect ballots." },
+      {
+        name: "Integrations",
+        description: "Manage and invoke external eligibility integrations.",
+      },
     ],
   },
 });
@@ -98,7 +113,8 @@ export function buildApp(services: Services, database?: Database) {
     .use(ElectionsController(services.elections))
     .use(CandidatesController(services.candidates))
     .use(VotersController(services.voters))
-    .use(VotesController(services.votes));
+    .use(VotesController(services.votes))
+    .use(IntegrationsController(services.integrations));
 
   if (database) app.use(AppHealth(database));
 

@@ -49,6 +49,8 @@ export const eligibilities = pgTable(
       .references(() => elections.electionId, { onDelete: "cascade" }),
     hasVoted: boolean("has_voted").notNull().default(false),
     deleted: boolean("deleted").notNull().default(false),
+    /** Unique identifier returned by the external eligibility API (null for admin-granted eligibility). */
+    externalVoterId: text("external_voter_id"),
     // Millisecond precision so the JS `Date` used in keyset cursors
     // round-trips exactly — otherwise the residual microseconds make the
     // boundary row satisfy `created_at > cursor` and reappear on the next page.
@@ -96,6 +98,7 @@ export interface EligibilityDTO {
   electionId: string;
   hasVoted: boolean;
   deleted: boolean;
+  externalVoterId: string | null;
 }
 
 export function serializeEligibility(
@@ -108,5 +111,6 @@ export function serializeEligibility(
     electionId: row.electionId,
     hasVoted: row.hasVoted,
     deleted: row.deleted,
+    externalVoterId: row.externalVoterId ?? null,
   };
 }

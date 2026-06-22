@@ -7,6 +7,7 @@ export const EligibilitySchema = t.Object({
   electionId: t.String({ format: "uuid" }),
   hasVoted: t.Boolean(),
   deleted: t.Boolean(),
+  externalVoterId: t.Union([t.String(), t.Null()]),
 });
 
 export const ListQuerySchema = t.Object({

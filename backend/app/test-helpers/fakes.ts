@@ -220,6 +220,7 @@ export class InMemoryVotersRepository implements VotersRepository {
       electionId: partial.electionId,
       hasVoted: partial.hasVoted ?? false,
       deleted: partial.deleted ?? false,
+      externalVoterId: partial.externalVoterId ?? null,
       createdAt: partial.createdAt ?? now,
       updatedAt: partial.updatedAt ?? now,
     };

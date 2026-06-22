@@ -14,6 +14,7 @@ import { StatusBadge } from "components/StatusBadge.tsx";
 import { getElection, type Election } from "lib/elections.ts";
 import { ElectionCandidatesTable } from "../candidates/election-candidates-table.tsx";
 import { ElectionVotersTable } from "../voters/election-voters-table.tsx";
+import { ElectionIntegrationForm } from "../integrations/ElectionIntegrationForm.tsx";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -140,7 +141,7 @@ export function ElectionDetailPage() {
             aria-label="Integrations"
           />
           <div className="tab-content bg-base-100 border-base-300 p-6">
-            Integrations
+            <ElectionIntegrationForm electionId={election.electionId} />
           </div>
         </div>
       )}

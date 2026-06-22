@@ -11,6 +11,7 @@ const row: EligibilityWithVoter = {
   electionId: "11111111-1111-1111-1111-111111111111",
   hasVoted: false,
   deleted: false,
+  externalVoterId: null,
   createdAt: new Date("2026-01-01T00:00:00Z"),
   updatedAt: new Date("2026-01-01T00:00:00Z"),
   email: "voter@example.com",
@@ -26,6 +27,7 @@ describe("serializeEligibility", () => {
       electionId: "11111111-1111-1111-1111-111111111111",
       hasVoted: false,
       deleted: false,
+      externalVoterId: null,
     });
   });
 

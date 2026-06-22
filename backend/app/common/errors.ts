@@ -29,7 +29,11 @@ export type ErrorCode =
   // Voting.
   | "NOT_ELIGIBLE"
   | "ELECTION_NOT_OPEN"
-  | "CANDIDATE_NOT_IN_ELECTION";
+  | "CANDIDATE_NOT_IN_ELECTION"
+  // Integrations.
+  | "INTEGRATION_NOT_CONFIGURED"
+  | "EXTERNAL_API_ERROR"
+  | "INTEGRATION_TYPE_UNSUPPORTED";
 
 export interface ErrorBody {
   code: ErrorCode;
@@ -151,5 +155,25 @@ export class AppError extends Error {
     details: unknown = null,
   ): AppError {
     return new AppError("CANDIDATE_NOT_IN_ELECTION", 422, message, details);
+  }
+
+  // ---- Integrations --------------------------------------------------------
+
+  static integrationNotConfigured(
+    message: string,
+    details: unknown = null,
+  ): AppError {
+    return new AppError("INTEGRATION_NOT_CONFIGURED", 404, message, details);
+  }
+
+  static externalApiError(message: string, details: unknown = null): AppError {
+    return new AppError("EXTERNAL_API_ERROR", 502, message, details);
+  }
+
+  static integrationTypeUnsupported(
+    message: string,
+    details: unknown = null,
+  ): AppError {
+    return new AppError("INTEGRATION_TYPE_UNSUPPORTED", 422, message, details);
   }
 }

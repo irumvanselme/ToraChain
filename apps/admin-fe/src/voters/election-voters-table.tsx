@@ -141,9 +141,6 @@ export function ElectionVotersTable({ electionId }: { electionId: string }) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-base-content/60">Eligible voters</p>
-        <Button size="sm" onClick={() => setGranting(true)}>
-          Add voter
-        </Button>
       </div>
 
       {loading ? (
@@ -160,8 +157,7 @@ export function ElectionVotersTable({ electionId }: { electionId: string }) {
       ) : rows.length === 0 ? (
         <EmptyState
           title="No eligible voters yet"
-          description="Grant voters eligibility so they can cast a ballot."
-          action={<Button onClick={() => setGranting(true)}>Add voter</Button>}
+          description="Wait for the voters to check their eligibilty."
         />
       ) : (
         <>

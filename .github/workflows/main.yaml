@@ -3,7 +3,7 @@ name: main-ci
 on:
   push:
     branches:
-      - '**'  # Runs on push to any branch
+      - "**" # Runs on push to any branch
 
 jobs:
   auth:

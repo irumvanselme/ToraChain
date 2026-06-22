@@ -560,6 +560,9 @@ function EligibilityForm({
       <p className="text-sm text-base-content/60">
         Fill in the fields below to verify your eligibility.
       </p>
+      <p className="text-sm text-base-content/60 italic">
+        These information are not saved by Tora-Chain, they are only used for validation.
+      </p>
       {fields.map((field) => (
         <div key={field.id} className="flex flex-col gap-1">
           <label className="text-sm font-medium">

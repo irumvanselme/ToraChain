@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* Scan the shared component library so Tailwind emits the utilities it uses. */
+@source "../../packages/ui-components/src/**/*.tsx";
+
+@plugin "daisyui" {
+  themes: corporate --default;
+}

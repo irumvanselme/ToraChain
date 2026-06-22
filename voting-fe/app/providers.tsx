@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { AuthProvider, RequireAuth } from "@tora-chain/fe-common";
 import { AUTH_API, loginUrl } from "./config";
+import { TopNav } from "./components/TopNav";
 
 /**
  * Client-side auth boundary. The root layout is a Server Component, so it can't
@@ -12,7 +13,10 @@ import { AUTH_API, loginUrl } from "./config";
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <AuthProvider config={{ authApi: AUTH_API, loginUrl }}>
-      <RequireAuth>{children}</RequireAuth>
+      <RequireAuth>
+        <TopNav />
+        <main className="flex-1 flex flex-col">{children}</main>
+      </RequireAuth>
     </AuthProvider>
   );
 }

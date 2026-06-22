@@ -2,7 +2,7 @@
 
 /* Scan the shared component library so the Tailwind utilities it uses are
    emitted (it lives outside this app's source root, via a workspace link). */
-@source "../../packages/ui-components/src/**/*.tsx";
+@source "../../../packages/ui-components/src/**/*.tsx";
 
 @plugin "daisyui" {
   themes: corporate --default;

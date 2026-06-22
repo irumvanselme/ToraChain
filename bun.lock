@@ -16,7 +16,7 @@
         "typescript": "^5",
       },
     },
-    "admin-fe": {
+    "apps/admin-fe": {
       "name": "@tora-chain/admin-frontend",
       "version": "0.0.0",
       "dependencies": {
@@ -45,7 +45,7 @@
         "vite": "^8.0.12",
       },
     },
-    "auditing-fe": {
+    "apps/auditing-fe": {
       "name": "@tora-chain/auditing-frontend",
       "version": "0.1.0",
       "dependencies": {
@@ -67,7 +67,7 @@
         "typescript": "^5",
       },
     },
-    "auth": {
+    "apps/auth": {
       "name": "@tora-chain/auth",
       "dependencies": {
         "@elysia/html": "^1.4.1",
@@ -94,7 +94,7 @@
         "typescript": "^5",
       },
     },
-    "backend": {
+    "apps/backend": {
       "name": "@tora-chain/backend",
       "dependencies": {
         "@elysiajs/cors": "^1.4.2",
@@ -120,7 +120,7 @@
         "typescript": "^5",
       },
     },
-    "blockchain": {
+    "apps/blockchain": {
       "name": "@tora-chain/blockchain",
       "dependencies": {
         "@tora-chain/be-common": "workspace:*",
@@ -130,6 +130,30 @@
         "@types/bun": "latest",
       },
       "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "apps/voting-fe": {
+      "name": "@tora-chain/voting-frontend",
+      "version": "0.1.0",
+      "dependencies": {
+        "@tora-chain/fe-common": "workspace:*",
+        "@tora-chain/ui-components": "workspace:*",
+        "daisyui": "^5.5.23",
+        "lucide-react": "^1.21.0",
+        "next": "16.2.9",
+        "react": "19.2.4",
+        "react-dom": "19.2.4",
+      },
+      "devDependencies": {
+        "@tailwindcss/postcss": "^4",
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "eslint": "^9",
+        "eslint-config-next": "16.2.9",
+        "prettier": "^3.8.4",
+        "tailwindcss": "^4",
         "typescript": "^5",
       },
     },
@@ -205,30 +229,6 @@
       "peerDependencies": {
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
-      },
-    },
-    "voting-fe": {
-      "name": "@tora-chain/voting-frontend",
-      "version": "0.1.0",
-      "dependencies": {
-        "@tora-chain/fe-common": "workspace:*",
-        "@tora-chain/ui-components": "workspace:*",
-        "daisyui": "^5.5.23",
-        "lucide-react": "^1.21.0",
-        "next": "16.2.9",
-        "react": "19.2.4",
-        "react-dom": "19.2.4",
-      },
-      "devDependencies": {
-        "@tailwindcss/postcss": "^4",
-        "@types/node": "^20",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "eslint": "^9",
-        "eslint-config-next": "16.2.9",
-        "prettier": "^3.8.4",
-        "tailwindcss": "^4",
-        "typescript": "^5",
       },
     },
   },
@@ -619,17 +619,17 @@
 
     "@tokenizer/token": ["@tokenizer/token@0.3.0", "", {}, "sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A=="],
 
-    "@tora-chain/admin-frontend": ["@tora-chain/admin-frontend@workspace:admin-fe"],
+    "@tora-chain/admin-frontend": ["@tora-chain/admin-frontend@workspace:apps/admin-fe"],
 
-    "@tora-chain/auditing-frontend": ["@tora-chain/auditing-frontend@workspace:auditing-fe"],
+    "@tora-chain/auditing-frontend": ["@tora-chain/auditing-frontend@workspace:apps/auditing-fe"],
 
-    "@tora-chain/auth": ["@tora-chain/auth@workspace:auth"],
+    "@tora-chain/auth": ["@tora-chain/auth@workspace:apps/auth"],
 
-    "@tora-chain/backend": ["@tora-chain/backend@workspace:backend"],
+    "@tora-chain/backend": ["@tora-chain/backend@workspace:apps/backend"],
 
     "@tora-chain/be-common": ["@tora-chain/be-common@workspace:packages/be-common"],
 
-    "@tora-chain/blockchain": ["@tora-chain/blockchain@workspace:blockchain"],
+    "@tora-chain/blockchain": ["@tora-chain/blockchain@workspace:apps/blockchain"],
 
     "@tora-chain/dev-configs": ["@tora-chain/dev-configs@workspace:packages/dev-configs"],
 
@@ -637,7 +637,7 @@
 
     "@tora-chain/ui-components": ["@tora-chain/ui-components@workspace:packages/ui-components"],
 
-    "@tora-chain/voting-frontend": ["@tora-chain/voting-frontend@workspace:voting-fe"],
+    "@tora-chain/voting-frontend": ["@tora-chain/voting-frontend@workspace:apps/voting-fe"],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.2", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-RoBvJ2X0wuKlWFIjrwffGw1IqZHKQqzIchKaadZZfnNpsAYp2mM0h36JtPCjNDAHGgYez/15uMBpfGwchhiMgg=="],
 

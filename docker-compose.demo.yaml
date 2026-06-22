@@ -45,7 +45,7 @@ services:
 
   auth:
     <<: *app
-    working_dir: /app/auth
+    working_dir: /app/apps/auth
     command: sh -c "bun run migrate:all && bun run start"
     environment:
       BETTER_AUTH_SECRET: demo-secret-change-me
@@ -59,7 +59,7 @@ services:
 
   backend:
     <<: *app
-    working_dir: /app/backend
+    working_dir: /app/apps/backend
     command: sh -c "bun run db:migrate && bun run start"
     environment:
       ELECTIONS_DB_URI: postgres://elections:elections@elections-db:5432/elections
@@ -72,7 +72,7 @@ services:
 
   admin-fe:
     <<: *app
-    working_dir: /app/admin-fe
+    working_dir: /app/apps/admin-fe
     command: bunx vite --host 0.0.0.0 --port 5173
     environment:
       AUTH_TARGET: http://auth:3000

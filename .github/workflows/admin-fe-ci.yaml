@@ -20,13 +20,13 @@ jobs:
         run: bun install --frozen-lockfile --filter @tora-chain/admin-frontend
 
       - name: check-types
-        working-directory: ./admin-fe
+        working-directory: ./apps/admin-fe
         run: bun run check-types
 
       - name: linting
-        working-directory: ./admin-fe
+        working-directory: ./apps/admin-fe
         run: bun run lint
 
       - name: build
-        working-directory: ./admin-fe
+        working-directory: ./apps/admin-fe
         run: bun run build

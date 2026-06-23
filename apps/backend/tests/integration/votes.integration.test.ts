@@ -49,7 +49,7 @@ integrationSuite("Voting", (ctx) => {
     await call("POST", `/elections/${electionId}/voter/${voterId}/vote`, {
       candidateId: jane.candidateId,
     });
-    await setStatus(call, electionId, "closed");
+    await setStatus(call, electionId, "ended");
 
     const closedBallot = await call<{
       candidates: { candidateId: string; votes: number }[];

@@ -26,8 +26,8 @@ integrationSuite("Elections", (ctx) => {
     const active = await setStatus(call, electionId, "active");
     expect(active.status).toBe("active");
 
-    const closed = await setStatus(call, electionId, "closed");
-    expect(closed.status).toBe("closed");
+    const closed = await setStatus(call, electionId, "ended");
+    expect(closed.status).toBe("ended");
   });
 
   test("active elections cannot be deleted", async () => {

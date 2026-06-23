@@ -7,7 +7,7 @@ import type { ElectionRow, ElectionStatus } from "./model.ts";
  * only allow the self no-op. Anything else is INVALID_STATUS_TRANSITION.
  */
 const TRANSITIONS: Record<ElectionStatus, ElectionStatus[]> = {
-  draft: ["draft", "enrolling_voters"],
+  draft: ["draft", "enrolling_voters", "scheduled", "active"],
   enrolling_voters: ["enrolling_voters", "scheduled", "paused"],
   scheduled: ["scheduled", "active", "paused"],
   active: ["active", "ended", "paused"],

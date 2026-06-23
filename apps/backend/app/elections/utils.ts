@@ -2,22 +2,26 @@ import { AppError } from "../common/errors.ts";
 import type { ElectionRow, ElectionStatus } from "./model.ts";
 
 /**
- * Allowed status transitions. A status may always "transition" to itself
- * (a no-op). Anything not listed is an INVALID_STATUS_TRANSITION.
+ * Allowed status transitions. Each status can transition to itself (no-op)
+ * or to the listed forward states. Terminal states (ended, archived, paused)
+ * only allow the self no-op. Anything else is INVALID_STATUS_TRANSITION.
  */
 const TRANSITIONS: Record<ElectionStatus, ElectionStatus[]> = {
-  draft: ["draft", "scheduled", "active", "inactive", "archived"],
-  scheduled: ["scheduled", "draft", "active", "inactive", "archived"],
-  active: ["active", "inactive", "closed"],
-  inactive: ["inactive", "draft", "scheduled", "active", "closed", "archived"],
-  closed: ["closed", "archived"],
+  draft: ["draft", "enrolling_voters"],
+  enrolling_voters: ["enrolling_voters", "scheduled", "paused"],
+  scheduled: ["scheduled", "active", "paused"],
+  active: ["active", "ended", "paused"],
+  ended: ["ended", "archived"],
   archived: ["archived"],
+  paused: ["paused"],
 };
 
-/** Editing of these fields is blocked while an election is active/closed. */
+/** Editing content fields is blocked once an election is past draft stage and running. */
 const LOCKED_STATUSES: ReadonlySet<ElectionStatus> = new Set([
   "active",
-  "closed",
+  "ended",
+  "archived",
+  "paused",
 ]);
 
 export const CONTENT_FIELDS = [
@@ -95,10 +99,15 @@ export function assertTimeWindow(
   }
 }
 
-/** Is the election currently open for voting (active and within its window)? */
+/** Is the election currently open for voting (active and within its time window)? */
 export function isWithinVotingWindow(row: ElectionRow, now: Date): boolean {
   if (row.status !== "active") return false;
   if (row.startTime && now.getTime() < row.startTime.getTime()) return false;
   if (row.endTime && now.getTime() > row.endTime.getTime()) return false;
   return true;
+}
+
+/** Statuses during which voters may check eligibility and enroll. */
+export function isEnrollmentOpen(row: ElectionRow): boolean {
+  return row.status === "enrolling_voters";
 }

@@ -79,6 +79,10 @@ export class Logger {
     this.logger.error(data ?? {}, message);
   }
 
+  exception(exception: unknown): void {
+    this.logger.error(exception);
+  }
+
   warn(message: string, data?: LogBindings): void {
     this.logger.warn(data ?? {}, message);
   }

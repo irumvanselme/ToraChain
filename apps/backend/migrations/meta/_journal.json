@@ -15,6 +15,13 @@
       "when": 1781200000000,
       "tag": "0001_add_integrations",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782233583585,
+      "tag": "0002_cuddly_junta",
+      "breakpoints": true
     }
   ]
 }

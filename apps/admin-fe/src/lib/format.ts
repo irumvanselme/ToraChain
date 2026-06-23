@@ -5,11 +5,12 @@ type Tone = "neutral" | "info" | "success" | "warning" | "error" | "ghost";
 /** Map an election status to a DaisyUI badge tone. */
 export const STATUS_TONE: Record<ElectionStatus, Tone> = {
   draft: "ghost",
-  scheduled: "info",
+  enrolling_voters: "info",
+  scheduled: "warning",
   active: "success",
-  inactive: "warning",
-  closed: "neutral",
+  ended: "neutral",
   archived: "neutral",
+  paused: "error",
 };
 
 /** Human-readable date-time, or an em dash for null. */
@@ -46,7 +47,10 @@ export function localInputToIso(value: string): string | null {
   return date.toISOString();
 }
 
-/** Title-case a status label for display. */
+/** Human-readable label for a status (handles underscore-separated words). */
 export function statusLabel(status: ElectionStatus): string {
-  return status.charAt(0).toUpperCase() + status.slice(1);
+  return status
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }

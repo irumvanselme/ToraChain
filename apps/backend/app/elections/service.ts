@@ -17,6 +17,7 @@ import {
   assertTimeWindow,
   assertValidTransition,
 } from "./utils.ts";
+import { Logger } from "@tora-chain/be-common";
 
 export interface CreateElectionInput {
   title: string;
@@ -48,7 +49,10 @@ export interface ListElectionsQuery extends ElectionListFilter {
 }
 
 export class ElectionsService {
-  constructor(private readonly repo: ElectionsRepository) {}
+  constructor(
+    private readonly repo: ElectionsRepository,
+    private logger = new Logger({ name: ElectionsService.name }),
+  ) {}
 
   async getRow(id: string, includeDeleted = false): Promise<ElectionRow> {
     const row = await this.repo.findById(id, includeDeleted);
@@ -62,16 +66,22 @@ export class ElectionsService {
 
   async list(query: ListElectionsQuery): Promise<OffsetEnvelope<ElectionDTO>> {
     const page = normalizeOffset(query);
-    const { rows, total } = await this.repo.list(
-      {
-        status: query.status,
-        q: query.q,
-        includeDeleted: query.includeDeleted,
-        trash: query.trash,
-      },
-      page,
-    );
-    return offsetEnvelope(rows.map(serializeElection), page, total);
+    try {
+      const { rows, total } = await this.repo.list(
+        {
+          status: query.status,
+          q: query.q,
+          includeDeleted: query.includeDeleted,
+          trash: query.trash,
+        },
+        page,
+      );
+
+      return offsetEnvelope(rows.map(serializeElection), page, total);
+    } catch (e) {
+      this.logger.exception(e);
+      throw e;
+    }
   }
 
   async get(id: string, includeDeleted = false): Promise<ElectionDTO> {

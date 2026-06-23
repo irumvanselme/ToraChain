@@ -88,7 +88,7 @@ describe("getBallot", () => {
   });
 
   test("includes tallies once the election is closed", async () => {
-    const election = elections.seed({ status: "closed" });
+    const election = elections.seed({ status: "ended" });
     const voter = voters.seedVoter();
     voters.seedEligibility({
       voterId: voter.voterId,

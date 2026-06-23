@@ -59,6 +59,8 @@ export function ElectionForm({
 }: ElectionFormProps) {
   const [fields, setFields] = useState<FieldState>(() => toFieldState(initial));
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [startTimeError, setStartTimeError] = useState<string | null>(null);
+  const [endTimeError, setEndTimeError] = useState<string | null>(null);
   const [windowError, setWindowError] = useState<string | null>(null);
 
   const set =
@@ -69,6 +71,8 @@ export function ElectionForm({
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setTitleError(null);
+    setStartTimeError(null);
+    setEndTimeError(null);
     setWindowError(null);
 
     const title = fields.title.trim();
@@ -79,6 +83,18 @@ export function ElectionForm({
 
     const startTime = localInputToIso(fields.startTime);
     const endTime = localInputToIso(fields.endTime);
+
+    let hasDateError = false;
+    if (!startTime) {
+      setStartTimeError("Start time is required.");
+      hasDateError = true;
+    }
+    if (!endTime) {
+      setEndTimeError("End time is required.");
+      hasDateError = true;
+    }
+    if (hasDateError) return;
+
     if (startTime && endTime && new Date(endTime) <= new Date(startTime)) {
       setWindowError("End time must be after the start time.");
       return;
@@ -127,13 +143,16 @@ export function ElectionForm({
           type="datetime-local"
           value={fields.startTime}
           onChange={(e) => set("startTime")(e.target.value)}
+          error={startTimeError}
+          required
         />
         <Input
           label="End time"
           type="datetime-local"
           value={fields.endTime}
           onChange={(e) => set("endTime")(e.target.value)}
-          error={windowError}
+          error={endTimeError ?? windowError}
+          required
         />
       </div>
 

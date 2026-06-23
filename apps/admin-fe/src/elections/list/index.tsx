@@ -13,10 +13,15 @@ import {
   CalendarArrowDown,
   CalendarArrowUp,
   CheckIcon,
+  MoreVertical,
   Pencil,
   Trash2,
 } from "lucide-react";
-import { ELECTION_STATUSES, type ElectionStatus } from "lib/elections";
+import {
+  ELECTION_STATUSES,
+  STATUS_TRANSITIONS,
+  type ElectionStatus,
+} from "lib/elections";
 import { formatDateTime, statusLabel } from "lib/format.ts";
 import { StatusBadge } from "components/StatusBadge.tsx";
 import { useListElections } from "./use-list-elections.ts";
@@ -34,11 +39,12 @@ type FilterTone =
 const FILTER_TONE: Record<ElectionStatus | "", FilterTone> = {
   "": "primary",
   draft: "neutral",
-  scheduled: "info",
+  enrolling_voters: "info",
+  scheduled: "accent",
   active: "success",
-  inactive: "warning",
-  closed: "secondary",
-  archived: "accent",
+  ended: "secondary",
+  archived: "neutral",
+  paused: "warning",
 };
 
 const STATUS_OPTIONS = [
@@ -62,6 +68,12 @@ export function ElectionsListPage() {
     deleteError,
     setDeleteError,
     confirmDelete,
+    toUpdateStatus,
+    setToUpdateStatus,
+    statusUpdating,
+    statusUpdateError,
+    setStatusUpdateError,
+    confirmStatusUpdate,
   } = useListElections();
 
   return (
@@ -190,6 +202,35 @@ export function ElectionsListPage() {
                   >
                     <Trash2 className="size-4" />
                   </Button>
+                  {STATUS_TRANSITIONS[row.status].length > 0 && (
+                    <div className="dropdown dropdown-start dropdown-down">
+                      <button
+                        tabIndex={0}
+                        type="button"
+                        className="btn btn-ghost btn-square btn-sm"
+                        aria-label="More actions"
+                        title="More actions"
+                      >
+                        <MoreVertical className="size-4" />
+                      </button>
+                      <ul
+                        tabIndex={0}
+                        className="dropdown-content menu bg-base-100 rounded-box z-10 w-48 p-2 shadow-lg border border-base-300"
+                      >
+                        <li>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setStatusUpdateError(null);
+                              setToUpdateStatus(row);
+                            }}
+                          >
+                            Update Status
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </Card>
             ))}
@@ -238,6 +279,52 @@ export function ElectionsListPage() {
           Move <span className="font-semibold">{toDelete?.title}</span> to
           trash? Active elections cannot be deleted.
         </p>
+      </Modal>
+
+      <Modal
+        open={toUpdateStatus !== null}
+        onClose={() => !statusUpdating && setToUpdateStatus(null)}
+        title="Update Status"
+        actions={
+          <Button
+            variant="ghost"
+            onClick={() => setToUpdateStatus(null)}
+            disabled={statusUpdating}
+          >
+            Cancel
+          </Button>
+        }
+      >
+        {statusUpdateError && (
+          <Alert tone="error" className="mb-3">
+            {statusUpdateError}
+          </Alert>
+        )}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-base-content/70">Current status:</span>
+            {toUpdateStatus && <StatusBadge status={toUpdateStatus.status} />}
+          </div>
+          <p className="text-sm text-base-content/70">
+            Move{" "}
+            <span className="font-semibold text-base-content">
+              {toUpdateStatus?.title}
+            </span>{" "}
+            to:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {toUpdateStatus &&
+              STATUS_TRANSITIONS[toUpdateStatus.status].map((nextStatus) => (
+                <Button
+                  key={nextStatus}
+                  loading={statusUpdating}
+                  onClick={() => void confirmStatusUpdate(nextStatus)}
+                >
+                  {statusLabel(nextStatus)}
+                </Button>
+              ))}
+          </div>
+        </div>
       </Modal>
     </div>
   );

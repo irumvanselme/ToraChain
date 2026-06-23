@@ -4,11 +4,12 @@ import { t } from "elysia";
 export const StatusSchema = t.Union(
   [
     t.Literal("draft"),
+    t.Literal("enrolling_voters"),
     t.Literal("scheduled"),
     t.Literal("active"),
-    t.Literal("inactive"),
-    t.Literal("closed"),
+    t.Literal("ended"),
     t.Literal("archived"),
+    t.Literal("paused"),
   ],
   { examples: ["draft"] },
 );

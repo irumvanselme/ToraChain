@@ -1,9 +1,10 @@
 import { AppError } from "../common/errors.ts";
 import type { ElectionStatus } from "../elections/model.ts";
 
-/** Candidates may only be added/edited/removed while the election is editable. */
+/** Candidates may only be added/edited/removed before the election goes active. */
 const EDITABLE_STATUSES: ReadonlySet<ElectionStatus> = new Set([
   "draft",
+  "enrolling_voters",
   "scheduled",
 ]);
 

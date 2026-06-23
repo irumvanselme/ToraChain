@@ -4,14 +4,26 @@ import { request } from "./api.ts";
 /** Election lifecycle states (mirrors the backend `StatusSchema`). */
 export const ELECTION_STATUSES = [
   "draft",
+  "enrolling_voters",
   "scheduled",
   "active",
-  "inactive",
-  "closed",
+  "ended",
   "archived",
+  "paused",
 ] as const;
 
 export type ElectionStatus = (typeof ELECTION_STATUSES)[number];
+
+/** Valid forward transitions from each status. Empty array = terminal state. */
+export const STATUS_TRANSITIONS: Record<ElectionStatus, ElectionStatus[]> = {
+  draft: ["enrolling_voters"],
+  enrolling_voters: ["scheduled", "paused"],
+  scheduled: ["active", "paused"],
+  active: ["ended", "paused"],
+  ended: ["archived"],
+  archived: [],
+  paused: [],
+};
 
 export interface Election {
   electionId: string;
@@ -82,6 +94,16 @@ export function updateElection(
   input: Partial<ElectionInput>,
 ): Promise<Election> {
   return request<Election>(`${root}/${id}`, { method: "PATCH", body: input });
+}
+
+export function updateElectionStatus(
+  id: string,
+  status: ElectionStatus,
+): Promise<Election> {
+  return request<Election>(`${root}/${id}`, {
+    method: "PATCH",
+    body: { status },
+  });
 }
 
 export function deleteElection(

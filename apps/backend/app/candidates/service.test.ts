@@ -116,7 +116,7 @@ describe("update / remove", () => {
   });
 
   test("remove is blocked while the election is locked", async () => {
-    const election = elections.seed({ status: "closed" });
+    const election = elections.seed({ status: "ended" });
     const candidate = candidates.seed({ electionId: election.electionId });
     await expectError(
       () => service.remove(election.electionId, candidate.candidateId),

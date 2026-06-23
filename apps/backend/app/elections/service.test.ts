@@ -76,7 +76,7 @@ describe("get", () => {
 
 describe("patch / replace transitions", () => {
   test("rejects an illegal status transition", async () => {
-    const row = repo.seed({ status: "closed" });
+    const row = repo.seed({ status: "ended" });
     await expectError(
       () => service.patch(row.electionId, { status: "draft" }),
       "INVALID_STATUS_TRANSITION",
@@ -95,8 +95,8 @@ describe("patch / replace transitions", () => {
 
   test("allows status-only transition while active", async () => {
     const row = repo.seed({ status: "active", title: "Locked" });
-    const updated = await service.patch(row.electionId, { status: "closed" });
-    expect(updated.status).toBe("closed");
+    const updated = await service.patch(row.electionId, { status: "ended" });
+    expect(updated.status).toBe("ended");
   });
 
   test("replace updates all editable fields on a draft", async () => {

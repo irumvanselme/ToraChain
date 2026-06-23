@@ -102,7 +102,7 @@ describe("DELETE /elections/:id", () => {
 
 describe("PATCH /elections/:id", () => {
   test("returns 409 INVALID_STATUS_TRANSITION for closed -> draft", async () => {
-    const row = repo.seed({ status: "closed" });
+    const row = repo.seed({ status: "ended" });
     const res = await jsonReq(`/elections/${row.electionId}`, "PATCH", {
       status: "draft",
     });

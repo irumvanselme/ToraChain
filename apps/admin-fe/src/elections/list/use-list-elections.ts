@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import {
   deleteElection,
   listElections,
+  updateElectionStatus,
   type Election,
   type ElectionStatus,
   type OffsetPagination,
@@ -26,6 +27,12 @@ export function useListElections() {
   const [toDelete, setToDelete] = useState<Election | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const [toUpdateStatus, setToUpdateStatus] = useState<Election | null>(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusUpdateError, setStatusUpdateError] = useState<string | null>(
+    null,
+  );
 
   const load = useCallback(
     (signal?: AbortSignal) => {
@@ -92,6 +99,25 @@ export function useListElections() {
     }
   }
 
+  async function confirmStatusUpdate(newStatus: ElectionStatus) {
+    if (!toUpdateStatus) return;
+    setStatusUpdating(true);
+    setStatusUpdateError(null);
+    try {
+      await updateElectionStatus(toUpdateStatus.electionId, newStatus);
+      setToUpdateStatus(null);
+      load();
+    } catch (err) {
+      setStatusUpdateError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not update the election status.",
+      );
+    } finally {
+      setStatusUpdating(false);
+    }
+  }
+
   return {
     rows,
     status,
@@ -108,5 +134,11 @@ export function useListElections() {
     toDelete,
     setToDelete,
     deleting,
+    toUpdateStatus,
+    setToUpdateStatus,
+    statusUpdating,
+    statusUpdateError,
+    setStatusUpdateError,
+    confirmStatusUpdate,
   };
 }

@@ -14,11 +14,12 @@ import { createdAt, updatedAt } from "../common/timestamps.ts";
 
 export const ELECTION_STATUSES = [
   "draft",
+  "enrolling_voters",
   "scheduled",
   "active",
-  "inactive",
-  "closed",
+  "ended",
   "archived",
+  "paused",
 ] as const;
 
 export type ElectionStatus = (typeof ELECTION_STATUSES)[number];

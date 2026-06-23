@@ -57,7 +57,7 @@ export class VotesService {
 
     const candidateRows = await this.candidates.listAllActive(electionId);
     const tallies =
-      election.status === "closed"
+      election.status === "ended" || election.status === "archived"
         ? await this.votes.tallies(electionId)
         : null;
 

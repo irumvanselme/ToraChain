@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-// Subpath import (not the barrel): the barrel re-exports client-only
-// components without a "use client" directive, which a Server Component layout
-// can't evaluate. This file carries its own directive.
-import { DevLinks } from "@tora-chain/ui-components/DevLinks";
+import { DevLinks } from "@tora-chain/ui-components/dev-links";
+import { DevBanner } from "@tora-chain/ui-components/dev-banner";
+
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -36,6 +35,8 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         {/* Dev-only floating links to the other ToraChain services. */}
         <DevLinks />
+        {/* Dev-only corner ribbon warning users not to submit sensitive data. */}
+        <DevBanner />
       </body>
     </html>
   );

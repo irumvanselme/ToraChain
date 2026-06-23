@@ -10,13 +10,13 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./DevLinks": {
+    "./dev-links": {
       "types": "./src/DevLinks.tsx",
       "default": "./src/DevLinks.tsx"
     },
-    "./LogoSquare": {
-      "types": "./src/branding/logo-square.tsx",
-      "default": "./src/branding/logo-square.tsx"
+    "./dev-banner": {
+      "types": "./src/organisms/dev-banner.tsx",
+      "default": "./src/organisms/dev-banner.tsx"
     }
   },
   "scripts": {

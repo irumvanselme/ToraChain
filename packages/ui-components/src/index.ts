@@ -37,6 +37,7 @@ export type { PageHeaderProps } from "./PageHeader.tsx";
 export { DevLinks, DEFAULT_DEV_LINKS } from "./DevLinks.tsx";
 export type { DevLinksProps, DevLink, DevLinkIcon } from "./DevLinks.tsx";
 
+export * from "./organisms";
 export * from "./branding";
 export * from "./layout";
 export * from "./atoms";

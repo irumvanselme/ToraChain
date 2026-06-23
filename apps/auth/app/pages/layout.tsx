@@ -1,6 +1,7 @@
 import { Html, type PropsWithChildren } from "@elysia/html";
 
-import type { EUserType } from "app/types.ts";
+import type { EUserType } from "app/types";
+import { DEV_BANNER_CSS, CSS, FONT_STYLES } from "./_styles";
 
 const TITLES: Record<EUserType, string> = {
   voters: "Voter",
@@ -16,14 +17,6 @@ export type LayoutProps = PropsWithChildren<{
   userType: EUserType;
   heading: string;
 }>;
-
-const FONT_STYLES = `
-* {
-    font-family: "DM Sans", sans-serif;
-    font-optical-sizing: auto;
-    font-style: normal;
-  }
-`;
 
 /** Shared chrome + styling for every auth page. */
 export function Layout({ userType, heading, children }: LayoutProps) {
@@ -41,8 +34,24 @@ export function Layout({ userType, heading, children }: LayoutProps) {
         />
         <style>{FONT_STYLES}</style>
         <style>{CSS}</style>
+        <style>{DEV_BANNER_CSS}</style>
       </head>
       <body>
+        <div class="dev-banner">
+          <div class="dev-banner-corner">
+            <span
+              class="dev-banner-ribbon"
+              aria-label="Under Development — do not submit sensitive information"
+            >
+              DEV
+            </span>
+          </div>
+          <div class="dev-banner-tooltip" role="tooltip">
+            <strong>Under Development</strong>
+            Do not submit sensitive or personal information. This app is a work
+            in progress and may go down without notice.
+          </div>
+        </div>
         <main class="card">
           <header class="brand">
             <span class="logo">ToraChain</span>
@@ -57,60 +66,3 @@ export function Layout({ userType, heading, children }: LayoutProps) {
     </html>
   );
 }
-
-const CSS = `
-:root { color-scheme: light dark; --accent: #4f46e5; --border: #d1d5db; }
-* { box-sizing: border-box; }
-body {
-  margin: 0; min-height: 100vh; display: grid; place-items: center;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  font-size: 1.0625rem; line-height: 1.5;
-  background: #f3f4f6; color: #111827; padding: 2rem;
-}
-.card {
-  width: 100%; max-width: 480px; background: #fff;
-  padding: 3rem;
-}
-.brand { display: flex; flex-direction: column; gap: .25rem; margin-bottom: 1.75rem; }
-.logo { font-size: 1.5rem; font-weight: 700; letter-spacing: .02em; color: var(--accent); }
-.domain { font-size: .9rem; color: #6b7280; text-transform: uppercase; letter-spacing: .08em; }
-h1 { font-size: 2rem; margin: 0 0 1.5rem; }
-form { display: flex; flex-direction: column; gap: 1.1rem; }
-label { display: flex; flex-direction: column; gap: .4rem; font-size: 1rem; font-weight: 600; }
-input {
-  padding: .85rem 1rem; border: 1px solid var(--border);
-  font-size: 1.125rem; background: #fff; color: inherit;
-}
-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
-button {
-  position: relative; margin-top: .6rem; padding: .9rem; border: 0;
-  background: var(--accent); color: #fff; font-size: 1.125rem; font-weight: 600; cursor: pointer;
-}
-button:disabled { opacity: .6; cursor: progress; }
-.dev-login {
-  margin: 0 0 1.5rem; padding: .75rem; width: 100%;
-  background: transparent; color: var(--accent);
-  border: 1px dashed var(--accent); border-radius: 6px;
-  font-size: .95rem; font-weight: 600; cursor: pointer;
-}
-.dev-login:hover { background: rgba(79, 70, 229, .06); }
-button.loading { color: transparent; pointer-events: none; }
-button.loading::after {
-  content: ""; position: absolute; top: 50%; left: 50%;
-  width: 1.1em; height: 1.1em; margin: -0.55em 0 0 -0.55em;
-  border: 2px solid rgba(255, 255, 255, .45); border-top-color: #fff;
-  border-radius: 50%; animation: spin .6s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.message { margin-top: 1.25rem; font-size: 1rem; }
-.message:empty { display: none; margin: 0; }
-.message.error { color: #b91c1c; }
-.message.success { color: #15803d; }
-.links { margin-top: 1.75rem; display: flex; justify-content: space-between; font-size: 1rem; }
-.links a { color: var(--accent); text-decoration: none; }
-.links a:hover { text-decoration: underline; }
-.profile { display: flex; flex-direction: column; gap: 1rem; }
-.field { display: flex; flex-direction: column; gap: .25rem; }
-.field-label { font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; }
-.field-value { font-size: 1.125rem; word-break: break-word; }
-`;

@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 
 import { AuthProvider } from "@tora-chain/fe-common";
-import { DevLinks } from "@tora-chain/ui-components";
+import { DevBanner, DevLinks } from "@tora-chain/ui-components";
 
 import "./index.css";
 import { AUTH_API, loginUrl } from "./config.ts";
@@ -18,5 +18,7 @@ createRoot(document.getElementById("root")!).render(
     </AuthProvider>
     {/* Dev-only floating links to the other ToraChain services. */}
     <DevLinks />
+    {/* Dev-only corner ribbon warning users not to submit sensitive data. */}
+    <DevBanner />
   </StrictMode>,
 );

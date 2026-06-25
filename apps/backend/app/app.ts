@@ -28,6 +28,11 @@ import { NullAuthCore } from "./auth/AuthCoreService.ts";
 import { DrizzleVotesRepository } from "./votes/repository.ts";
 import { VotesService } from "./votes/service.ts";
 import { VotesController } from "./votes/controller.ts";
+import {
+  NullChainNodeClient,
+  HttpChainNodeClient,
+  type ChainNodeClient,
+} from "./chain-node/client.ts";
 
 import { DrizzleIntegrationsRepository } from "./integrations/repository.ts";
 import { IntegrationsService } from "./integrations/service.ts";
@@ -45,6 +50,7 @@ export function buildServices(
   db: NodePgDatabase,
   directory: AuthDirectory = new NullAuthDirectory(),
   authCore: AuthCoreClient = new NullAuthCore(),
+  chainNode: ChainNodeClient = new NullChainNodeClient(),
 ): Services {
   const electionsRepo = new DrizzleElectionsRepository(db);
   const candidatesRepo = new DrizzleCandidatesRepository(db);
@@ -60,6 +66,8 @@ export function buildServices(
     votersRepo,
     candidatesRepo,
     votesRepo,
+    () => new Date(),
+    chainNode,
   );
   const integrations = new IntegrationsService(
     integrationsRepo,

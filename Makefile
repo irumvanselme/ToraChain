@@ -10,7 +10,9 @@
 # Combined commands (fan out across all relevant sub-projects)
 # ===========================================================================
 
-.PHONY: help install dev build test lint lint-fix format format-check check-types migrate ci clean
+.PHONY: help install dev build test lint lint-fix format format-check check-types migrate ci clean \
+	chain-node-master chain-node-worker chain-node-network \
+	tracability-dev tracability-build tracability-start
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -21,15 +23,20 @@ install: ## Install all workspace dependencies
 	bun install
 
 dev: prepare-assets ## Run all dev services concurrently
-	npx concurrently -n backend,auth,admin-fe,voting-fe,auditing-fe,blockchain,example-voters \
-		-c blue,green,magenta,cyan,yellow,red,gray \
+	npx concurrently -n backend,auth,admin-fe,voting-fe,auditing-fe,blockchain,example-voters,chain-master,chain-w1,chain-w2,chain-w3,tracability \
+		-c blue,green,magenta,cyan,yellow,red,gray,white,white,white,white,cyan \
 		"cd apps/backend && bun run dev" \
 		"cd apps/auth && bun run dev" \
 		"cd apps/admin-fe && bun run dev" \
 		"cd apps/voting-fe && bun run dev" \
 		"cd apps/auditing-fe && bun run dev" \
 		"cd apps/blockchain && bun run dev" \
-		"cd examples/simple-voters-database && bun run dev"
+		"cd examples/simple-voters-database && bun run dev" \
+		"./apps/chain-node/start --master --port 7100" \
+		"./apps/chain-node/start --port 7101 --master-url ws://localhost:7100" \
+		"./apps/chain-node/start --port 7102 --master-url ws://localhost:7100" \
+		"./apps/chain-node/start --port 7103 --master-url ws://localhost:7100" \
+		"cd apps/tracability && bun run dev"
 
 build: prepare-assets admin-fe-build auditing-fe-build voting-fe-build ## Build all buildable projects
 
@@ -223,3 +230,36 @@ example-voters-dev: ## Run the simple-voters-database example app (port 3002)
 
 example-voters-seed: ## Seed the simple-voters-database with example data
 	cd examples/simple-voters-database && bun run seed
+
+# ===========================================================================
+# Chain Node
+# ===========================================================================
+
+chain-node-master: ## Start the master blockchain node on port 7000
+	./apps/chain-node/start --master --port 7100
+
+chain-node-worker: ## Start a worker node (PORT=7101 MASTER_URL=ws://localhost:7100 overridable)
+	./apps/chain-node/start \
+		--port $${PORT:-7101} \
+		--master-url $${MASTER_URL:-ws://localhost:7100}
+
+chain-node-network: ## Spin up master + 3 worker nodes via concurrently
+	npx concurrently -n master,worker-1,worker-2,worker-3 \
+		-c white,green,cyan,yellow \
+		"./apps/chain-node/start --master --port 7100" \
+		"./apps/chain-node/start --port 7101 --master-url ws://localhost:7100" \
+		"./apps/chain-node/start --port 7102 --master-url ws://localhost:7100" \
+		"./apps/chain-node/start --port 7103 --master-url ws://localhost:7100"
+
+# ===========================================================================
+# Tracability
+# ===========================================================================
+
+tracability-dev: ## Run tracability dashboard in dev mode (port 4000)
+	cd apps/tracability && bun run dev
+
+tracability-build: ## Build tracability dashboard
+	cd apps/tracability && bun run build
+
+tracability-start: ## Start built tracability dashboard (port 4000)
+	cd apps/tracability && bun run start

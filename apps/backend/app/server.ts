@@ -13,11 +13,17 @@ import {
   NullAuthCore,
   type AuthCoreClient,
 } from "./auth/AuthCoreService.ts";
+import {
+  HttpChainNodeClient,
+  NullChainNodeClient,
+  type ChainNodeClient,
+} from "./chain-node/client.ts";
 
 export class BackendServer {
   private readonly app;
   private readonly directory: AuthDirectory;
   private readonly authCore: AuthCoreClient;
+  private readonly chainNode: ChainNodeClient;
 
   constructor(private log = new Logger({ name: "backend.server" })) {
     this.directory = config.votersAuthDbUrl
@@ -41,7 +47,18 @@ export class BackendServer {
       );
     }
 
-    const services = buildServices(db, this.directory, this.authCore);
+    const chainNodeUrl = process.env["CHAIN_NODE_URL"];
+    this.chainNode = chainNodeUrl
+      ? new HttpChainNodeClient(chainNodeUrl)
+      : new NullChainNodeClient();
+
+    if (!chainNodeUrl) {
+      this.log.warn(
+        "CHAIN_NODE_URL is not set — votes will not be submitted to the blockchain network.",
+      );
+    }
+
+    const services = buildServices(db, this.directory, this.authCore, this.chainNode);
     this.app = buildApp(services, database);
   }
 

@@ -30,3 +30,17 @@ export function tableNames(userType: EUserType): AuthTableNames {
     jwks: `${prefix}_jwks`,
   };
 }
+
+export interface AuditorOrgTableNames {
+  organization: string;
+  member: string;
+  invitation: string;
+}
+
+export function auditorOrgTableNames(): AuditorOrgTableNames {
+  return {
+    organization: "auditor_organizations",
+    member: "auditor_members",
+    invitation: "auditor_invitations",
+  };
+}

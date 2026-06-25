@@ -38,12 +38,16 @@ import { DrizzleIntegrationsRepository } from "./integrations/repository.ts";
 import { IntegrationsService } from "./integrations/service.ts";
 import { IntegrationsController } from "./integrations/controller.ts";
 
+import { AuditService } from "./audit/service.ts";
+import { AuditController } from "./audit/controller.ts";
+
 export interface Services {
   elections: ElectionsService;
   candidates: CandidatesService;
   voters: VotersService;
   votes: VotesService;
   integrations: IntegrationsService;
+  audit: AuditService;
 }
 
 export function buildServices(
@@ -51,6 +55,7 @@ export function buildServices(
   directory: AuthDirectory = new NullAuthDirectory(),
   authCore: AuthCoreClient = new NullAuthCore(),
   chainNode: ChainNodeClient = new NullChainNodeClient(),
+  chainNodeUrl?: string,
 ): Services {
   const electionsRepo = new DrizzleElectionsRepository(db);
   const candidatesRepo = new DrizzleCandidatesRepository(db);
@@ -74,8 +79,9 @@ export function buildServices(
     elections,
     votersRepo,
   );
+  const audit = new AuditService(db, electionsRepo, chainNodeUrl);
 
-  return { elections, candidates, voters, votes, integrations };
+  return { elections, candidates, voters, votes, integrations, audit };
 }
 
 const openapiPlugin = openapi({
@@ -102,11 +108,20 @@ const openapiPlugin = openapi({
         name: "Integrations",
         description: "Manage and invoke external eligibility integrations.",
       },
+      {
+        name: "Audit",
+        description:
+          "Read-only audit endpoints for approved auditor organizations.",
+      },
     ],
   },
 });
 
-export function buildApp(services: Services, database?: Database) {
+export function buildApp(
+  services: Services,
+  database?: Database,
+  auditorsAuthUrl?: string,
+) {
   const app = new Elysia()
     .use(reqLogger)
     .use(errorHandler)
@@ -122,7 +137,13 @@ export function buildApp(services: Services, database?: Database) {
     .use(CandidatesController(services.candidates))
     .use(VotersController(services.voters))
     .use(VotesController(services.votes))
-    .use(IntegrationsController(services.integrations));
+    .use(IntegrationsController(services.integrations))
+    .use(
+      AuditController(
+        services.audit,
+        auditorsAuthUrl ?? config.auditorsAuthUrl,
+      ),
+    );
 
   if (database) app.use(AppHealth(database));
 

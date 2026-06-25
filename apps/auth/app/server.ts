@@ -7,6 +7,7 @@ import { AppHealth } from "./health.ts";
 import { WebRouter } from "./pages/router.ts";
 import { AuthRouter } from "./auth/_router";
 import { buildCoreRouter } from "./core/_router.ts";
+import { AuditorAuditRouter, AdminAuditRouter } from "./audit/_router.ts";
 import { AppRegistry } from "./_apps.ts";
 import { VotersApp } from "./auth/voters.ts";
 import { AdminApp } from "./auth/admins.ts";
@@ -46,7 +47,9 @@ export class AuthServer {
       .use(WebRouter(this.appRegistry))
       .use(AppHealth(this.appRegistry))
       .use(AuthRouter(this.appRegistry))
-      .use(buildCoreRouter(this.appRegistry));
+      .use(buildCoreRouter(this.appRegistry))
+      .use(AuditorAuditRouter(this.appRegistry))
+      .use(AdminAuditRouter(this.appRegistry));
   }
 
   async start(): Promise<void> {

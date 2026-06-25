@@ -1,11 +1,17 @@
 import { Html } from "@elysia/html";
 
 import type { EUserType } from "app/types.ts";
+import { EUserType as UserTypeEnum } from "app/types.ts";
 import { Layout } from "./layout.tsx";
 import { formScript } from "./script.ts";
 
 export function Register({ userType }: { userType: EUserType }) {
   const base = `/${userType}/api`;
+  const afterRegister =
+    userType === UserTypeEnum.AUDITORS
+      ? `/${userType}/onboarding`
+      : `/${userType}/login`;
+
   return (
     <Layout userType={userType} heading="Create account">
       <form id="register-form">
@@ -37,8 +43,10 @@ export function Register({ userType }: { userType: EUserType }) {
         {formScript({
           formId: "register-form",
           endpoint: `${base}/sign-up/email`,
-          successMessage: "Account created. Redirecting to sign in…",
-          redirectTo: `/${userType}/login`,
+          successMessage: userType === UserTypeEnum.AUDITORS
+            ? "Account created. Setting up your organization…"
+            : "Account created. Redirecting to sign in…",
+          redirectTo: afterRegister,
         })}
       </script>
     </Layout>

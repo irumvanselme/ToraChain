@@ -47,7 +47,7 @@ export class BackendServer {
       );
     }
 
-    const chainNodeUrl = process.env["CHAIN_NODE_URL"];
+    const chainNodeUrl = config.chainNodeUrl;
     this.chainNode = chainNodeUrl
       ? new HttpChainNodeClient(chainNodeUrl)
       : new NullChainNodeClient();
@@ -58,8 +58,14 @@ export class BackendServer {
       );
     }
 
-    const services = buildServices(db, this.directory, this.authCore, this.chainNode);
-    this.app = buildApp(services, database);
+    const services = buildServices(
+      db,
+      this.directory,
+      this.authCore,
+      this.chainNode,
+      chainNodeUrl,
+    );
+    this.app = buildApp(services, database, config.auditorsAuthUrl);
   }
 
   async start(): Promise<void> {

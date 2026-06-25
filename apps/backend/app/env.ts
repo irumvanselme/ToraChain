@@ -9,6 +9,10 @@ const EnvSchema = z.object({
   // AUTH_CORE_URL defaults to AUTH_SERVICE_URL when only the key is provided.
   AUTH_CORE_URL: z.string().optional(),
   AUTH_CORE_API_KEY: z.string().optional(),
+  // Auth service base for auditor session validation. Defaults to AUTH_SERVICE_URL.
+  AUDITORS_AUTH_URL: z.string().optional(),
+  // Chain-node URL for blockchain data download.
+  CHAIN_NODE_URL: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -24,6 +28,10 @@ export interface AppConfig {
   readonly authCoreUrl?: string;
   /** API key used to authenticate against the auth /core API, if configured. */
   readonly authCoreApiKey?: string;
+  /** Base URL of the auth service for auditor session validation. */
+  readonly auditorsAuthUrl: string;
+  /** Chain-node URL for blockchain data retrieval. */
+  readonly chainNodeUrl?: string;
 }
 
 function buildConfig(env: Env): AppConfig {
@@ -40,6 +48,8 @@ function buildConfig(env: Env): AppConfig {
     trustedOrigins,
     authCoreUrl: env.AUTH_CORE_URL ?? env.AUTH_SERVICE_URL,
     authCoreApiKey: env.AUTH_CORE_API_KEY,
+    auditorsAuthUrl: env.AUDITORS_AUTH_URL ?? env.AUTH_SERVICE_URL,
+    chainNodeUrl: env.CHAIN_NODE_URL,
   };
 }
 

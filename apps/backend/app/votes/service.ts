@@ -6,6 +6,10 @@ import { isWithinVotingWindow } from "../elections/utils.ts";
 import type { VotersRepository } from "../voters/repository.ts";
 import { buildBallotCandidates, type BallotCandidate } from "./utils.ts";
 import type { VotesRepository } from "./repository.ts";
+import {
+  NullChainNodeClient,
+  type ChainNodeClient,
+} from "../chain-node/client.ts";
 
 export interface BallotState {
   electionId: string;
@@ -31,6 +35,7 @@ export class VotesService {
     private readonly candidates: CandidatesRepository,
     private readonly votes: VotesRepository,
     private readonly now: () => Date = () => new Date(),
+    private readonly chainNode: ChainNodeClient = new NullChainNodeClient(),
   ) {}
 
   /**
@@ -131,6 +136,13 @@ export class VotesService {
         { electionId, voterId },
       );
     }
+
+    // Submit to the blockchain network (fire-and-forget audit trail)
+    this.chainNode.submitVote({
+      electionId,
+      votingNumber: eligibility.votingNumber,
+      candidateId: input.candidateId,
+    });
 
     return {
       accepted: true,

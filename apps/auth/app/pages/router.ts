@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { html } from "@elysia/html";
 import { Logger, isProduction } from "@tora-chain/be-common";
+import { EUserType } from "../types.ts";
 import { getDevCredential, type DevUserType } from "@tora-chain/dev-configs";
 
 import { links, ok } from "app/utils/constants";
@@ -8,6 +9,8 @@ import { config } from "../env.ts";
 import { AppRegistry } from "../_apps.ts";
 
 import { Login } from "./login.tsx";
+import { Onboarding } from "./onboarding.tsx";
+import { Pending } from "./pending.tsx";
 import { Profile } from "./profile.tsx";
 import { Register } from "./register.tsx";
 import { ResetPassword } from "./reset-password.tsx";
@@ -89,7 +92,17 @@ export const WebRouter = (appRegistry: AppRegistry) => {
         .get(`/reset-password`, async () =>
           ResetPassword({ userType: app.userType }),
         )
-        .get(`/profile`, async () => Profile({ userType: app.userType })),
+        .get(`/profile`, async () => Profile({ userType: app.userType }))
+        .get(`/onboarding`, async () =>
+          app.userType === EUserType.AUDITORS
+            ? Onboarding({ userType: app.userType })
+            : new Response("Not found", { status: 404 }),
+        )
+        .get(`/pending`, async () =>
+          app.userType === EUserType.AUDITORS
+            ? Pending({ userType: app.userType })
+            : new Response("Not found", { status: 404 }),
+        ),
     );
   }
 

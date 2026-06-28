@@ -1,7 +1,0 @@
-{
-  "/_not-found/page": "/_not-found",
-  "/api/events/route": "/api/events",
-  "/api/nodes/route": "/api/nodes",
-  "/api/stream/route": "/api/stream",
-  "/page": "/"
-}

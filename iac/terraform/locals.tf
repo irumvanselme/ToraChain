@@ -65,6 +65,12 @@ locals {
       env = {
         AUTH_SERVICE_URL       = "https://idp.${local.domain}"
         CHAIN_NODE_URL = "https://node.${local.domain}"
+        TRUSTED_ORIGINS = join(",", [
+          "https://${local.domain}",
+          "https://admin.${local.domain}",
+          "https://auditing.${local.domain}",
+          "https://voting.${local.domain}",
+        ])
       }
     }
 

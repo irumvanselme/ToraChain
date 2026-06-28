@@ -42,7 +42,8 @@ export class MasterNode {
 
   // Internal bus: routes per-socket BLOCK_VALIDATED events into active rounds
   private readonly validationBus = new EventEmitter();
-  private io: SocketServer<ClientToServerEvents, ServerToClientEvents> | null = null;
+  private io: SocketServer<ClientToServerEvents, ServerToClientEvents> | null =
+    null;
 
   constructor(
     private readonly port: number,
@@ -85,7 +86,9 @@ export class MasterNode {
       const { electionId, votingNumber, candidateId } = body;
 
       if (!electionId || !votingNumber || !candidateId) {
-        res.status(400).json({ error: "Missing electionId, votingNumber, or candidateId" });
+        res
+          .status(400)
+          .json({ error: "Missing electionId, votingNumber, or candidateId" });
         return;
       }
 
@@ -106,8 +109,14 @@ export class MasterNode {
       });
 
       try {
-        const block = await this.runConsensus({ electionId, votingNumber, candidateId });
-        res.status(202).json({ accepted: true, blockIndex: block.index, hash: block.hash });
+        const block = await this.runConsensus({
+          electionId,
+          votingNumber,
+          candidateId,
+        });
+        res
+          .status(202)
+          .json({ accepted: true, blockIndex: block.index, hash: block.hash });
       } catch (err) {
         const message = err instanceof Error ? err.message : "Consensus failed";
         res.status(409).json({ error: message });
@@ -146,7 +155,9 @@ export class MasterNode {
 
     httpServer.listen(this.port, () => {
       console.log(`[master] ${this.nodeId} listening on :${this.port}`);
-      console.log(`[master] Waiting for ${MIN_NODES} workers before accepting votes`);
+      console.log(
+        `[master] Waiting for ${MIN_NODES} workers before accepting votes`,
+      );
     });
 
     // Re-announce all connected nodes every 8 s so tracability catches up
@@ -199,16 +210,19 @@ export class MasterNode {
     });
 
     // Route validated responses into the active consensus round
-    socket.on(SOCKET_EVENTS.BLOCK_VALIDATED, (payload: BlockValidatedPayload) => {
-      this.validationBus.emit("validated", payload);
-      this.reporter.emit({
-        type: TRACABILITY_EVENTS.BLOCK_VALIDATED,
-        nodeId: payload.nodeId,
-        blockIndex: payload.index,
-        hash: payload.hash,
-        validatedAt: Date.now(),
-      });
-    });
+    socket.on(
+      SOCKET_EVENTS.BLOCK_VALIDATED,
+      (payload: BlockValidatedPayload) => {
+        this.validationBus.emit("validated", payload);
+        this.reporter.emit({
+          type: TRACABILITY_EVENTS.BLOCK_VALIDATED,
+          nodeId: payload.nodeId,
+          blockIndex: payload.index,
+          hash: payload.hash,
+          validatedAt: Date.now(),
+        });
+      },
+    );
 
     socket.on(SOCKET_EVENTS.BLOCK_WRITTEN, (payload: BlockWrittenPayload) => {
       this.reporter.emit({
@@ -249,9 +263,7 @@ export class MasterNode {
 
     const voterBigInt = idToBigInt(vote.votingNumber);
     const candidateBigInt = idToBigInt(vote.candidateId);
-    const prevHashBigInt = BigInt(
-      latest.hash === "0" ? 0 : "0x" + latest.hash,
-    );
+    const prevHashBigInt = BigInt(latest.hash === "0" ? 0 : "0x" + latest.hash);
 
     const hashBigInt = computeBlockHash(
       nextIndex,
@@ -264,7 +276,10 @@ export class MasterNode {
     const candidate: ValidateBlockPayload = {
       index: nextIndex,
       electionId: vote.electionId,
-      data: { voter: voterBigInt.toString(), candidate: candidateBigInt.toString() },
+      data: {
+        voter: voterBigInt.toString(),
+        candidate: candidateBigInt.toString(),
+      },
       timestamp,
       prevHash: prevHashBigInt.toString(),
     };

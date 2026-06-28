@@ -60,14 +60,14 @@ resource "google_compute_url_map" "tora" {
     for_each = local.svc_to_hosts
     content {
       hosts        = host_rule.value
-      path_matcher = host_rule.key
+      path_matcher = replace(host_rule.key, "_", "-")
     }
   }
 
   dynamic "path_matcher" {
     for_each = local.services
     content {
-      name            = path_matcher.key
+      name            = replace(path_matcher.key, "_", "-")
       default_service = google_compute_backend_service.backends[path_matcher.key].id
     }
   }

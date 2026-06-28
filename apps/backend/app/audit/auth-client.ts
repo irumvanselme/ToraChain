@@ -32,6 +32,7 @@ export async function requireApprovedAuditor(
       },
     });
   } catch (err) {
+    console.error(err);
     throw AppError.internal(
       "Could not reach the auth service to validate the auditor session.",
     );

@@ -6,7 +6,7 @@ FROM oven/bun:1.2-alpine
 WORKDIR /app
 
 COPY . .
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --filter @tora-chain/chain-node
 
 EXPOSE 8080
 # --master starts coordinator mode; $PORT comes from Cloud Run (set to 8080).

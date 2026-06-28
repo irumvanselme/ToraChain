@@ -16,7 +16,9 @@ export function Pending({ userType }: { userType: EUserType }) {
       </div>
       <nav class="links">
         <a href={`/${userType}/profile`}>Profile</a>
-        <a href="#" id="signout-link">Sign out</a>
+        <a href="#" id="signout-link">
+          Sign out
+        </a>
       </nav>
       <script>
         {`

@@ -39,7 +39,11 @@ function OrgGate({ children }: { children: ReactNode }) {
     }
 
     // Approved: if on a non-dashboard path, send them to the dashboard
-    if (pathname === "/" || pathname === "/pending" || pathname === "/onboarding") {
+    if (
+      pathname === "/" ||
+      pathname === "/pending" ||
+      pathname === "/onboarding"
+    ) {
       router.push("/dashboard");
     }
   }, [loading, auditStatus, pathname, router]);

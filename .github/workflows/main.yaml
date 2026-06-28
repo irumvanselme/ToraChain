@@ -26,3 +26,10 @@ jobs:
   voting-fe:
     name: voting-fe-ci
     uses: ./.github/workflows/voting-fe-ci.yaml
+
+  deploy:
+    name: deploy
+    needs: [auth, backend, admin-fe, auditing-fe, voting-fe]
+    # if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yaml
+    secrets: inherit

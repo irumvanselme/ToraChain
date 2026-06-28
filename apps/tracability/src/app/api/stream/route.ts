@@ -30,7 +30,9 @@ export async function GET(): Promise<Response> {
 
       unsubscribe = subscribe((event: TracabilityEvent) => {
         try {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+          );
         } catch {
           cleanup();
         }

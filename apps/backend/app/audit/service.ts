@@ -7,7 +7,7 @@ import {
   type OffsetEnvelope,
 } from "../common/pagination.ts";
 import { AppError } from "../common/errors.ts";
-import { elections, type ElectionDTO, serializeElection } from "../elections/model.ts";
+import { type ElectionDTO, serializeElection } from "../elections/model.ts";
 import { candidates } from "../candidates/model.ts";
 import { votes } from "../votes/model.ts";
 import type { ElectionsRepository } from "../elections/repository.ts";
@@ -64,8 +64,8 @@ export class AuditService {
     );
 
     // Filter to only active and ended elections (auditors should not see drafts)
-    const visible = rows.filter((r) =>
-      r.status === "active" || r.status === "ended",
+    const visible = rows.filter(
+      (r) => r.status === "active" || r.status === "ended",
     );
 
     // Get vote counts for each visible election
@@ -118,7 +118,10 @@ export class AuditService {
     }
 
     const candidateRows = await this.db
-      .select({ candidateId: candidates.candidateId, fullName: candidates.fullName })
+      .select({
+        candidateId: candidates.candidateId,
+        fullName: candidates.fullName,
+      })
       .from(candidates)
       .where(eq(candidates.electionId, electionId));
 

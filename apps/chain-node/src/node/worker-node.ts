@@ -19,7 +19,8 @@ export class WorkerNode {
   readonly nodeId: string;
   private readonly store: BlockStore;
   private readonly reporter: TracabilityReporter;
-  private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+  private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null =
+    null;
 
   constructor(
     private readonly port: number,
@@ -32,7 +33,9 @@ export class WorkerNode {
   }
 
   start(): void {
-    console.log(`[worker] ${this.nodeId} connecting to master at ${this.masterUrl}`);
+    console.log(
+      `[worker] ${this.nodeId} connecting to master at ${this.masterUrl}`,
+    );
 
     this.socket = connectSocket(this.masterUrl, {
       query: { nodeId: this.nodeId, port: String(this.port) },
@@ -50,13 +53,19 @@ export class WorkerNode {
       console.log(`[worker] ${this.nodeId} disconnected: ${reason}`);
     });
 
-    this.socket.on(SOCKET_EVENTS.SYNC_RESPONSE, (payload: SyncResponsePayload) => {
-      this.syncChain(payload.blocks);
-    });
+    this.socket.on(
+      SOCKET_EVENTS.SYNC_RESPONSE,
+      (payload: SyncResponsePayload) => {
+        this.syncChain(payload.blocks);
+      },
+    );
 
-    this.socket.on(SOCKET_EVENTS.VALIDATE_BLOCK, (payload: ValidateBlockPayload) => {
-      this.handleValidate(payload);
-    });
+    this.socket.on(
+      SOCKET_EVENTS.VALIDATE_BLOCK,
+      (payload: ValidateBlockPayload) => {
+        this.handleValidate(payload);
+      },
+    );
 
     this.socket.on(SOCKET_EVENTS.NEW_BLOCK, (payload: NewBlockPayload) => {
       this.handleNewBlock(payload);
@@ -86,12 +95,16 @@ export class WorkerNode {
         this.store.append(block);
         synced++;
       } else {
-        console.warn(`[worker] Sync: invalid block at index ${block.index}, skipping`);
+        console.warn(
+          `[worker] Sync: invalid block at index ${block.index}, skipping`,
+        );
       }
     }
 
     if (synced > 0) {
-      console.log(`[worker] ${this.nodeId} synced ${synced} blocks from master`);
+      console.log(
+        `[worker] ${this.nodeId} synced ${synced} blocks from master`,
+      );
     }
 
     const count = this.store.count();
@@ -143,7 +156,9 @@ export class WorkerNode {
         index: payload.index,
       });
 
-      console.log(`[worker] ${this.nodeId} responded hash=${hash.slice(0, 12)}...`);
+      console.log(
+        `[worker] ${this.nodeId} responded hash=${hash.slice(0, 12)}...`,
+      );
     } catch (err) {
       console.error(`[worker] ${this.nodeId} failed to validate block:`, err);
     }

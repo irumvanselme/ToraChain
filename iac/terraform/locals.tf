@@ -11,7 +11,7 @@ locals {
       port          = 8080
       subdomains    = ["admin"]
       min_instances = 0
-      max_instances = 3
+      max_instances = 1
       cpu           = "1"
       memory        = "512Mi"
       env           = {}
@@ -23,7 +23,7 @@ locals {
       port          = 8080
       subdomains    = ["auditing"]
       min_instances = 0
-      max_instances = 3
+      max_instances = 1
       cpu           = "1"
       memory        = "512Mi"
       env = {
@@ -38,8 +38,8 @@ locals {
       port       = 8080
       subdomains = ["idp"]
       # Keep at least one instance warm — cold-start latency on auth is noticeable.
-      min_instances = 1
-      max_instances = 5
+      min_instances = 0
+      max_instances = 1
       cpu           = "1"
       memory        = "512Mi"
       env = {
@@ -59,11 +59,11 @@ locals {
       port          = 8080
       subdomains    = ["api"]
       min_instances = 0
-      max_instances = 5
+      max_instances = 1
       cpu           = "1"
       memory        = "512Mi"
       env = {
-        AUTH_URL       = "https://idp.${local.domain}"
+        AUTH_SERVICE_URL       = "https://idp.${local.domain}"
         CHAIN_NODE_URL = "https://node.${local.domain}"
       }
     }
@@ -77,7 +77,7 @@ locals {
       port       = 8080
       subdomains = ["node"]
       # Single master — pBFT requires exactly one coordinator.
-      min_instances = 1
+      min_instances = 0
       max_instances = 1
       cpu           = "1"
       memory        = "512Mi"
@@ -92,7 +92,7 @@ locals {
       port          = 8080
       subdomains    = ["tracability"]
       min_instances = 0
-      max_instances = 3
+      max_instances = 1
       cpu           = "1"
       memory        = "512Mi"
       env           = {}
@@ -104,7 +104,7 @@ locals {
       port          = 8080
       subdomains    = ["", "voting"] # "" → root domain; "voting" → voting.<domain>
       min_instances = 0
-      max_instances = 10
+      max_instances = 1
       cpu           = "1"
       memory        = "512Mi"
       env = {

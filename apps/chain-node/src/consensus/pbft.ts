@@ -30,10 +30,7 @@ export class PbftRound {
     onComplete: (result: ConsensusResult) => void,
   ) {
     this.resolve = onComplete;
-    this.timer = setTimeout(
-      () => this.settle(),
-      COLLECTION_TIMEOUT_MS,
-    );
+    this.timer = setTimeout(() => this.settle(), COLLECTION_TIMEOUT_MS);
   }
 
   collect(response: ValidationResponse): void {
@@ -90,9 +87,10 @@ export class PbftRound {
   }
 }
 
-export function runPbftRound(
-  totalNodes: number,
-): { round: PbftRound; promise: Promise<ConsensusResult> } {
+export function runPbftRound(totalNodes: number): {
+  round: PbftRound;
+  promise: Promise<ConsensusResult>;
+} {
   let resolve!: (r: ConsensusResult) => void;
   const promise = new Promise<ConsensusResult>((res) => {
     resolve = res;

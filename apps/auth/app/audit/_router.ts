@@ -52,7 +52,7 @@ export function AuditorAuditRouter(appRegistry: AppRegistry) {
     })
     .get(
       "/status",
-      async ({ request, set }) => {
+      async ({ request }) => {
         const session = await auditorsApp.auth.api.getSession({
           headers: request.headers,
         });
@@ -115,7 +115,8 @@ export function AdminAuditRouter(appRegistry: AppRegistry) {
           tags: [
             {
               name: "Audit",
-              description: "Admin management of auditor organization approvals.",
+              description:
+                "Admin management of auditor organization approvals.",
             },
           ],
         },

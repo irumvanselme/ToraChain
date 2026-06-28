@@ -12,8 +12,8 @@ export function Onboarding({ userType }: { userType: EUserType }) {
   return (
     <Layout userType={userType} heading="Set up your organization">
       <p style="margin: 0 0 1.5rem; color: #6b7280; font-size: 1rem;">
-        Before you can access audit data, you need to register your organization.
-        An admin will review and approve your request.
+        Before you can access audit data, you need to register your
+        organization. An admin will review and approve your request.
       </p>
       <form id="onboarding-form">
         <label>
@@ -26,7 +26,10 @@ export function Onboarding({ userType }: { userType: EUserType }) {
           />
         </label>
         <label>
-          Slug <span style="font-weight:400; color:#6b7280;">(URL-friendly identifier)</span>
+          Slug{" "}
+          <span style="font-weight:400; color:#6b7280;">
+            (URL-friendly identifier)
+          </span>
           <input
             type="text"
             name="slug"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAudit } from "../lib/audit-context";
 import {
@@ -48,7 +48,9 @@ function ElectionCard({ election }: { election: AuditElection }) {
       <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
         <span>{election.totalVotes.toLocaleString()} votes</span>
         {election.startTime && (
-          <span>Started {new Date(election.startTime).toLocaleDateString()}</span>
+          <span>
+            Started {new Date(election.startTime).toLocaleDateString()}
+          </span>
         )}
         {election.endTime && (
           <span>Ended {new Date(election.endTime).toLocaleDateString()}</span>
@@ -66,32 +68,20 @@ export default function DashboardPage() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
 
-  const load = useCallback(
-    async (search: string, p: number) => {
-      if (!token) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const result = await listElections(token, {
-          page: p,
-          limit: 12,
-          q: search || undefined,
-        });
+  useEffect(() => {
+    if (!token) return;
+    listElections(token, { page, limit: 12, q: q || undefined })
+      .then((result) => {
         setEnvelope(result);
-      } catch (err) {
+        setError(null);
+      })
+      .catch((err: unknown) => {
         setError(
           err instanceof ApiError ? err.message : "Failed to load elections.",
         );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [token],
-  );
-
-  useEffect(() => {
-    void load(q, page);
-  }, [load, q, page]);
+      })
+      .finally(() => setLoading(false));
+  }, [token, q, page]);
 
   const totalPages = envelope?.pagination.totalPages ?? 1;
 
@@ -127,6 +117,8 @@ export default function DashboardPage() {
             onChange={(e) => {
               setQ(e.target.value);
               setPage(1);
+              setLoading(true);
+              setError(null);
             }}
             className="border border-gray-300 rounded-md px-3 py-1.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
@@ -162,7 +154,10 @@ export default function DashboardPage() {
               <div className="mt-8 flex items-center justify-center gap-3">
                 <button
                   disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
+                  onClick={() => {
+                    setPage((p) => p - 1);
+                    setLoading(true);
+                  }}
                   className="px-3 py-1.5 rounded border border-gray-300 text-sm disabled:opacity-40"
                 >
                   Previous
@@ -172,7 +167,10 @@ export default function DashboardPage() {
                 </span>
                 <button
                   disabled={page >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => {
+                    setPage((p) => p + 1);
+                    setLoading(true);
+                  }}
                   className="px-3 py-1.5 rounded border border-gray-300 text-sm disabled:opacity-40"
                 >
                   Next

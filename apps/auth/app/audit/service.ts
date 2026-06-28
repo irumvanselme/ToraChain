@@ -37,9 +37,7 @@ export class AuditOrgService {
     return serializeOrg(org);
   }
 
-  async listOrgs(
-    filter?: ApprovalStatus,
-  ): Promise<OrgListItemDTO[]> {
+  async listOrgs(filter?: ApprovalStatus): Promise<OrgListItemDTO[]> {
     const rows = await this.repo.listAll(filter);
     return rows.map((r) => ({
       ...serializeOrg(r),

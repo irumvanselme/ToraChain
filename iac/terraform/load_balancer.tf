@@ -9,11 +9,18 @@ resource "google_compute_global_address" "tora" {
 
 resource "google_compute_managed_ssl_certificate" "tora" {
   project = var.project_id
-  name    = "tora-chain-ssl"
+  # Name includes a hash of the domain list so a new cert can be created (with a
+  # different name) before the old one is detached and deleted. Without this,
+  # GCP rejects the delete because the old cert is still attached to the proxy.
+  name = "tora-chain-ssl-${substr(md5(join(",", sort(keys(local.host_to_svc)))), 0, 8)}"
 
   managed {
     # Sort for deterministic plan output; GCP validates each domain via DNS.
     domains = sort(keys(local.host_to_svc))
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 

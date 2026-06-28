@@ -69,7 +69,7 @@ build_and_push() {
 # Using a case statement instead of an associative array for bash 3.2 compat
 # (macOS ships bash 3.2; declare -A requires bash 4+).
 
-ALL_SERVICES=(admin_fe auditing_fe auth backend chain_node tracability voting_fe)
+ALL_SERVICES=(admin_fe auditing_fe auth backend chain_node demo_voters_database tracability voting_fe)
 
 service_info() {
   case "$1" in
@@ -77,8 +77,9 @@ service_info() {
     auditing_fe) echo "auditing-fe|nextjs.Dockerfile|--build-arg APP_DIR=auditing-fe --build-arg PACKAGE_NAME=auditing-frontend --build-arg NEXT_PUBLIC_API_BASE=${AUDITING_FE_API_BASE} --build-arg NEXT_PUBLIC_AUTH_BASE=${AUDITING_FE_AUTH_BASE}" ;;
     auth)        echo "auth|auth.Dockerfile|" ;;
     backend)     echo "backend|backend.Dockerfile|" ;;
-    chain_node)  echo "chain-node|chain-node.Dockerfile|" ;;
-    tracability) echo "tracability|nextjs.Dockerfile|--build-arg APP_DIR=tracability --build-arg PACKAGE_NAME=tracability" ;;
+    chain_node)           echo "chain-node|chain-node.Dockerfile|" ;;
+    demo_voters_database) echo "demo-voters-database|simple-voters-database.Dockerfile|" ;;
+    tracability)          echo "tracability|nextjs.Dockerfile|--build-arg APP_DIR=tracability --build-arg PACKAGE_NAME=tracability" ;;
     voting_fe)   echo "voting-fe|nextjs.Dockerfile|--build-arg APP_DIR=voting-fe --build-arg PACKAGE_NAME=voting-frontend --build-arg NEXT_PUBLIC_API_BASE=${VOTING_FE_API_BASE} --build-arg NEXT_PUBLIC_AUTH_BASE=${VOTING_FE_AUTH_BASE}" ;;
     *) return 1 ;;
   esac

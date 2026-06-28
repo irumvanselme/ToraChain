@@ -104,6 +104,18 @@ locals {
       env           = {}
     }
 
+    demo_voters_database = {
+      cr_name       = "tora-demo-voters-db"
+      image_name    = "demo-voters-database"
+      port          = 8080
+      subdomains    = ["demo-voters-database"]
+      min_instances = 0
+      max_instances = 1
+      cpu           = "1"
+      memory        = "512Mi"
+      env           = {}
+    }
+
     voting_fe = {
       cr_name       = "tora-voting-fe"
       image_name    = "voting-fe"

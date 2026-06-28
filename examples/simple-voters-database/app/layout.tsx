@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { LogoSquare } from "@tora-chain/ui-components/LogoSquare";
 import { TriangleAlert } from "lucide-react";
 import "./globals.css";
 
@@ -29,7 +28,7 @@ export default function RootLayout({
         <header className="sticky top-0 z-40 border-b border-base-300 bg-base-100">
           <nav className="navbar max-w-5xl mx-auto px-4 min-h-14">
             <div className="navbar-start flex items-center gap-3">
-              <LogoSquare />
+              <div>Simple voters database</div>
               <div className="divider divider-horizontal mx-0" />
               <div className="flex flex-col leading-tight">
                 <span className="text-sm font-semibold">

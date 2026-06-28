@@ -21,7 +21,8 @@
 TF       := terraform -chdir=terraform
 PROJECT  ?= $(shell $(TF) output -raw project_id 2>/dev/null || echo "")
 REGION   ?= us-central1
-TAG      ?= latest
+GIT_SHA  := $(shell git rev-parse HEAD 2>/dev/null)
+TAG      ?= $(GIT_SHA)
 
 # Frontend build-time URLs — override to target a different deployment.
 # Defaults match the tora-chain-demo.iansel.me production environment.
@@ -64,7 +65,10 @@ nameservers: ## Print the NS delegation record to add at iansel.me
 # ── Step 3: build & push images ───────────────────────────────────────────────
 
 .PHONY: build-push
-build-push: ## [STEP 3] Build and push all service images to Artifact Registry
+build-push: ## [STEP 3] Build & push all images tagged with the current git SHA (override: TAG=<sha>)
+	@test -n "$(TAG)" || { echo "ERROR: not in a git repo and TAG is unset — pass TAG=<sha>" >&2; exit 1; }
+	@test "$(TAG)" != "latest" || { echo "ERROR: TAG=latest is forbidden — use an explicit git SHA" >&2; exit 1; }
+	@echo "Building images: TAG=$(TAG)"
 	PROJECT=$(PROJECT) REGION=$(REGION) TAG=$(TAG) \
 	  ADMIN_FE_API_BASE=$(ADMIN_FE_API_BASE) ADMIN_FE_AUTH_BASE=$(ADMIN_FE_AUTH_BASE) \
 	  AUDITING_FE_API_BASE=$(AUDITING_FE_API_BASE) AUDITING_FE_AUTH_BASE=$(AUDITING_FE_AUTH_BASE) \
@@ -72,7 +76,10 @@ build-push: ## [STEP 3] Build and push all service images to Artifact Registry
 	  scripts/build-push.sh
 
 .PHONY: build-push-one
-build-push-one: ## Build/push a single service:  make build-push-one SVC=auth
+build-push-one: ## Build/push one service:  make build-push-one SVC=auth [TAG=<sha>]
+	@test -n "$(TAG)" || { echo "ERROR: not in a git repo and TAG is unset — pass TAG=<sha>" >&2; exit 1; }
+	@test "$(TAG)" != "latest" || { echo "ERROR: TAG=latest is forbidden — use an explicit git SHA" >&2; exit 1; }
+	@echo "Building image: SVC=$(SVC)  TAG=$(TAG)"
 	PROJECT=$(PROJECT) REGION=$(REGION) TAG=$(TAG) \
 	  ADMIN_FE_API_BASE=$(ADMIN_FE_API_BASE) ADMIN_FE_AUTH_BASE=$(ADMIN_FE_AUTH_BASE) \
 	  AUDITING_FE_API_BASE=$(AUDITING_FE_API_BASE) AUDITING_FE_AUTH_BASE=$(AUDITING_FE_AUTH_BASE) \
@@ -82,11 +89,20 @@ build-push-one: ## Build/push a single service:  make build-push-one SVC=auth
 # ── Step 3: full apply ────────────────────────────────────────────────────────
 
 .PHONY: apply
-apply: ## [STEP 3] Deploy Cloud Run services, LB, DNS records, SSL cert
+apply: ## [STEP 4] Deploy: make apply [TAG=<sha>]  — defaults to current git HEAD
+	@test -n "$(TAG)" || { echo "ERROR: not in a git repo and TAG is unset — pass TAG=<sha>" >&2; exit 1; }
+	@test "$(TAG)" != "latest" || { echo "ERROR: TAG=latest is forbidden — use an explicit git SHA" >&2; exit 1; }
+	@echo "Deploying images: TAG=$(TAG)"
+	TF_VAR_image_tags=$$(jq -cn --arg t "$(TAG)" \
+	  '{admin_fe:$$t,auditing_fe:$$t,auth:$$t,backend:$$t,chain_node:$$t,tracability:$$t,voting_fe:$$t}') \
 	$(TF) apply
 
 .PHONY: plan
-plan: ## Dry-run apply (no changes)
+plan: ## Dry-run apply:  make plan [TAG=<sha>]  — defaults to current git HEAD
+	@test -n "$(TAG)" || { echo "ERROR: not in a git repo and TAG is unset — pass TAG=<sha>" >&2; exit 1; }
+	@test "$(TAG)" != "latest" || { echo "ERROR: TAG=latest is forbidden — use an explicit git SHA" >&2; exit 1; }
+	TF_VAR_image_tags=$$(jq -cn --arg t "$(TAG)" \
+	  '{admin_fe:$$t,auditing_fe:$$t,auth:$$t,backend:$$t,chain_node:$$t,tracability:$$t,voting_fe:$$t}') \
 	$(TF) plan
 
 # ── Utilities ─────────────────────────────────────────────────────────────────

@@ -1,0 +1,13 @@
+# chain-node master.
+# Build context: repo root.
+# Workers are not deployed to Cloud Run — run them locally or on a VM using
+#   bun run src/start.ts --master-url wss://node.tora-chain-demo.iansel.me
+FROM oven/bun:1.2-alpine
+WORKDIR /app
+
+COPY . .
+RUN bun install --frozen-lockfile
+
+EXPOSE 8080
+# --master starts coordinator mode; $PORT comes from Cloud Run (set to 8080).
+CMD ["sh", "-c", "exec bun run --cwd /app/apps/chain-node src/start.ts --master --port ${PORT:-8080}"]

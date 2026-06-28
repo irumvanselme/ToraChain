@@ -1,0 +1,106 @@
+name: deploy
+
+# Runs after main-ci completes successfully on main.
+on:
+  workflow_run:
+    workflows: ["main-ci"]
+    branches: [main]
+    types: [completed]
+
+# Required GitHub secrets:
+#   GCP_PROJECT_ID               — GCP project ID
+#   GCP_WORKLOAD_IDENTITY_PROVIDER — full WIF provider resource name
+#   GCP_SERVICE_ACCOUNT          — service account email authorised to push to AR + manage Cloud Run
+#   TF_API_TOKEN                 — HCP Terraform API token (user/team token)
+#   BETTER_AUTH_SECRET           — auth service secret
+#   VOTERS_AUTH_DB_URI           — postgres URI for voters auth DB
+#   ADMINS_AUTH_DB_URI           — postgres URI for admins auth DB
+#   AUDITORS_AUTH_DB_URI         — postgres URI for auditors auth DB
+#   DATABASE_URL                 — postgres URI for elections DB
+#
+# Optional GitHub variables (Settings → Variables):
+#   GCP_REGION  (default: us-central1)
+
+jobs:
+  deploy:
+    name: build-push & apply
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    permissions:
+      contents: read
+      id-token: write # required for Workload Identity Federation
+
+    defaults:
+      run:
+        working-directory: iac
+
+    env:
+      PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+      REGION: ${{ vars.GCP_REGION != '' && vars.GCP_REGION || 'us-central1' }}
+      # Tag every image with the exact commit that passed CI
+      TAG: ${{ github.event.workflow_run.head_sha }}
+      # HCP Terraform auth — TF_TOKEN_<hostname with dots→underscores>
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+      TF_INPUT: "false"
+      TF_CLI_ARGS_apply: "-auto-approve"
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    steps:
+      - name: Checkout the commit that passed CI
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # ── GCP auth ──────────────────────────────────────────────────────────
+      - name: Authenticate to GCP (Workload Identity Federation)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      # ── Build tooling ──────────────────────────────────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # ── Terraform variable prep ────────────────────────────────────────────
+      # Use jq so secret values with special characters can't break the JSON.
+      - name: Build Terraform secret variables
+        run: |
+          auth=$(jq -cn \
+            --arg bs  "$BETTER_AUTH_SECRET"   \
+            --arg v   "$VOTERS_AUTH_DB_URI"   \
+            --arg a   "$ADMINS_AUTH_DB_URI"   \
+            --arg au  "$AUDITORS_AUTH_DB_URI" \
+            '{better_auth_secret:$bs,voters_auth_db_uri:$v,admins_auth_db_uri:$a,auditors_auth_db_uri:$au}')
+          echo "TF_VAR_auth_secrets=$auth" >> "$GITHUB_ENV"
+
+          backend=$(jq -cn --arg db "$DATABASE_URL" '{database_url:$db}')
+          echo "TF_VAR_backend_secrets=$backend" >> "$GITHUB_ENV"
+
+          # All services are pinned to the same commit SHA.
+          tags=$(jq -cn --arg t "$TAG" \
+            '{admin_fe:$t,auditing_fe:$t,auth:$t,backend:$t,chain_node:$t,tracability:$t,voting_fe:$t}')
+          echo "TF_VAR_image_tags=$tags" >> "$GITHUB_ENV"
+        env:
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          VOTERS_AUTH_DB_URI: ${{ secrets.VOTERS_AUTH_DB_URI }}
+          ADMINS_AUTH_DB_URI: ${{ secrets.ADMINS_AUTH_DB_URI }}
+          AUDITORS_AUTH_DB_URI: ${{ secrets.AUDITORS_AUTH_DB_URI }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # ── Deploy ─────────────────────────────────────────────────────────────
+      - name: Terraform init
+        run: make init
+
+      - name: Build & push images
+        run: make build-push
+
+      - name: Terraform apply
+        run: make apply

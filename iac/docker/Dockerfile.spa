@@ -1,0 +1,29 @@
+# Vite SPA (admin-fe): build → nginx.
+# Build context: repo root.
+#
+# VITE_* env vars are baked in at build time — pass them with
+#   --build-arg VITE_API_URL=https://api.tora-chain-demo.iansel.me
+# when real URLs differ from the defaults below.
+
+# ── Stage 1: build ────────────────────────────────────────────────────────────
+FROM oven/bun:1.2-alpine AS builder
+WORKDIR /app
+
+COPY . .
+RUN bun install --frozen-lockfile
+
+ARG VITE_API_URL=https://api.tora-chain-demo.iansel.me
+ARG VITE_AUTH_URL=https://idp.tora-chain-demo.iansel.me
+ENV VITE_API_URL=${VITE_API_URL} \
+    VITE_AUTH_URL=${VITE_AUTH_URL}
+
+RUN cd apps/admin-fe && bun run build
+
+# ── Stage 2: nginx ────────────────────────────────────────────────────────────
+FROM nginx:1.27-alpine AS runner
+
+COPY --from=builder /app/apps/admin-fe/dist /usr/share/nginx/html
+COPY iac/docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 8080
+CMD ["nginx", "-g", "daemon off;"]

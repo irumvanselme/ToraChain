@@ -1,0 +1,28 @@
+# Copy to terraform.tfvars (gitignored) for local runs.
+# For HCP Terraform, set these as workspace variables instead.
+
+project_id = "my-gcp-project-id"
+region     = "us-central1"
+
+image_tags = {
+  admin_fe    = "latest"
+  auditing_fe = "latest"
+  auth        = "latest"
+  backend     = "latest"
+  chain_node  = "latest"
+  tracability = "latest"
+  voting_fe   = "latest"
+}
+
+# Mark auth_secrets and backend_secrets as "Sensitive" in HCP Terraform.
+# Never commit real values to the repo.
+auth_secrets = {
+  better_auth_secret   = "CHANGE_ME"
+  voters_auth_db_uri   = "postgres://user:pass@host:5432/voters_auth"
+  admins_auth_db_uri   = "postgres://user:pass@host:5432/admins_auth"
+  auditors_auth_db_uri = "postgres://user:pass@host:5432/auditors_auth"
+}
+
+backend_secrets = {
+  database_url = "postgres://user:pass@host:5432/elections"
+}

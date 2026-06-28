@@ -30,6 +30,6 @@ jobs:
   deploy:
     name: deploy
     needs: [auth, backend, admin-fe, auditing-fe, voting-fe]
-    # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yaml
     secrets: inherit

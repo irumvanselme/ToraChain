@@ -99,6 +99,7 @@ jobs:
 
       # ── Terraform variable prep ────────────────────────────────────────────
       # Use jq so secret values with special characters can't break the JSON.
+      # TF_VAR_image_tags is constructed by `make apply` from the TAG env var.
       - name: Build Terraform secret variables
         run: |
           auth=$(jq -cn \
@@ -109,11 +110,6 @@ jobs:
 
           backend=$(jq -cn --arg db "$ELECTIONS_DB_URI" '{elections_db_uri:$db}')
           echo "TF_VAR_backend_secrets=$backend" >> "$GITHUB_ENV"
-
-          # All services are pinned to the same commit SHA.
-          tags=$(jq -cn --arg t "$TAG" \
-            '{admin_fe:$t,auditing_fe:$t,auth:$t,backend:$t,chain_node:$t,tracability:$t,voting_fe:$t}')
-          echo "TF_VAR_image_tags=$tags" >> "$GITHUB_ENV"
         env:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           AUTH_DB_URI: ${{ secrets.AUTH_DB_URI }}

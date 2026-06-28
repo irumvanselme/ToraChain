@@ -63,6 +63,16 @@ resource "google_cloud_run_v2_service" "services" {
           value = env.value
         }
       }
+
+      dynamic "env" {
+        for_each = each.key == "demo_voters_database" ? {
+          ELIGIBILITY_API_KEY = var.demo_voters_db_secrets.eligibility_api_key
+        } : {}
+        content {
+          name  = env.key
+          value = env.value
+        }
+      }
     }
   }
 

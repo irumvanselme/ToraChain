@@ -13,13 +13,14 @@ variable "image_tags" {
   description = "Docker image tag per service. Keys must match the service keys in locals.tf."
   type        = map(string)
   default = {
-    admin_fe    = "latest"
-    auditing_fe = "latest"
-    auth        = "latest"
-    backend     = "latest"
-    chain_node  = "latest"
-    tracability = "latest"
-    voting_fe   = "latest"
+    admin_fe             = "latest"
+    auditing_fe          = "latest"
+    auth                 = "latest"
+    backend              = "latest"
+    chain_node           = "latest"
+    demo_voters_database = "latest"
+    tracability          = "latest"
+    voting_fe            = "latest"
   }
 }
 
@@ -40,6 +41,14 @@ variable "backend_secrets" {
   description = "Secrets injected into the backend (api) Cloud Run service"
   type = object({
     elections_db_uri = string
+  })
+  sensitive = true
+}
+
+variable "demo_voters_db_secrets" {
+  description = "Secrets injected into the demo-voters-database Cloud Run service"
+  type = object({
+    eligibility_api_key = string
   })
   sensitive = true
 }

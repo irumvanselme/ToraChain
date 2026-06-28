@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import type { TracabilityEvent } from "@tora-chain/specs";
 import { TRACABILITY_EVENTS } from "@tora-chain/specs";
 import type { NodeRecord } from "@/lib/node-registry";
-import { NodeGraph } from "./NodeGraph";
 import { EventLog } from "./EventLog";
+
+const NodeGraph = dynamic(
+  () => import("./NodeGraph").then((m) => m.NodeGraph),
+  { ssr: false },
+);
 
 interface NetworkStatus {
   nodeCount: number;

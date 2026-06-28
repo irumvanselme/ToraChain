@@ -3,20 +3,54 @@
 import type { TracabilityEvent } from "@tora-chain/specs";
 import { TRACABILITY_EVENTS } from "@tora-chain/specs";
 
-const EVENT_STYLE: Record<
-  string,
-  { color: string; bg: string; icon: string }
-> = {
-  [TRACABILITY_EVENTS.NODE_CONNECTED]:      { color: "#56d364", bg: "#0f2a18", icon: "◉" },
-  [TRACABILITY_EVENTS.NODE_DISCONNECTED]:   { color: "#f85149", bg: "#2a0f0f", icon: "○" },
-  [TRACABILITY_EVENTS.VOTE_RECEIVED]:       { color: "#4fc3f7", bg: "#0f1f2a", icon: "◈" },
-  [TRACABILITY_EVENTS.VALIDATE_BLOCK_SENT]: { color: "#d4a640", bg: "#2a1f0f", icon: "→" },
-  [TRACABILITY_EVENTS.BLOCK_VALIDATED]:     { color: "#bc8cff", bg: "#1a0f2a", icon: "✓" },
-  [TRACABILITY_EVENTS.CONSENSUS_REACHED]:   { color: "#56d364", bg: "#0f2a18", icon: "⬡" },
-  [TRACABILITY_EVENTS.CONSENSUS_FAILED]:    { color: "#f85149", bg: "#2a0f0f", icon: "⚠" },
-  [TRACABILITY_EVENTS.NEW_BLOCK_BROADCAST]: { color: "#4fc3f7", bg: "#0f1f2a", icon: "◆" },
-  [TRACABILITY_EVENTS.BLOCK_WRITTEN]:       { color: "#56d364", bg: "#0f2a18", icon: "▪" },
-};
+const EVENT_STYLE: Record<string, { color: string; bg: string; icon: string }> =
+  {
+    [TRACABILITY_EVENTS.NODE_CONNECTED]: {
+      color: "#56d364",
+      bg: "#0f2a18",
+      icon: "◉",
+    },
+    [TRACABILITY_EVENTS.NODE_DISCONNECTED]: {
+      color: "#f85149",
+      bg: "#2a0f0f",
+      icon: "○",
+    },
+    [TRACABILITY_EVENTS.VOTE_RECEIVED]: {
+      color: "#4fc3f7",
+      bg: "#0f1f2a",
+      icon: "◈",
+    },
+    [TRACABILITY_EVENTS.VALIDATE_BLOCK_SENT]: {
+      color: "#d4a640",
+      bg: "#2a1f0f",
+      icon: "→",
+    },
+    [TRACABILITY_EVENTS.BLOCK_VALIDATED]: {
+      color: "#bc8cff",
+      bg: "#1a0f2a",
+      icon: "✓",
+    },
+    [TRACABILITY_EVENTS.CONSENSUS_REACHED]: {
+      color: "#56d364",
+      bg: "#0f2a18",
+      icon: "⬡",
+    },
+    [TRACABILITY_EVENTS.CONSENSUS_FAILED]: {
+      color: "#f85149",
+      bg: "#2a0f0f",
+      icon: "⚠",
+    },
+    [TRACABILITY_EVENTS.NEW_BLOCK_BROADCAST]: {
+      color: "#4fc3f7",
+      bg: "#0f1f2a",
+      icon: "◆",
+    },
+    [TRACABILITY_EVENTS.BLOCK_WRITTEN]: {
+      color: "#56d364",
+      bg: "#0f2a18",
+      icon: "▪",
+    },
+  };
 
 function summarize(event: TracabilityEvent): string {
   switch (event.type) {
@@ -104,11 +138,20 @@ export function EventLog({ events }: Props) {
               animation: i === 0 ? "slide-in 0.2s ease-out" : undefined,
             }}
           >
-            <span style={{ color: style.color, fontSize: 13, flexShrink: 0, marginTop: 1 }}>
+            <span
+              style={{
+                color: style.color,
+                fontSize: 13,
+                flexShrink: 0,
+                marginTop: 1,
+              }}
+            >
               {style.icon}
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12.5, color: "#cdd9e5", lineHeight: 1.4 }}>
+              <div
+                style={{ fontSize: 12.5, color: "#cdd9e5", lineHeight: 1.4 }}
+              >
                 {summarize(event)}
               </div>
               <div

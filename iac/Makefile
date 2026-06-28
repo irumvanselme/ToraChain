@@ -23,6 +23,15 @@ PROJECT  ?= $(shell $(TF) output -raw project_id 2>/dev/null || echo "")
 REGION   ?= us-central1
 TAG      ?= latest
 
+# Frontend build-time URLs — override to target a different deployment.
+# Defaults match the tora-chain-demo.iansel.me production environment.
+ADMIN_FE_API_BASE    ?=
+ADMIN_FE_AUTH_BASE   ?=
+AUDITING_FE_API_BASE ?=
+AUDITING_FE_AUTH_BASE ?=
+VOTING_FE_API_BASE   ?=
+VOTING_FE_AUTH_BASE  ?=
+
 .DEFAULT_GOAL := help
 
 # ── Step 1: bootstrap ─────────────────────────────────────────────────────────
@@ -52,15 +61,23 @@ nameservers: ## Print the NS delegation record to add at iansel.me
 	@echo "(This delegates only the subdomain — iansel.me itself is unchanged.)"
 	@echo ""
 
-# ── Step 2: build & push images ───────────────────────────────────────────────
+# ── Step 3: build & push images ───────────────────────────────────────────────
 
 .PHONY: build-push
-build-push: ## [STEP 2] Build and push all service images to Artifact Registry
-	PROJECT=$(PROJECT) REGION=$(REGION) TAG=$(TAG) scripts/build-push.sh
+build-push: ## [STEP 3] Build and push all service images to Artifact Registry
+	PROJECT=$(PROJECT) REGION=$(REGION) TAG=$(TAG) \
+	  ADMIN_FE_API_BASE=$(ADMIN_FE_API_BASE) ADMIN_FE_AUTH_BASE=$(ADMIN_FE_AUTH_BASE) \
+	  AUDITING_FE_API_BASE=$(AUDITING_FE_API_BASE) AUDITING_FE_AUTH_BASE=$(AUDITING_FE_AUTH_BASE) \
+	  VOTING_FE_API_BASE=$(VOTING_FE_API_BASE) VOTING_FE_AUTH_BASE=$(VOTING_FE_AUTH_BASE) \
+	  scripts/build-push.sh
 
 .PHONY: build-push-one
 build-push-one: ## Build/push a single service:  make build-push-one SVC=auth
-	PROJECT=$(PROJECT) REGION=$(REGION) TAG=$(TAG) scripts/build-push.sh $(SVC)
+	PROJECT=$(PROJECT) REGION=$(REGION) TAG=$(TAG) \
+	  ADMIN_FE_API_BASE=$(ADMIN_FE_API_BASE) ADMIN_FE_AUTH_BASE=$(ADMIN_FE_AUTH_BASE) \
+	  AUDITING_FE_API_BASE=$(AUDITING_FE_API_BASE) AUDITING_FE_AUTH_BASE=$(AUDITING_FE_AUTH_BASE) \
+	  VOTING_FE_API_BASE=$(VOTING_FE_API_BASE) VOTING_FE_AUTH_BASE=$(VOTING_FE_AUTH_BASE) \
+	  scripts/build-push.sh $(SVC)
 
 # ── Step 3: full apply ────────────────────────────────────────────────────────
 

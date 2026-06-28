@@ -76,10 +76,24 @@ function buildGraph(
               animation: STATUS_PULSE[master.status],
             }}
           >
-            <div style={{ fontSize: 10, color: "#6a7d8e", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "#6a7d8e",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
               MASTER
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#cdd9e5", marginTop: 2 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#cdd9e5",
+                marginTop: 2,
+              }}
+            >
               {master.nodeId}
             </div>
             <div style={{ fontSize: 11, color: "#4fc3f7", marginTop: 4 }}>
@@ -122,10 +136,24 @@ function buildGraph(
               animation: STATUS_PULSE[worker.status],
             }}
           >
-            <div style={{ fontSize: 10, color: "#6a7d8e", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "#6a7d8e",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
               WORKER
             </div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#cdd9e5", marginTop: 2 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#cdd9e5",
+                marginTop: 2,
+              }}
+            >
               {worker.nodeId}
             </div>
             <div style={{ fontSize: 11, color: "#56d364", marginTop: 4 }}>
@@ -150,7 +178,9 @@ function buildGraph(
     // Edge master ↔ worker
     if (master) {
       const edgeKey = `${master.nodeId}→${worker.nodeId}`;
-      const animated = activeEdges.includes(edgeKey) || activeEdges.includes(`${worker.nodeId}→${master.nodeId}`);
+      const animated =
+        activeEdges.includes(edgeKey) ||
+        activeEdges.includes(`${worker.nodeId}→${master.nodeId}`);
       rfEdges.push({
         id: `e-${master.nodeId}-${worker.nodeId}`,
         source: master.nodeId,
@@ -199,7 +229,12 @@ export function NodeGraph({ nodes, activeEdges }: Props) {
       zoomOnScroll={false}
       proOptions={{ hideAttribution: true }}
     >
-      <Background variant={BackgroundVariant.Dots} color="#1c2330" gap={24} size={1} />
+      <Background
+        variant={BackgroundVariant.Dots}
+        color="#1c2330"
+        gap={24}
+        size={1}
+      />
     </ReactFlow>
   );
 }

@@ -43,9 +43,10 @@ export function Register({ userType }: { userType: EUserType }) {
         {formScript({
           formId: "register-form",
           endpoint: `${base}/sign-up/email`,
-          successMessage: userType === UserTypeEnum.AUDITORS
-            ? "Account created. Setting up your organization…"
-            : "Account created. Redirecting to sign in…",
+          successMessage:
+            userType === UserTypeEnum.AUDITORS
+              ? "Account created. Setting up your organization…"
+              : "Account created. Redirecting to sign in…",
           redirectTo: afterRegister,
         })}
       </script>

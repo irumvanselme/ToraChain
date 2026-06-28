@@ -30,8 +30,8 @@ variable "image_tags" {
 variable "auth_secrets" {
   description = "Secrets injected into the auth (idp) Cloud Run service"
   type = object({
-    better_auth_secret   = string
-    auth_db_url   = string
+    better_auth_secret = string
+    auth_db_uri        = string
   })
   sensitive = true
 }
@@ -39,7 +39,7 @@ variable "auth_secrets" {
 variable "backend_secrets" {
   description = "Secrets injected into the backend (api) Cloud Run service"
   type = object({
-    database_url = string
+    elections_db_uri = string
   })
   sensitive = true
 }

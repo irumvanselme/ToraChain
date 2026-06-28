@@ -15,7 +15,8 @@ export const AuditElectionSchema = t.Object({
   totalVotes: t.Integer(),
 });
 
-export const AuditElectionListSchema = offsetEnvelopeSchema(AuditElectionSchema);
+export const AuditElectionListSchema =
+  offsetEnvelopeSchema(AuditElectionSchema);
 
 export const CandidateResultSchema = t.Object({
   candidateId: t.String(),

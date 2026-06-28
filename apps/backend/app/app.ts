@@ -30,7 +30,6 @@ import { VotesService } from "./votes/service.ts";
 import { VotesController } from "./votes/controller.ts";
 import {
   NullChainNodeClient,
-  HttpChainNodeClient,
   type ChainNodeClient,
 } from "./chain-node/client.ts";
 

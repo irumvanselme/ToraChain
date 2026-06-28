@@ -61,7 +61,7 @@ export async function createOrganization(
   });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({})) as { message?: string };
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
     return { error: body.message ?? `HTTP ${res.status}` };
   }
 

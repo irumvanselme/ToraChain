@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useAudit } from "../../lib/audit-context";
@@ -67,7 +67,10 @@ function ResultsTab({
       .finally(() => setLoading(false));
   }, [electionId, token]);
 
-  if (loading) return <div className="text-gray-400 py-8 text-center">Loading results…</div>;
+  if (loading)
+    return (
+      <div className="text-gray-400 py-8 text-center">Loading results…</div>
+    );
   if (error) return <div className="text-red-600 text-sm">{error}</div>;
   if (!results) return null;
 
@@ -135,7 +138,10 @@ function BlockchainTab({
       .finally(() => setLoading(false));
   }, [electionId, token]);
 
-  if (loading) return <div className="text-gray-400 py-8 text-center">Loading blockchain…</div>;
+  if (loading)
+    return (
+      <div className="text-gray-400 py-8 text-center">Loading blockchain…</div>
+    );
   if (error) return <div className="text-red-600 text-sm">{error}</div>;
   if (!blocks) return null;
 
@@ -210,25 +216,20 @@ export default function ElectionDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
 
-  const load = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const e = await getElection(token, electionId);
-      setElection(e);
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Failed to load election.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [token, electionId]);
-
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (!token) return;
+    getElection(token, electionId)
+      .then((e) => {
+        setElection(e);
+        setError(null);
+      })
+      .catch((err: unknown) => {
+        setError(
+          err instanceof ApiError ? err.message : "Failed to load election.",
+        );
+      })
+      .finally(() => setLoading(false));
+  }, [token, electionId]);
 
   const TABS: { key: Tab; label: string }[] = [
     { key: "overview", label: "Overview" },

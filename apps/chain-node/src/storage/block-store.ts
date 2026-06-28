@@ -98,9 +98,9 @@ export class BlockStore {
   }
 
   count(): number {
-    const row = this.db
-      .prepare("SELECT COUNT(*) as n FROM blocks")
-      .get() as { n: number };
+    const row = this.db.prepare("SELECT COUNT(*) as n FROM blocks").get() as {
+      n: number;
+    };
     return row.n;
   }
 

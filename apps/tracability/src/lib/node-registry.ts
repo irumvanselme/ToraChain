@@ -9,7 +9,11 @@ export interface NodeRecord {
 
 const nodes = new Map<string, NodeRecord>();
 
-export function upsertNode(nodeId: string, port: number, connectedAt: number): void {
+export function upsertNode(
+  nodeId: string,
+  port: number,
+  connectedAt: number,
+): void {
   nodes.set(nodeId, {
     nodeId,
     port,

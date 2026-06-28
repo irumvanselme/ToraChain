@@ -22,7 +22,11 @@ export function Dashboard() {
   const [events, setEvents] = useState<TracabilityEvent[]>([]);
   const [nodes, setNodes] = useState<NodeRecord[]>([]);
   const [activeEdges, setActiveEdges] = useState<string[]>([]);
-  const [status, setStatus] = useState<NetworkStatus>({ nodeCount: 0, blockCount: 0, ready: false });
+  const [status, setStatus] = useState<NetworkStatus>({
+    nodeCount: 0,
+    blockCount: 0,
+    ready: false,
+  });
   const eventsRef = useRef<TracabilityEvent[]>([]);
 
   // Poll nodes list every 3 s
@@ -32,7 +36,10 @@ export function Dashboard() {
         const res = await fetch("/api/nodes");
         const data = (await res.json()) as { nodes: NodeRecord[] };
         setNodes(data.nodes);
-        const totalBlocks = data.nodes.reduce((s, n) => Math.max(s, n.blockCount), 0);
+        const totalBlocks = data.nodes.reduce(
+          (s, n) => Math.max(s, n.blockCount),
+          0,
+        );
         setStatus({
           nodeCount: data.nodes.length,
           blockCount: totalBlocks,
@@ -125,7 +132,13 @@ export function Dashboard() {
             <div style={{ fontWeight: 600, fontSize: 15, color: "#e2ecf5" }}>
               ToraChain Tracability
             </div>
-            <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "monospace" }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--muted)",
+                fontFamily: "monospace",
+              }}
+            >
               live blockchain node monitor
             </div>
           </div>
@@ -154,7 +167,9 @@ export function Dashboard() {
                 animation: "pulse-green 2s ease-in-out infinite",
               }}
             />
-            {status.ready ? "Quorum met" : "Waiting for quorum (need 3 workers)"}
+            {status.ready
+              ? "Quorum met"
+              : "Waiting for quorum (need 3 workers)"}
           </div>
         </div>
       </header>
@@ -225,7 +240,14 @@ function Stat({ label, value }: { label: string; value: number }) {
       >
         {value}
       </div>
-      <div style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--muted)",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+        }}
+      >
         {label}
       </div>
     </div>

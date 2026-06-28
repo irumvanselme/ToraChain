@@ -1,16 +1,9 @@
-# Next.js app with standalone output (auditing-fe, tracability, voting-fe).
-# Build context: repo root.
-# Required build arg: APP_DIR — workspace sub-path (e.g. auditing-fe).
-#
-# Because outputFileTracingRoot is set to the monorepo root in next.config.ts,
-# the standalone entry point is at apps/${APP_DIR}/server.js inside the
-# standalone directory.
-
 # ── Stage 1: install (bun is fast at resolution + download) ──────────────────
 FROM oven/bun:1.2-alpine AS deps
 WORKDIR /app
 COPY . .
-RUN bun install --frozen-lockfile
+ARG PACKAGE_NAME
+RUN bun install --frozen-lockfile --filter @tora-chain/${PACKAGE_NAME}
 
 # ── Stage 2: build with Node.js (bun worker_threads is incomplete on Linux) ───
 FROM node:22-alpine AS builder
@@ -18,6 +11,14 @@ WORKDIR /app
 COPY --from=deps /app .
 
 ARG APP_DIR
+# NEXT_PUBLIC_* vars are baked into the client bundle at build time.
+# Pass --build-arg NEXT_PUBLIC_AUTH_BASE=... and NEXT_PUBLIC_API_BASE=...
+# for apps that need them (auditing-fe, voting-fe). Unused by tracability.
+ARG NEXT_PUBLIC_AUTH_BASE=""
+ARG NEXT_PUBLIC_API_BASE=""
+ENV NEXT_PUBLIC_AUTH_BASE=${NEXT_PUBLIC_AUTH_BASE} \
+    NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE}
+
 # Remove workspace-local react / react-dom so every package shares one instance.
 # Bun's resolver deduplicates at runtime; Node.js does not — a duplicate react
 # instance causes styled-jsx / react-dom SSR failures during static generation.

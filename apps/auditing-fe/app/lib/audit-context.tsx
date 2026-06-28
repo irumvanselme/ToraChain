@@ -42,8 +42,13 @@ export function AuditProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    Promise.all([fetchAuditorToken(), fetchAuditStatus()])
+      .then(([tok, status]) => {
+        setToken(tok);
+        setAuditStatus(status);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <AuditContext.Provider value={{ token, auditStatus, loading, refresh }}>

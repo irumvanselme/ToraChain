@@ -17,12 +17,10 @@ image_tags = {
 # Mark auth_secrets and backend_secrets as "Sensitive" in HCP Terraform.
 # Never commit real values to the repo.
 auth_secrets = {
-  better_auth_secret   = "CHANGE_ME"
-  voters_auth_db_uri   = "postgres://user:pass@host:5432/voters_auth"
-  admins_auth_db_uri   = "postgres://user:pass@host:5432/admins_auth"
-  auditors_auth_db_uri = "postgres://user:pass@host:5432/auditors_auth"
+  better_auth_secret = "CHANGE_ME"
+  auth_db_uri        = "postgres://user:pass@host:5432/auth_db"
 }
 
 backend_secrets = {
-  database_url = "postgres://user:pass@host:5432/elections"
+  elections_db_uri = "postgres://user:pass@host:5432/elections"
 }

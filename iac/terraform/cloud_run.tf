@@ -5,6 +5,8 @@ resource "google_cloud_run_v2_service" "services" {
   location = var.region
   name     = each.value.cr_name
 
+  deletion_protection = false
+
   # Allow the LB (and direct Cloud Run URLs) to reach the service.
   # Tighten to INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER once the LB is verified.
   ingress = "INGRESS_TRAFFIC_ALL"
@@ -44,7 +46,7 @@ resource "google_cloud_run_v2_service" "services" {
       dynamic "env" {
         for_each = each.key == "auth" ? {
           BETTER_AUTH_SECRET   = var.auth_secrets.better_auth_secret
-          AUTH_DB_URI   = var.auth_secrets.auth_db_url
+          AUTH_DB_URI = var.auth_secrets.auth_db_uri
         } : {}
         content {
           name  = env.key
@@ -54,7 +56,7 @@ resource "google_cloud_run_v2_service" "services" {
 
       dynamic "env" {
         for_each = each.key == "backend" ? {
-          DATABASE_URL = var.backend_secrets.database_url
+          ELECTIONS_DB_URI = var.backend_secrets.elections_db_uri
         } : {}
         content {
           name  = env.key

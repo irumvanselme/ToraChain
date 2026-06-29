@@ -1,8 +1,7 @@
-import { API_BASE } from "../config.ts";
-import { request } from "./api.ts";
-import type { OffsetEnvelope } from "./elections.ts";
+import { API_BASE } from "lib/config";
+import { request } from "./request";
+import type { OffsetEnvelope } from "./elections";
 
-/** A candidate standing in an election (mirrors the backend `CandidateSchema`). */
 export interface Candidate {
   candidateId: string;
   electionId: string;

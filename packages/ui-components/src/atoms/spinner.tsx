@@ -1,4 +1,4 @@
-import { cn } from "./cn.ts";
+import { cn } from "../cn.ts";
 
 export interface SpinnerProps {
   size?: "sm" | "md" | "lg";

@@ -1,5 +1,5 @@
 import type { SelectHTMLAttributes, ReactNode } from "react";
-import { cn } from "./cn.ts";
+import { cn } from "../cn.ts";
 
 export interface SelectOption {
   label: string;

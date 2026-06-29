@@ -1,5 +1,5 @@
 import { Badge } from "@tora-chain/ui-components";
-import type { ElectionStatus } from "../lib/elections.ts";
+import type { ElectionStatus } from "api/elections";
 import { STATUS_TONE, statusLabel } from "../lib/format.ts";
 
 export function StatusBadge({ status }: { status: ElectionStatus }) {

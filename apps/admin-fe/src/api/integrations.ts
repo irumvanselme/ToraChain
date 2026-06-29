@@ -1,5 +1,5 @@
-import { API_BASE } from "../config.ts";
-import { request } from "./api.ts";
+import { API_BASE } from "lib/config";
+import { request } from "api/request";
 
 export interface FormField {
   id: string;

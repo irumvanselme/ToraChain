@@ -6,9 +6,9 @@ import {
   updateElection,
   type Election,
   type ElectionInput,
-} from "lib/elections.ts";
-import { ApiError } from "lib/api.ts";
-import { ElectionForm } from "components/ElectionForm.tsx";
+} from "api/elections";
+import { ApiError } from "api/error";
+import { ElectionForm } from "components/election-form.tsx";
 
 export function ElectionEditPage() {
   const { id = "" } = useParams();

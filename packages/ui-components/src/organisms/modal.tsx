@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { cn } from "./cn.ts";
+import { cn } from "../cn.ts";
 
 export interface ModalProps {
   open: boolean;

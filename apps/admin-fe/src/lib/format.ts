@@ -1,4 +1,4 @@
-import type { ElectionStatus } from "./elections.ts";
+import type { ElectionStatus } from "api/elections";
 
 type Tone = "neutral" | "info" | "success" | "warning" | "error" | "ghost";
 

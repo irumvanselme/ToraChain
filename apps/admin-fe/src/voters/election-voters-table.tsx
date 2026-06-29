@@ -11,13 +11,13 @@ import {
   type Column,
 } from "@tora-chain/ui-components";
 import { Trash2 } from "lucide-react";
-import { ApiError } from "lib/api.ts";
+import { ApiError } from "api/error";
 import {
   grantVoter,
   listVoters,
   revokeVoter,
   type Eligibility,
-} from "lib/voters.ts";
+} from "api/voters";
 
 const PAGE_SIZE = 20;
 

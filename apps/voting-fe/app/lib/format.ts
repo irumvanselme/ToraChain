@@ -1,4 +1,4 @@
-import type { ElectionStatus } from "./elections";
+import type { ElectionStatus } from "../api/elections.ts";
 
 export type Tone =
   | "neutral"

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "./cn.ts";
+import { cn } from "../cn.ts";
 
 export interface Column<T> {
   key: string;

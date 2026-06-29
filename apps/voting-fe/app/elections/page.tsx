@@ -17,7 +17,7 @@ import {
   listElections,
   type Election,
   type ElectionStatus,
-} from "../lib/elections";
+} from "../api/elections.ts";
 import { formatDateTime, statusLabel, STATUS_TONE } from "../lib/format";
 
 type VoterStatus = Extract<ElectionStatus, "active" | "scheduled">;

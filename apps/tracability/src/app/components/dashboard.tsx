@@ -5,10 +5,10 @@ import dynamic from "next/dynamic";
 import type { TracabilityEvent } from "@tora-chain/specs";
 import { TRACABILITY_EVENTS } from "@tora-chain/specs";
 import type { NodeRecord } from "@/lib/node-registry";
-import { EventLog } from "./EventLog";
+import { EventLog } from "./event-log";
 
 const NodeGraph = dynamic(
-  () => import("./NodeGraph").then((m) => m.NodeGraph),
+  () => import("./node-graph").then((m) => m.NodeGraph),
   { ssr: false },
 );
 

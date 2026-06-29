@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { cn } from "./cn.ts";
+import { cn } from "../cn.ts";
 
 type Tone = "info" | "success" | "warning" | "error";
 

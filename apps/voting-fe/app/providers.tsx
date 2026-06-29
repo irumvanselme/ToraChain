@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { AuthProvider, RequireAuth } from "@tora-chain/fe-common";
 import { AUTH_API, loginUrl } from "./config";
-import { TopNav } from "./components/TopNav";
+import { TopNav } from "./components/top-nav";
 
 /**
  * Client-side auth boundary. The root layout is a Server Component, so it can't

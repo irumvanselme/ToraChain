@@ -1,6 +1,6 @@
 "use client";
 
-import { AUTH_API, AUTH_BASE } from "../config";
+import { AUTH_API, AUTH_BASE } from "../lib/config.ts";
 
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 

@@ -21,9 +21,9 @@ import {
   ELECTION_STATUSES,
   STATUS_TRANSITIONS,
   type ElectionStatus,
-} from "lib/elections";
+} from "api/elections";
 import { formatDateTime, statusLabel } from "lib/format.ts";
-import { StatusBadge } from "components/StatusBadge.tsx";
+import { StatusBadge } from "components/status-badge.tsx";
 import { useListElections } from "./use-list-elections.ts";
 
 type FilterTone =

@@ -7,7 +7,7 @@ export function getEnv(): Environment {
   // @ts-ignore
   if (import.meta.env) {
     // @ts-ignore
-    localEnv = import.meta.env.NODE_ENV;
+    localEnv = import.meta.env.VITE_NODE_ENV || import.meta.env.NODE_ENV;
   } else {
     // @ts-ignore
     localEnv = process.env.NODE_ENV;

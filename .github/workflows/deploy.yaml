@@ -21,6 +21,7 @@ jobs:
       # Tag every image with the exact commit that passed CI
       TAG: ${{ github.sha }}
       NODE_ENV: demo
+      VITE_NODE_ENV: demo
 
     steps:
       - name: Checkout the commit that passed CI

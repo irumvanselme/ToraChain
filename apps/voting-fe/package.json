@@ -12,6 +12,7 @@
     "test": "vitest --watch false"
   },
   "dependencies": {
+    "@tora-chain/configs": "workspace:*",
     "@tora-chain/fe-common": "workspace:*",
     "@tora-chain/ui-components": "workspace:*",
     "daisyui": "^5.5.23",

@@ -9,6 +9,7 @@ export default defineConfig({
       ELECTIONS_DB_URI: "postgres://test:test@localhost:5432/elections_test",
       AUTH_SERVICE_URL: "http://localhost:8001",
       PORT: "8000",
+      NODE_ENV: "development",
     },
   },
 });

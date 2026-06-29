@@ -6,13 +6,7 @@ import pino, {
 import { getEnv, getBoolEnv, isProduction } from "../config";
 
 export type LogLevel =
-  | "fatal"
-  | "error"
-  | "warn"
-  | "info"
-  | "debug"
-  | "trace"
-  | "silent";
+  "fatal" | "error" | "warn" | "info" | "debug" | "trace" | "silent";
 
 export type LogBindings = Record<string, unknown>;
 

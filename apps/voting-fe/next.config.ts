@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   transpilePackages: [
     "@tora-chain/fe-common",
     "@tora-chain/ui-components",
-    "@tora-chain/dev-configs",
+    "@tora-chain/configs",
   ],
   outputFileTracingRoot: path.join(__dirname, "../../"),
 };

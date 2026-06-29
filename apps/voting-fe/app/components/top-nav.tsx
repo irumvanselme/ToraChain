@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@tora-chain/fe-common";
 import { LogoSquare } from "@tora-chain/ui-components";
 import { ChevronDown, LogOut, User } from "lucide-react";
-import { AUTH_BASE } from "../config";
+import { AUTH_BASE } from "../lib/config.ts";
 
 const PROFILE_URL = `${AUTH_BASE}/voters/profile`;
 

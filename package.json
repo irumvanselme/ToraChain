@@ -6,13 +6,14 @@
     "examples/*"
   ],
   "scripts": {
+    "dev": "make dev",
     "format": "bun run prettier --write .",
     "seed": "bun run scripts/seed.ts"
   },
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@tora-chain/dev-configs": "workspace:*",
+    "@tora-chain/configs": "workspace:*",
     "@types/bun": "latest",
     "concurrently": "^9.1.2"
   },

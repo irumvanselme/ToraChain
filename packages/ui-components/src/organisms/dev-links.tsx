@@ -16,7 +16,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import { DEV_LINKS, type DevLinkIconName } from "@tora-chain/dev-configs";
+import { DEV_LINKS, type DevLinkIconName } from "@tora-chain/configs";
 
 /**
  * Shape of a single icon component as rendered by this widget. lucide-react

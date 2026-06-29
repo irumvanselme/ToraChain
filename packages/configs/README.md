@@ -1,4 +1,4 @@
-# `@tora-chain/dev-configs`
+# `@tora-chain/configs`
 
 Framework-agnostic **development-only** configuration shared across the
 monorepo: well-known dev account credentials and the dev-navigation link set.
@@ -12,7 +12,7 @@ import {
   DEV_PASSWORD,
   getDevCredential,
   DEV_LINKS,
-} from "@tora-chain/dev-configs";
+} from "@tora-chain/configs";
 ```
 
 ## Credentials

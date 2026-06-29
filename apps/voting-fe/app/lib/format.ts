@@ -1,12 +1,7 @@
 import type { ElectionStatus } from "../api/elections.ts";
 
 export type Tone =
-  | "neutral"
-  | "info"
-  | "success"
-  | "warning"
-  | "error"
-  | "ghost";
+  "neutral" | "info" | "success" | "warning" | "error" | "ghost";
 
 export const STATUS_TONE: Record<ElectionStatus, Tone> = {
   draft: "ghost",

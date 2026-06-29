@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@tora-chain/fe-common": "workspace:*",
-    "@tora-chain/dev-configs": "workspace:*",
+    "@tora-chain/configs": "workspace:*",
     "lucide-react": "^1.20.0"
   }
 }

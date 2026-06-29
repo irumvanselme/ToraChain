@@ -20,6 +20,7 @@ jobs:
       REGION: ${{ vars.GCP_REGION != '' && vars.GCP_REGION || 'us-central1' }}
       # Tag every image with the exact commit that passed CI
       TAG: ${{ github.sha }}
+      NODE_ENV: demo
 
     steps:
       - name: Checkout the commit that passed CI
@@ -66,6 +67,7 @@ jobs:
       TF_INPUT: "false"
       TF_CLI_ARGS_apply: "-auto-approve"
       TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      NODE_ENV: demo
 
     steps:
       - name: Checkout the commit that passed CI

@@ -3,18 +3,6 @@
 import { useState, type CSSProperties } from "react";
 import { DEV_BANNER } from "@tora-chain/configs";
 
-// Declared locally (this package has no @types/node) so we can reference the
-// literal `process.env.NODE_ENV` token that Vite and Next replace at build time.
-declare const process: { env: { NODE_ENV?: string } };
-
-function notProduction(): boolean {
-  try {
-    return process.env.NODE_ENV !== "production";
-  } catch {
-    return false;
-  }
-}
-
 export interface DevBannerProps {
   /**
    * Whether to render at all. Defaults to "not production" — both Vite and
@@ -85,7 +73,7 @@ const tooltipHeadingStyle: CSSProperties = {
   color: "#fcd34d",
 };
 
-export function DevBanner({ enabled = notProduction() }: DevBannerProps) {
+export function DevBanner({ enabled = true }: DevBannerProps) {
   const [hovered, setHovered] = useState(false);
 
   if (!enabled) return null;

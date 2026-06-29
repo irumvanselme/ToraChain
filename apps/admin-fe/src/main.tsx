@@ -16,9 +16,7 @@ createRoot(document.getElementById("root")!).render(
     <AuthProvider config={authConfig}>
       <RouterProvider router={router} />
     </AuthProvider>
-    {/* Dev-only floating links to the other ToraChain services. */}
     <DevLinks />
-    {/* Dev-only corner ribbon warning users not to submit sensitive data. */}
     <DevBanner />
   </StrictMode>,
 );

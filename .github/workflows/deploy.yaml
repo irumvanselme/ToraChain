@@ -1,21 +1,7 @@
 name: deploy
 
-# Called by main-ci after all CI jobs pass on main.
 on:
   workflow_call:
-
-# Required GitHub secrets:
-#   GCP_PROJECT_ID               — GCP project ID
-#   GCP_WORKLOAD_IDENTITY_PROVIDER — full WIF provider resource name
-#   GCP_SERVICE_ACCOUNT          — service account email authorised to push to AR + manage Cloud Run
-#   TF_API_TOKEN                 — HCP Terraform API token (user/team token)
-#   BETTER_AUTH_SECRET           — auth service secret
-#   AUTH_DB_URI                  — postgres URI for the auth DB
-#   ELECTIONS_DB_URI             — postgres URI for the elections DB
-#   DEMO_VOTERS_DB_API_KEY       — API key for the demo-voters-database eligibility endpoint
-#
-# Optional GitHub variables (Settings → Variables):
-#   GCP_REGION  (default: us-central1)
 
 jobs:
   build-push:
@@ -41,7 +27,6 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-      # ── GCP auth ──────────────────────────────────────────────────────────
       - name: Authenticate to GCP (Workload Identity Federation)
         uses: google-github-actions/auth@v2.1.2
         with:
@@ -50,9 +35,12 @@ jobs:
       - name: Set up gcloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # ── Build tooling ──────────────────────────────────────────────────────
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Prepare assets
+        working-directory: ./
+        run: make prepare-assets
 
       - name: Build & push images
         run: make build-push

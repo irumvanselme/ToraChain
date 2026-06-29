@@ -62,9 +62,11 @@ clean: ## Remove build artifacts and installed dependencies
 		apps/admin-fe/dist apps/auditing-fe/.next apps/voting-fe/.next
 
 prepare-assets:
-	cp -r ./assets ./apps/admin-fe/public/_assets    && \
-	cp -r ./assets ./apps/voting-fe/public/_assets   && \
-	cp -r ./assets ./apps/auditing-fe/public/_assets    \
+	cp -r ./assets ./apps/admin-fe/public/_assets     					&& \
+	cp -r ./assets ./apps/voting-fe/public/_assets    					&& \
+	cp -r ./assets ./apps/auditing-fe/public/_assets  					&& \
+	cp -r ./assets ./apps/tracability/public/_assets  					&& \
+	cp -r ./assets ./examples/simple-voters-database/public/_assets
 
 # ===========================================================================
 # Backend

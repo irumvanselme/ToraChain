@@ -3,13 +3,7 @@
  * truthy parts with a single space. Keeps the package dependency-free (no clsx).
  */
 export type ClassValue =
-  | string
-  | number
-  | bigint
-  | false
-  | null
-  | undefined
-  | ClassValue[];
+  string | number | bigint | false | null | undefined | ClassValue[];
 
 export function cn(...values: ClassValue[]): string {
   const out: string[] = [];

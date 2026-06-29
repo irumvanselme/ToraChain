@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { html } from "@elysia/html";
 import { Logger, isProduction } from "@tora-chain/be-common";
 import { EUserType } from "../types.ts";
-import { getDevCredential, type DevUserType } from "@tora-chain/dev-configs";
+import { getDevCredential, type DevUserType } from "@tora-chain/configs";
 
 import { links, ok } from "app/utils/constants";
 import { config } from "../env.ts";

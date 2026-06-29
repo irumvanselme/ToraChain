@@ -25,7 +25,7 @@ export function Login({
           class="dev-login"
           title={`Sign in as ${devLogin.email}`}
         >
-          ⚡ Default login (dev)
+          Default login (dev)
         </button>
       )}
       <form id="login-form">

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { AuthProvider, RequireAuth } from "@tora-chain/fe-common";
-import { AUTH_API, loginUrl } from "./config";
+import { AUTH_API, loginUrl } from "./lib/config.ts";
 import { TopNav } from "./components/top-nav";
 
 /**

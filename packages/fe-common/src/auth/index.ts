@@ -1,5 +1,5 @@
-export * from "./auth-provider"
-export * from "./require-auth"
+export * from "./auth-provider";
+export * from "./require-auth";
 
 export { useAuth } from "./context";
 

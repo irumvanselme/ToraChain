@@ -1,11 +1,8 @@
 import { apiLink, idpLink } from "@tora-chain/configs";
 
-export const USER_TYPE = "auditors" as const;
+export const USER_TYPE = "voters" as const;
 export const AUTH_BASE = `${idpLink}/${USER_TYPE}`;
 export const API_BASE = apiLink;
-export const ONBOARDING_URL = `${AUTH_BASE}/onboarding`;
-export const PENDING_URL = `${AUTH_BASE}/pending`;
-
 export const AUTH_API = `${AUTH_BASE}/api`;
 
 export function loginUrl(redirectTo: string): string {

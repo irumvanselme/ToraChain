@@ -20,7 +20,7 @@ Headers
 
 Body
 election-id: <election id>  
- voter-account-id: <voter account id>
+voter-account-id: <voter account id>
 ... <form field id>: <form field value>
 
 Response body:

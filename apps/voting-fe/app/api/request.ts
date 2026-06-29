@@ -1,4 +1,4 @@
-import { API_BASE } from "../config";
+import { API_BASE } from "../lib/config.ts";
 import { ApiError, NetworkError } from "@/app/api/errors.ts";
 
 export interface RequestOptions {

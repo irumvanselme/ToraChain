@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   transpilePackages: [
     "@tora-chain/fe-common",
     "@tora-chain/ui-components",
-    "@tora-chain/dev-configs",
+    "@tora-chain/configs",
   ],
   // Trace files from the monorepo root so standalone includes workspace
   // packages.  server.js is emitted at apps/auditing-fe/server.js inside

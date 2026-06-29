@@ -25,7 +25,7 @@ export function AuthProvider({ config, children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     await signOut(authApi);
     setUser(null);
-    window.location.href = loginUrl(window.location.href);
+    // window.location.href = loginUrl(window.location.href);
   }, [authApi, loginUrl]);
 
   useEffect(() => {

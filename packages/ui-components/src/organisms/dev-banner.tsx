@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import { DEV_BANNER } from "@tora-chain/dev-configs";
+import { DEV_BANNER } from "@tora-chain/configs";
 
 // Declared locally (this package has no @types/node) so we can reference the
 // literal `process.env.NODE_ENV` token that Vite and Next replace at build time.
@@ -85,19 +85,6 @@ const tooltipHeadingStyle: CSSProperties = {
   color: "#fcd34d",
 };
 
-/**
- * Flutter-style diagonal corner ribbon that warns users this app is a
- * development preview. Config comes from {@link DEV_BANNER} in
- * `@tora-chain/dev-configs`. Renders only outside production by default and is
- * fully self-contained (inline styles), so it looks identical across all
- * ToraChain frontends regardless of their CSS framework.
- *
- * ```tsx
- * import { DevBanner } from "@tora-chain/ui-components";
- * // render once near the app root:
- * <DevBanner />
- * ```
- */
 export function DevBanner({ enabled = notProduction() }: DevBannerProps) {
   const [hovered, setHovered] = useState(false);
 

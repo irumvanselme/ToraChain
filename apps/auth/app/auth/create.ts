@@ -30,6 +30,19 @@ export function createAuth(
     secret: config.secret,
     trustedOrigins: config.trustedOrigins,
     database: dbPool,
+    advanced: {
+      // The frontends (e.g. auditing.localhost:3002) and the IDP
+      // (idp.localhost:8001) live on different registrable domains, so every
+      // `get-session` call from a frontend is a *cross-site* request. The
+      // browser only attaches the session cookie to a cross-site fetch when it
+      // is `SameSite=None; Secure`. `Secure` is honoured over http on localhost
+      // (a "potentially trustworthy" origin) and over https in demo/prod.
+      useSecureCookies: true,
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+      },
+    },
     emailAndPassword: {
       enabled: true,
     },

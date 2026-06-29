@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Config > should match snapshot 1`] = `
+{
+  "API_BASE": "api-base",
+  "AUTH_API": "auth-base/api",
+  "AUTH_BASE": "auth-base",
+  "USER_TYPE": "voters",
+  "loginUrl": [Function],
+}
+`;

@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`StatusBadge > should render 1`] = `
+<body>
+  <div>
+    <span
+      class="badge badge-ghost"
+    >
+      Draft
+    </span>
+  </div>
+</body>
+`;

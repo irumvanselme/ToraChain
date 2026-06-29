@@ -5,7 +5,7 @@ on:
 
 jobs:
   ci:
-    name: ci
+    name: format, lint, build & test
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -23,6 +23,10 @@ jobs:
         working-directory: ./apps/admin-fe
         run: bun run check-types
 
+      - name: formatting
+        working-directory: ./apps/admin-fe
+        run: bun run format:check
+
       - name: linting
         working-directory: ./apps/admin-fe
         run: bun run lint
@@ -30,3 +34,7 @@ jobs:
       - name: build
         working-directory: ./apps/admin-fe
         run: bun run build
+
+      - name: test
+        working-directory: ./apps/admin-fe
+        run: bun run test

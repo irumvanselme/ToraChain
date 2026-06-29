@@ -13,8 +13,6 @@ export function getEnv(): Environment {
     localEnv = process.env.NODE_ENV;
   }
 
-  console.log("Environment=", localEnv);
-
   if (localEnv == "production") {
     localEnv = "demo";
   }

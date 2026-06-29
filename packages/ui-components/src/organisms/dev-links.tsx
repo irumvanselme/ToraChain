@@ -18,10 +18,6 @@ import {
 } from "lucide-react";
 import { DEV_LINKS, type DevLinkIconName } from "@tora-chain/configs";
 
-/**
- * Shape of a single icon component as rendered by this widget. lucide-react
- * exports match this; any compatible SVG-icon component works too.
- */
 export type DevLinkIcon = ComponentType<{
   size?: number | string;
   strokeWidth?: number;
@@ -74,12 +70,6 @@ const ICONS: Record<DevLinkIconName, DevLinkIcon> = {
   Server,
 };
 
-/**
- * The ToraChain services, derived from `@tora-chain/dev-configs`. Backend ports
- * collide with the frontend dev servers (auth + admin both want :3000,
- * elections + voting both want :3001), so when you run several at once you'll
- * want to override `links` to match your actual setup.
- */
 export const DEFAULT_DEV_LINKS: DevLink[] = DEV_LINKS.map((link) => ({
   label: link.label,
   href: link.href,
@@ -88,19 +78,6 @@ export const DEFAULT_DEV_LINKS: DevLink[] = DEV_LINKS.map((link) => ({
   newTab: link.newTab,
   icon: ICONS[link.icon],
 }));
-
-// Declared locally (this package has no @types/node) so we can reference the
-// literal `process.env.NODE_ENV` token that Vite and Next replace at build time.
-declare const process: { env: { NODE_ENV?: string } };
-
-/** `process.env.NODE_ENV !== "production"`, but safe where `process` is absent. */
-function notProduction(): boolean {
-  try {
-    return process.env.NODE_ENV !== "production";
-  } catch {
-    return false;
-  }
-}
 
 const CORNERS: Record<Corner, CSSProperties> = {
   "bottom-right": { bottom: 24, right: 24, alignItems: "flex-end" },
@@ -111,22 +88,9 @@ const CORNERS: Record<Corner, CSSProperties> = {
 
 const Z_INDEX = 2147483000;
 
-/**
- * Floating dev-navigation widget. A circular trigger button that expands,
- * Material-style, into a stack of colored chips linking to the other ToraChain
- * services. Renders only outside production by default and is fully
- * self-contained (inline styles), so it looks identical across the Vite and
- * Next frontends regardless of their Tailwind/DaisyUI setup.
- *
- * ```tsx
- * import { DevLinks } from "@tora-chain/ui-components";
- * // ...render once near the app root:
- * <DevLinks />
- * ```
- */
 export function DevLinks({
   links = DEFAULT_DEV_LINKS,
-  enabled = notProduction(),
+  enabled = true,
   position = "bottom-right",
   label = "Dev links",
 }: DevLinksProps) {

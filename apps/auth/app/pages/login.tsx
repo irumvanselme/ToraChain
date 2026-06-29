@@ -3,6 +3,7 @@ import { Html } from "@elysia/html";
 import type { EUserType } from "app/types.ts";
 import { Layout } from "./layout.tsx";
 import { devLoginScript, formScript } from "./script.ts";
+import {getEnvironmentFullName} from "@tora-chain/configs";
 
 export function Login({
   userType,
@@ -25,7 +26,7 @@ export function Login({
           class="dev-login"
           title={`Sign in as ${devLogin.email}`}
         >
-          Default login (dev)
+          Default login ({getEnvironmentFullName()})
         </button>
       )}
       <form id="login-form">

@@ -75,7 +75,7 @@ export const DEV_LINKS: readonly DevLinkConfig[] = [
   },
   {
     label: "Elections API",
-    href: apiLink,
+    href: apiLink + "/docs",
     color: "#0ea5e9",
     group: "Backends",
     icon: "Server",

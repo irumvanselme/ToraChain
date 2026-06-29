@@ -1,10 +1,15 @@
 import { z } from "zod";
+import {
+  idpLink,
+  apiLink,
+  adminFeLink,
+  auditingFeLink,
+  votingFeLink,
+} from "@tora-chain/configs";
 
 const EnvSchema = z.object({
   ELECTIONS_DB_URI: z.string().min(1),
-  AUTH_SERVICE_URL: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(3001),
-  TRUSTED_ORIGINS: z.string().optional(),
   // Auth /core API for voter lookups by user id. Both must be set to enable it;
   // AUTH_CORE_URL defaults to AUTH_SERVICE_URL when only the key is provided.
   AUTH_CORE_URL: z.string().optional(),
@@ -34,21 +39,25 @@ export interface AppConfig {
   readonly chainNodeUrl?: string;
 }
 
+const TRUSTED_ORIGINS = [
+  idpLink,
+  apiLink,
+  adminFeLink,
+  auditingFeLink,
+  votingFeLink,
+];
+
 function buildConfig(env: Env): AppConfig {
-  const trustedOrigins = env.TRUSTED_ORIGINS
-    ? env.TRUSTED_ORIGINS.split(",")
-        .map((o) => o.trim())
-        .filter(Boolean)
-    : [env.AUTH_SERVICE_URL];
+  const trustedOrigins = TRUSTED_ORIGINS;
 
   return {
     databaseUrl: env.ELECTIONS_DB_URI,
-    baseURL: env.AUTH_SERVICE_URL,
+    baseURL: apiLink,
     port: env.PORT,
     trustedOrigins,
-    authCoreUrl: env.AUTH_CORE_URL ?? env.AUTH_SERVICE_URL,
+    authCoreUrl: idpLink,
     authCoreApiKey: env.AUTH_CORE_API_KEY,
-    auditorsAuthUrl: env.AUDITORS_AUTH_URL ?? env.AUTH_SERVICE_URL,
+    auditorsAuthUrl: idpLink,
     chainNodeUrl: env.CHAIN_NODE_URL,
   };
 }

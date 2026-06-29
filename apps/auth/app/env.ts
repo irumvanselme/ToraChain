@@ -35,7 +35,6 @@ export interface AppConfig {
 
 function buildConfig(env: Env): AppConfig {
   const trustedOrigins = TRUSTED_ORIGINS;
-  console.log("Trusted origins:", trustedOrigins);
   return {
     secret: env.BETTER_AUTH_SECRET,
     baseURL: idpLink,

@@ -1,30 +1,5 @@
 import { API_BASE } from "../config";
-
-export class ApiError extends Error {
-  readonly status: number;
-  readonly code: string;
-  readonly details: unknown;
-
-  constructor(
-    status: number,
-    code: string,
-    message: string,
-    details: unknown = null,
-  ) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.code = code;
-    this.details = details;
-  }
-}
-
-export class NetworkError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "NetworkError";
-  }
-}
+import { ApiError, NetworkError } from "@/app/api/errors.ts";
 
 export interface RequestOptions {
   method?: string;

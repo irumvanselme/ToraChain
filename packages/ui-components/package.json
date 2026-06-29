@@ -10,13 +10,9 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./dev-links": {
-      "types": "./src/DevLinks.tsx",
-      "default": "./src/DevLinks.tsx"
-    },
-    "./dev-banner": {
-      "types": "./src/organisms/dev-banner.tsx",
-      "default": "./src/organisms/dev-banner.tsx"
+    "./react": {
+      "types": "./src/react-import.ts",
+      "default": "./src/react-import.ts"
     }
   },
   "scripts": {

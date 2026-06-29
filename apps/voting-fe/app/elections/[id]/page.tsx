@@ -29,15 +29,15 @@ import {
   type Ballot,
   type CastResult,
   type BallotCandidate,
-} from "../../lib/elections";
+} from "@/app/api/elections";
 import {
   getIntegration,
   checkEligibility,
   enrollVoter,
   type Integration,
   type FormField,
-} from "../../lib/integrations";
-import { ApiError } from "../../lib/api";
+} from "@/app/api/integrations";
+import { ApiError } from "@/app/api/errors";
 import { formatDateTime, statusLabel, STATUS_TONE } from "../../lib/format";
 
 // ---- Eligibility state machine ------------------------------------------

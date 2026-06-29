@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, test, expect } from "vitest";
-import { StatusBadge } from "./StatusBadge.tsx";
+import { StatusBadge } from "./status-badge.tsx";
 
 describe("StatusBadge", () => {
   test("should render", () => {

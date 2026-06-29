@@ -7,7 +7,7 @@ import {
   Select,
   Spinner,
 } from "@tora-chain/ui-components";
-import { ApiError } from "lib/api.ts";
+import { ApiError } from "api/error";
 import {
   getIntegration,
   upsertIntegration,
@@ -15,7 +15,7 @@ import {
   type FormField,
   type HttpApiConfig,
   type Integration,
-} from "lib/integrations.ts";
+} from "api/integrations";
 import { ChevronLeft } from "lucide-react";
 
 // ---- Integration type catalogue ------------------------------------------

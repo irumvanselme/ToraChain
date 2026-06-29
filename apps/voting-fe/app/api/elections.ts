@@ -1,4 +1,4 @@
-import { request } from "./api";
+import { request } from "./request";
 
 export const ELECTION_STATUSES = [
   "draft",

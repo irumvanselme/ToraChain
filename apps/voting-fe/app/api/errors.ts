@@ -17,17 +17,9 @@ export class ApiError extends Error {
   }
 }
 
-/** Thrown when the request fails before a response (network/offline). */
 export class NetworkError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "NetworkError";
   }
-}
-
-export interface RequestOptions {
-  method?: string;
-  body?: unknown;
-  signal?: AbortSignal;
-  query?: Record<string, string | number | boolean | undefined>;
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { AUDIT_API } from "../config";
-import { apiGet } from "./api";
+import { AUDIT_API } from "../lib/config.ts";
+import { apiGet } from "@/app/api/request";
 
 export interface AuditElection {
   electionId: string;

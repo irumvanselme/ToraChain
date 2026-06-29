@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RequireAuth } from "@tora-chain/fe-common";
-import { Layout } from "./components/Layout.tsx";
+import { Layout } from "./components/layout.tsx";
 import { ElectionsListPage } from "./elections/list";
 import { ElectionCreatePage } from "./elections/create.tsx";
 import { ElectionDetailPage } from "./elections/detail.tsx";

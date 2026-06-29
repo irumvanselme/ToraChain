@@ -1,10 +1,6 @@
-import { API_BASE } from "../config.ts";
-import { request } from "./api.ts";
+import { API_BASE } from "lib/config";
+import { request } from "api/request";
 
-/**
- * A voter's eligibility for an election (mirrors the backend
- * `EligibilitySchema`). The backend joins the voter with their eligibility row.
- */
 export interface Eligibility {
   eligibilityId: string;
   voterId: string;

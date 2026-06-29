@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useAudit } from "../../lib/audit-context";
+import { useAudit } from "@/app/lib/audit-context";
 import {
   getElection,
   getElectionResults,
@@ -11,8 +11,8 @@ import {
   type AuditElection,
   type ElectionResults,
   type BlockEntry,
-} from "../../lib/elections";
-import { ApiError } from "../../lib/api";
+} from "@/app/api/elections";
+import { ApiError } from "@/app/api/errors";
 
 type Tab = "overview" | "results" | "blockchain";
 

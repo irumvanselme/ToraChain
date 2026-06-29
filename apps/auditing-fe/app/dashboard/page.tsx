@@ -7,8 +7,8 @@ import {
   listElections,
   type AuditElection,
   type ElectionListEnvelope,
-} from "../lib/elections";
-import { ApiError } from "../lib/api";
+} from "../api/elections.ts";
+import { ApiError } from "@/app/api/errors";
 
 const STATUS_BADGE: Record<string, string> = {
   active: "bg-green-100 text-green-800",

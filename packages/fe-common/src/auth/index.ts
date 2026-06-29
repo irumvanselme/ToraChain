@@ -1,8 +1,5 @@
-export { AuthProvider } from "./AuthProvider";
-export type { AuthProviderProps } from "./AuthProvider";
-
-export { RequireAuth } from "./RequireAuth";
-export type { RequireAuthProps } from "./RequireAuth";
+export * from "./auth-provider"
+export * from "./require-auth"
 
 export { useAuth } from "./context";
 

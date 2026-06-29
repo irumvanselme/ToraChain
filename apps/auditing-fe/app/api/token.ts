@@ -1,6 +1,6 @@
 "use client";
 
-import { AUTH_API } from "../config";
+import { AUTH_API } from "../lib/config.ts";
 
 /**
  * Exchanges the current session cookie for a short-lived JWT.

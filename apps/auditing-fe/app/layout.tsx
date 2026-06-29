@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { DevLinks } from "@tora-chain/ui-components/dev-links";
-import { DevBanner } from "@tora-chain/ui-components/dev-banner";
+import { DevLinks, DevBanner } from "@tora-chain/ui-components/react";
 
 import "./globals.css";
 import { Providers } from "./providers";

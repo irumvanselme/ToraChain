@@ -3,7 +3,12 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthProvider, RequireAuth } from "@tora-chain/fe-common";
-import { AUTH_API, loginUrl, ONBOARDING_URL, PENDING_URL } from "./config";
+import {
+  AUTH_API,
+  loginUrl,
+  ONBOARDING_URL,
+  PENDING_URL,
+} from "./lib/config.ts";
 import { AuditProvider, useAudit } from "./lib/audit-context";
 
 /** Redirects to onboarding or pending based on org approval status. */

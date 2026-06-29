@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import { cn } from "./cn.ts";
+import { cn } from "../cn.ts";
 
 export interface CardProps extends Omit<
   HTMLAttributes<HTMLDivElement>,

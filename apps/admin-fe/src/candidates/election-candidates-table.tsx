@@ -12,7 +12,7 @@ import {
   type Column,
 } from "@tora-chain/ui-components";
 import { Pencil, Trash2 } from "lucide-react";
-import { ApiError } from "lib/api.ts";
+import { ApiError } from "api/error";
 import {
   createCandidate,
   deleteCandidate,
@@ -20,8 +20,8 @@ import {
   updateCandidate,
   type Candidate,
   type CandidateInput,
-} from "lib/candidates.ts";
-import type { OffsetPagination } from "lib/elections.ts";
+} from "api/candidates";
+import type { OffsetPagination } from "api/elections";
 
 const PAGE_SIZE = 10;
 

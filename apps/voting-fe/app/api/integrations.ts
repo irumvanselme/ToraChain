@@ -1,5 +1,5 @@
-import { request } from "./api";
-import type { Eligibility } from "./elections";
+import { request } from "./request.ts";
+import type { Eligibility } from "./elections.ts";
 
 export interface FormField {
   id: string;

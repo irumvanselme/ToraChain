@@ -10,7 +10,7 @@ import {
   ELECTION_STATUSES,
   type ElectionInput,
   type ElectionStatus,
-} from "../lib/elections.ts";
+} from "api/elections";
 import {
   isoToLocalInput,
   localInputToIso,

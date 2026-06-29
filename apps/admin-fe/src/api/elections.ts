@@ -1,7 +1,6 @@
-import { API_BASE } from "../config.ts";
-import { request } from "./api.ts";
+import { API_BASE } from "lib/config";
+import { request } from "api/request";
 
-/** Election lifecycle states (mirrors the backend `StatusSchema`). */
 export const ELECTION_STATUSES = [
   "draft",
   "enrolling_voters",
@@ -14,7 +13,6 @@ export const ELECTION_STATUSES = [
 
 export type ElectionStatus = (typeof ELECTION_STATUSES)[number];
 
-/** Valid forward transitions from each status. Empty array = terminal state. */
 export const STATUS_TRANSITIONS: Record<ElectionStatus, ElectionStatus[]> = {
   draft: ["enrolling_voters"],
   enrolling_voters: ["scheduled", "paused"],

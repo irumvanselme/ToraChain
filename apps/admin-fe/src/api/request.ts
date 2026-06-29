@@ -1,42 +1,4 @@
-/**
- * Thin fetch wrapper for the backend JSON APIs. Sends/receives JSON, includes
- * credentials (session cookie), and normalizes the backend's
- * `{ code, message, details }` error shape into a typed `ApiError`.
- */
-
-export class ApiError extends Error {
-  readonly status: number;
-  readonly code: string;
-  readonly details: unknown;
-
-  constructor(
-    status: number,
-    code: string,
-    message: string,
-    details: unknown = null,
-  ) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.code = code;
-    this.details = details;
-  }
-}
-
-/** Thrown when the request fails before a response (network/offline). */
-export class NetworkError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "NetworkError";
-  }
-}
-
-export interface RequestOptions {
-  method?: string;
-  body?: unknown;
-  signal?: AbortSignal;
-  query?: Record<string, string | number | boolean | undefined>;
-}
+import { ApiError, NetworkError, type RequestOptions } from "api/error";
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
   if (!query) return path;

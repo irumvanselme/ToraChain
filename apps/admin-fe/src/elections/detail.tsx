@@ -8,13 +8,13 @@ import {
   PageHeader,
   Spinner,
 } from "@tora-chain/ui-components";
-import { ApiError } from "lib/api.ts";
+import { ApiError } from "api/error";
 import { formatDateTime } from "lib/format.ts";
-import { StatusBadge } from "components/StatusBadge.tsx";
-import { getElection, type Election } from "lib/elections.ts";
+import { StatusBadge } from "components/status-badge.tsx";
+import { getElection, type Election } from "api/elections";
 import { ElectionCandidatesTable } from "../candidates/election-candidates-table.tsx";
 import { ElectionVotersTable } from "../voters/election-voters-table.tsx";
-import { ElectionIntegrationForm } from "../integrations/ElectionIntegrationForm.tsx";
+import { ElectionIntegrationForm } from "../integrations/election-integration-form.tsx";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (

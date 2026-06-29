@@ -1,26 +1,26 @@
-import type { TextareaHTMLAttributes, ReactNode } from "react";
-import { cn } from "./cn.ts";
+import type { InputHTMLAttributes, ReactNode } from "react";
+import { cn } from "../cn.ts";
 
-export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: ReactNode;
   error?: ReactNode;
   hint?: ReactNode;
 }
 
-export function Textarea({
+export function Input({
   label,
   error,
   hint,
   className,
   id,
   ...rest
-}: TextareaProps) {
+}: InputProps) {
   const control = (
-    <textarea
+    <input
       id={id}
       className={cn(
-        "textarea textarea-bordered w-full",
-        error && "textarea-error",
+        "input input-bordered w-full",
+        error && "input-error",
         className,
       )}
       {...rest}
@@ -31,7 +31,14 @@ export function Textarea({
 
   return (
     <label className="form-control w-full">
-      {label && <span className="label-text mb-1 font-medium">{label}</span>}
+      {label && (
+        <span
+          className="label-text mb-1 font-medium"
+          id={id ? `${id}-label` : undefined}
+        >
+          {label}
+        </span>
+      )}
       {control}
       {error ? (
         <span className="label-text-alt mt-1 text-error">{error}</span>

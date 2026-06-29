@@ -8,8 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { fetchAuditorToken } from "./token";
-import { fetchAuditStatus, type AuditStatus } from "./org";
+import { fetchAuditorToken } from "../api/token.ts";
+import { fetchAuditStatus, type AuditStatus } from "../api/org.ts";
 
 interface AuditContextValue {
   token: string | null;

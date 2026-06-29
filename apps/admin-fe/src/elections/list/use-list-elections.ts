@@ -7,8 +7,8 @@ import {
   type Election,
   type ElectionStatus,
   type OffsetPagination,
-} from "lib/elections.ts";
-import { ApiError } from "lib/api.ts";
+} from "api/elections.ts";
+import { ApiError } from "api/error";
 
 export function useListElections() {
   const [searchParams, setSearchParams] = useSearchParams();

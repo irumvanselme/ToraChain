@@ -3,7 +3,18 @@ const ENVIRONMENTS = ["development", "demo"] as const;
 export type Environment = (typeof ENVIRONMENTS)[number];
 
 export function getEnv(): Environment {
-  let localEnv = process.env.NODE_ENV;
+  let localEnv: string | undefined;
+  // @ts-ignore
+  if (import.meta.env) {
+    // @ts-ignore
+    localEnv = import.meta.env.NODE_ENV;
+  } else {
+    // @ts-ignore
+    localEnv = process.env.NODE_ENV;
+  }
+
+  console.log("Environment=", localEnv);
+
   if (localEnv == "production") {
     localEnv = "demo";
   }

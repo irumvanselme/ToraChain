@@ -5,7 +5,7 @@ on:
 
 jobs:
   ci:
-    name: ci
+    name: format:check, lint, build & test
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -27,9 +27,13 @@ jobs:
         working-directory: ./apps/auditing-fe
         run: bun run lint
 
+      - name: test
+        working-directory: ./apps/auditing-fe
+        run: bun run test
+
       - name: build
         working-directory: ./apps/auditing-fe
         run: bun run build
         env:
           NEXT_PUBLIC_AUTH_BASE: http://auth-be:8001
-          NEXT_PUBLIC_API_BASE: empty-api-key
+          NEXT_PUBLIC_API_BASE: http://api-be:8001

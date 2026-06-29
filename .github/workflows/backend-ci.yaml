@@ -5,7 +5,7 @@ on:
 
 jobs:
   ci:
-    name: ci
+    name: lint & test
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -36,7 +36,7 @@ jobs:
         run: bun run test
 
   integration:
-    name: integration
+    name: test:integration
     runs-on: ubuntu-latest
     steps:
       - name: checkout

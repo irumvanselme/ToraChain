@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest --watch false"
   },
   "dependencies": {
     "@tora-chain/fe-common": "workspace:*",
@@ -28,7 +29,8 @@
     "eslint-config-next": "16.2.9",
     "prettier": "^3.8.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   },
   "ignoreScripts": [
     "sharp",

@@ -18,7 +18,7 @@ interface AuditContextValue {
   refresh: () => Promise<void>;
 }
 
-const AuditContext = createContext<AuditContextValue>({
+export const AuditContext = createContext<AuditContextValue>({
   token: null,
   auditStatus: null,
   loading: true,

@@ -3,7 +3,7 @@ import { Html } from "@elysia/html";
 import type { EUserType } from "app/types.ts";
 import { Layout } from "./layout.tsx";
 import { devLoginScript, formScript } from "./script.ts";
-import {getEnvironmentFullName} from "@tora-chain/configs";
+import { getEnvironmentFullName } from "@tora-chain/configs";
 
 export function Login({
   userType,

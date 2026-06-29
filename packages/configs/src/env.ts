@@ -3,7 +3,15 @@ const ENVIRONMENTS = ["development", "demo"] as const;
 export type Environment = (typeof ENVIRONMENTS)[number];
 
 export function getEnv(): Environment {
-  const localEnv = process.env.NODE_ENV;
+  let localEnv = process.env.NODE_ENV;
+  if (localEnv == "production") {
+    localEnv = "demo";
+  }
+
+  if (localEnv == "test") {
+    localEnv = "development";
+  }
+
   if (!localEnv || !ENVIRONMENTS.includes(localEnv as Environment)) {
     throw new Error(
       `Invalid NODE_ENV ${localEnv}. Must be one of ${ENVIRONMENTS.join(", ")}`,

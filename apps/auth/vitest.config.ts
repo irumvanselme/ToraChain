@@ -11,8 +11,8 @@ export default defineConfig({
     include: ["./**/*.test.{ts,tsx}"],
     // Dummy values so config/auth modules can be imported without a real DB.
     env: {
+      NODE_ENV: "development",
       BETTER_AUTH_SECRET: "test-secret",
-      BETTER_AUTH_URL: "http://localhost:3000",
       AUTH_DB_URI: "postgres://test:test@localhost:5432/tora_auth",
     },
   },

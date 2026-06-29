@@ -10,13 +10,7 @@ import {
 const EnvSchema = z.object({
   ELECTIONS_DB_URI: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(3001),
-  // Auth /core API for voter lookups by user id. Both must be set to enable it;
-  // AUTH_CORE_URL defaults to AUTH_SERVICE_URL when only the key is provided.
-  AUTH_CORE_URL: z.string().optional(),
   AUTH_CORE_API_KEY: z.string().optional(),
-  // Auth service base for auditor session validation. Defaults to AUTH_SERVICE_URL.
-  AUDITORS_AUTH_URL: z.string().optional(),
-  // Chain-node URL for blockchain data download.
   CHAIN_NODE_URL: z.string().optional(),
 });
 

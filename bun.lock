@@ -20,6 +20,7 @@
       "name": "@tora-chain/admin-frontend",
       "version": "0.0.0",
       "dependencies": {
+        "@tora-chain/configs": "workspace:*",
         "@tora-chain/fe-common": "workspace:*",
         "@tora-chain/ui-components": "workspace:*",
         "lucide-react": "^1.20.0",
@@ -52,6 +53,7 @@
       "name": "@tora-chain/auditing-frontend",
       "version": "0.1.0",
       "dependencies": {
+        "@tora-chain/configs": "workspace:*",
         "@tora-chain/fe-common": "workspace:*",
         "@tora-chain/ui-components": "workspace:*",
         "next": "16.2.9",
@@ -105,6 +107,7 @@
         "@elysiajs/cors": "^1.4.2",
         "@elysiajs/openapi": "^1.4.0",
         "@tora-chain/be-common": "workspace:*",
+        "@tora-chain/configs": "workspace:*",
         "drizzle-orm": "^0.45.2",
         "elysia": "^1.4.28",
         "pg": "^8.21.0",
@@ -178,6 +181,7 @@
       "name": "@tora-chain/voting-frontend",
       "version": "0.1.0",
       "dependencies": {
+        "@tora-chain/configs": "workspace:*",
         "@tora-chain/fe-common": "workspace:*",
         "@tora-chain/ui-components": "workspace:*",
         "daisyui": "^5.5.23",

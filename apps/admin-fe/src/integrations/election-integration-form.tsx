@@ -60,6 +60,23 @@ const HTTP_METHODS = [
   { value: "GET", label: "GET" },
 ];
 
+// Input widget shown to voters for each form field. "fingerprint" and "eyes"
+// are demo biometric types — the voting frontend renders a mock scanner that
+// fills in a hardcoded scan string.
+const FIELD_TYPE_OPTIONS = [
+  { value: "string", label: "Text" },
+  { value: "fingerprint", label: "Fingerprint scan (demo)" },
+  { value: "eyes", label: "Eye recognition (demo)" },
+];
+
+// Legacy integrations may hold free-form type strings — keep them selectable
+// instead of rendering an empty select.
+function fieldTypeOptions(current: string) {
+  return FIELD_TYPE_OPTIONS.some((o) => o.value === current)
+    ? FIELD_TYPE_OPTIONS
+    : [...FIELD_TYPE_OPTIONS, { value: current, label: current }];
+}
+
 // ---- Helpers -----------------------------------------------------------------
 
 function emptyField(): FormField {
@@ -642,13 +659,11 @@ export function ElectionIntegrationForm({ electionId }: Props) {
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <Input
-                      label="Type (optional)"
-                      placeholder="string"
-                      value={field.type ?? ""}
-                      onChange={(e) =>
-                        updateField(i, { type: e.target.value || null })
-                      }
+                    <Select
+                      label="Type"
+                      value={field.type ?? "string"}
+                      onChange={(e) => updateField(i, { type: e.target.value })}
+                      options={fieldTypeOptions(field.type ?? "string")}
                     />
                     <Input
                       label="Description"

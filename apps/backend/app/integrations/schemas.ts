@@ -50,4 +50,5 @@ export const EnrollBodySchema = t.Object({
 export const CheckResultSchema = t.Object({
   eligible: t.Boolean(),
   externalVoterId: t.Optional(t.String()),
+  reason: t.Optional(t.String()),
 });

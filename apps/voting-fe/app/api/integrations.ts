@@ -19,6 +19,8 @@ export interface Integration {
 export interface CheckResult {
   eligible: boolean;
   externalVoterId?: string;
+  /** Human-readable reason from the integration when not eligible. */
+  reason?: string;
 }
 
 export function getIntegration(

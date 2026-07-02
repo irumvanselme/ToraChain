@@ -98,7 +98,8 @@ export class IntegrationsService {
     );
     if (!result.eligible) {
       throw AppError.notEligible(
-        `Voter is not eligible for election ${electionId} according to the integration.`,
+        result.reason ??
+          `Voter is not eligible for election ${electionId} according to the integration.`,
         { electionId },
       );
     }
@@ -220,6 +221,16 @@ export class IntegrationsService {
       return { eligible: true, externalVoterId };
     }
 
-    return { eligible: false };
+    // Surface the external API's message (e.g. "Either 'fingerprint' or
+    // 'eyes' is required.") so the voter sees why the check failed.
+    const errData = (await res.json().catch(() => ({}))) as Record<
+      string,
+      unknown
+    >;
+    const reason =
+      typeof errData.message === "string" && errData.message.trim()
+        ? errData.message
+        : undefined;
+    return { eligible: false, reason };
   }
 }

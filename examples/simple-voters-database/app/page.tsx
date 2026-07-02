@@ -1,5 +1,10 @@
 import { CheckCircle2, Database, KeyRound, XCircle, Zap } from "lucide-react";
-import { getAllCheckLog, getAllVoters } from "../db";
+import {
+  ACCEPTED_EYE_SCANS,
+  ACCEPTED_FINGERPRINTS,
+  getAllCheckLog,
+  getAllVoters,
+} from "../db";
 import type { CheckLogEntry, Voter } from "../db";
 
 export const dynamic = "force-dynamic";
@@ -108,7 +113,22 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-2">
             <FieldBadge id="email" label="Email Address" />
             <FieldBadge id="national-id" label="National ID" />
+            <FieldBadge id="fingerprint" label="Fingerprint scan (demo)" />
+            <FieldBadge id="eyes" label="Eye recognition (demo)" />
           </div>
+          <p className="text-sm text-base-content/60">
+            Either <code className="font-mono text-xs">fingerprint</code> or{" "}
+            <code className="font-mono text-xs">eyes</code> is required.
+            Accepted demo scan values:{" "}
+            <code className="font-mono text-xs bg-base-200 px-1 rounded">
+              {ACCEPTED_FINGERPRINTS.join(", ")}
+            </code>{" "}
+            (fingerprint),{" "}
+            <code className="font-mono text-xs bg-base-200 px-1 rounded">
+              {ACCEPTED_EYE_SCANS.join(", ")}
+            </code>{" "}
+            (eyes).
+          </p>
         </div>
       </div>
 
@@ -205,6 +225,7 @@ function CheckLogCard({ log }: { log: CheckLogEntry[] }) {
                 <th>Reason</th>
                 <th>Email</th>
                 <th>National ID</th>
+                <th>Biometric</th>
                 <th>Election ID</th>
                 <th>Checked</th>
               </tr>
@@ -232,6 +253,11 @@ function CheckLogCard({ log }: { log: CheckLogEntry[] }) {
                   <td>
                     <code className="font-mono text-sm">
                       {entry.national_id}
+                    </code>
+                  </td>
+                  <td>
+                    <code className="font-mono text-xs">
+                      {entry.biometric ?? "—"}
                     </code>
                   </td>
                   <td>

@@ -14,8 +14,11 @@ import {
   ArrowLeft,
   CalendarArrowDown,
   CalendarArrowUp,
+  Camera,
   CheckCircle2,
   ClipboardCheck,
+  Fingerprint,
+  ScanEye,
   Vote,
 } from "lucide-react";
 import {
@@ -76,6 +79,9 @@ export default function ElectionDetailPage({
   const [eligibilityPhase, setEligibilityPhase] =
     useState<EligibilityPhase>("loading");
   const [eligibilityError, setEligibilityError] = useState<string | null>(null);
+  const [notEligibleReason, setNotEligibleReason] = useState<string | null>(
+    null,
+  );
 
   // Form field values keyed by field id.
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
@@ -174,6 +180,7 @@ export default function ElectionDetailPage({
     setEligibilityError(null);
     try {
       const result = await checkEligibility(id, user.id, fieldValues);
+      setNotEligibleReason(result.eligible ? null : (result.reason ?? null));
       setEligibilityPhase(result.eligible ? "eligible" : "not_eligible");
     } catch (err: unknown) {
       setEligibilityError(
@@ -322,6 +329,7 @@ export default function ElectionDetailPage({
         <EligibilitySection
           phase={eligibilityPhase}
           error={eligibilityError}
+          notEligibleReason={notEligibleReason}
           integration={integration}
           fieldValues={fieldValues}
           onFieldChange={(id, value) =>
@@ -438,6 +446,7 @@ export default function ElectionDetailPage({
 interface EligibilitySectionProps {
   phase: EligibilityPhase;
   error: string | null;
+  notEligibleReason: string | null;
   integration: Integration | null;
   fieldValues: Record<string, string>;
   onFieldChange: (fieldId: string, value: string) => void;
@@ -448,6 +457,7 @@ interface EligibilitySectionProps {
 function EligibilitySection({
   phase,
   error,
+  notEligibleReason,
   integration,
   fieldValues,
   onFieldChange,
@@ -488,8 +498,15 @@ function EligibilitySection({
 
       {phase === "not_eligible" && (
         <Alert tone="error">
-          You are not eligible to vote in this election based on the information
-          provided.
+          <span>
+            You are not eligible to vote in this election based on the
+            information provided.
+            {notEligibleReason && (
+              <span className="block text-sm mt-1 opacity-80">
+                Reason: {notEligibleReason}
+              </span>
+            )}
+          </span>
         </Alert>
       )}
 
@@ -568,31 +585,158 @@ function EligibilityForm({
         These information are not saved by Tora-Chain, they are only used for
         validation.
       </p>
-      {fields.map((field) => (
-        <div key={field.id} className="flex flex-col gap-1">
-          <label className="text-sm font-medium">
-            {field.label}
-            {field.description && (
-              <span className="text-xs text-base-content/50 ml-1.5 font-normal">
-                — {field.description}
-              </span>
-            )}
-          </label>
-          <input
-            type="text"
-            className="input input-bordered w-full"
-            placeholder={field.label}
+      {fields.map((field) =>
+        field.type === "fingerprint" || field.type === "eyes" ? (
+          <BiometricField
+            key={field.id}
+            field={field}
+            kind={field.type}
             value={values[field.id] ?? ""}
-            onChange={(e) => onChange(field.id, e.target.value)}
+            onChange={onChange}
             disabled={loading}
           />
-        </div>
-      ))}
+        ) : (
+          <div key={field.id} className="flex flex-col gap-1">
+            <label className="text-sm font-medium">
+              {field.label}
+              {field.description && (
+                <span className="text-xs text-base-content/50 ml-1.5 font-normal">
+                  — {field.description}
+                </span>
+              )}
+            </label>
+            <input
+              type="text"
+              className="input input-bordered w-full"
+              placeholder={field.label}
+              value={values[field.id] ?? ""}
+              onChange={(e) => onChange(field.id, e.target.value)}
+              disabled={loading}
+            />
+          </div>
+        ),
+      )}
       <div className="flex justify-end">
         <Button onClick={onSubmit} loading={loading} className="gap-1">
           <ClipboardCheck className="size-4" />
           Check eligibility
         </Button>
+      </div>
+    </div>
+  );
+}
+
+// ---- Biometric capture (demo) ---------------------------------------------
+//
+// Demo-only widget for "fingerprint" / "eyes" form fields. The camera preview
+// is fake and captures nothing; "scanning" simply fills the field with a
+// hardcoded demo value that the example voters database recognises
+// (see examples/simple-voters-database).
+
+const DEMO_SCAN_VALUES: Record<"fingerprint" | "eyes", string> = {
+  fingerprint: "demo-fingerprint-scan-001",
+  eyes: "demo-eyes-scan-001",
+};
+
+interface BiometricFieldProps {
+  field: FormField;
+  kind: "fingerprint" | "eyes";
+  value: string;
+  onChange: (fieldId: string, value: string) => void;
+  disabled: boolean;
+}
+
+function BiometricField({
+  field,
+  kind,
+  value,
+  onChange,
+  disabled,
+}: BiometricFieldProps) {
+  const [scanning, setScanning] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  const captured = value !== "";
+  const Icon = kind === "fingerprint" ? Fingerprint : ScanEye;
+
+  const handleScan = () => {
+    setScanning(true);
+    timer.current = setTimeout(() => {
+      onChange(field.id, DEMO_SCAN_VALUES[kind]);
+      setScanning(false);
+    }, 1500);
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-sm font-medium">
+        {field.label}
+        {field.description && (
+          <span className="text-xs text-base-content/50 ml-1.5 font-normal">
+            — {field.description}
+          </span>
+        )}
+      </label>
+      <div className="border border-base-300 p-4 flex flex-col sm:flex-row gap-4">
+        {/* Illustration */}
+        <div className="flex items-center justify-center size-24 shrink-0 bg-base-200 self-center sm:self-auto">
+          <Icon
+            className={[
+              "size-12",
+              captured ? "text-success" : "text-base-content/40",
+            ].join(" ")}
+          />
+        </div>
+
+        {/* Fake camera preview — intentionally does nothing */}
+        <div className="relative flex-1 min-h-28 bg-neutral flex flex-col items-center justify-center gap-1 overflow-hidden">
+          <Camera className="size-6 text-neutral-content/50" />
+          <span className="text-xs text-neutral-content/50">
+            {scanning
+              ? kind === "fingerprint"
+                ? "Scanning fingerprint…"
+                : "Scanning eyes…"
+              : "Camera preview (demo)"}
+          </span>
+          {scanning && (
+            <div className="absolute inset-x-0 top-1/2 h-0.5 bg-primary animate-pulse" />
+          )}
+        </div>
+
+        {/* Action / status */}
+        <div className="flex flex-col items-stretch justify-center gap-2 sm:w-44">
+          {captured && (
+            <span className="flex items-center gap-1.5 text-sm text-success">
+              <CheckCircle2 className="size-4 shrink-0" />
+              {kind === "fingerprint"
+                ? "Fingerprint captured"
+                : "Eye scan captured"}
+            </span>
+          )}
+          <Button
+            size="sm"
+            variant={captured ? "ghost" : undefined}
+            onClick={handleScan}
+            loading={scanning}
+            disabled={disabled}
+          >
+            {captured
+              ? "Rescan"
+              : kind === "fingerprint"
+                ? "Scan fingerprint"
+                : "Scan eyes"}
+          </Button>
+          <p className="text-xs text-base-content/40">
+            Demo only — nothing is really captured.
+          </p>
+        </div>
       </div>
     </div>
   );

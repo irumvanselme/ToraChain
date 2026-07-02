@@ -12,6 +12,15 @@ if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
 const VOTERS_FILE = join(DATA_DIR, "voters.json");
 const LOG_FILE = join(DATA_DIR, "check_log.json");
 
+// ---- Demo biometrics -------------------------------------------------------
+//
+// Hardcoded demo scan values accepted for ANY registered voter. The ToraChain
+// voting frontend's mock fingerprint/eye scanners produce exactly these
+// strings — there is no real biometric matching here, this is demo-only.
+
+export const ACCEPTED_FINGERPRINTS = ["demo-fingerprint-scan-001"];
+export const ACCEPTED_EYE_SCANS = ["demo-eyes-scan-001"];
+
 // ---- Types ---------------------------------------------------------------
 
 export interface Voter {
@@ -27,6 +36,8 @@ export interface CheckLogEntry {
   voter_account_id: string;
   email: string;
   national_id: string;
+  /** Which biometric(s) were provided: "fingerprint", "eyes", "fingerprint+eyes" or "none". Absent on entries logged before biometrics existed. */
+  biometric?: string;
   eligible: boolean;
   reason: string;
   checked_at: string;
@@ -88,6 +99,7 @@ export function logCheck(entry: {
   voterAccountId: string;
   email: string;
   nationalId: string;
+  biometric: string;
   eligible: boolean;
   reason: string;
 }): void {
@@ -98,6 +110,7 @@ export function logCheck(entry: {
     voter_account_id: entry.voterAccountId,
     email: entry.email.toLowerCase().trim(),
     national_id: entry.nationalId.trim(),
+    biometric: entry.biometric,
     eligible: entry.eligible,
     reason: entry.reason,
     checked_at: new Date().toISOString(),

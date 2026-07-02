@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { jwt } from "better-auth/plugins/jwt";
-import { openAPI } from "better-auth/plugins";
+import { admin, openAPI } from "better-auth/plugins";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 
 import { Logger } from "@tora-chain/be-common";
@@ -53,6 +53,7 @@ export function createAuth(
     plugins: [
       jwt({ schema: { jwks: { modelName: tables.jwks } } }),
       openAPI(),
+      admin(),
       ...(extraPlugins ?? []),
     ],
   });

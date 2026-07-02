@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findVoterByEmailAndNationalId, logCheck } from "../../../db";
+import {
+  ACCEPTED_EYE_SCANS,
+  ACCEPTED_FINGERPRINTS,
+  findVoterByEmailAndNationalId,
+  logCheck,
+} from "../../../db";
 
 const API_KEY = process.env.ELIGIBILITY_API_KEY ?? "test-api-key-dev-only";
 
@@ -17,6 +22,11 @@ const API_KEY = process.env.ELIGIBILITY_API_KEY ?? "test-api-key-dev-only";
  *   voter-account-id  : string  — voter's account ID in the auth service
  *   email             : string  — voter's email address
  *   national-id       : string  — voter's national ID number
+ *   fingerprint       : string  — (demo) mock fingerprint scan string
+ *   eyes              : string  — (demo) mock eye-recognition scan string
+ *
+ * At least one of `fingerprint` / `eyes` is required. Provided scans must
+ * match the hardcoded demo values (ACCEPTED_FINGERPRINTS / ACCEPTED_EYE_SCANS).
  *
  * Response:
  *   200  { id: "<voter UUID>" }   — voter is eligible
@@ -47,12 +57,41 @@ export async function POST(req: NextRequest) {
     .trim()
     .toLowerCase();
   const nationalId = String(body["national-id"] ?? "").trim();
+  const fingerprint = String(body["fingerprint"] ?? "").trim();
+  const eyes = String(body["eyes"] ?? "").trim();
+  const biometric =
+    [fingerprint && "fingerprint", eyes && "eyes"].filter(Boolean).join("+") ||
+    "none";
 
   if (!email || !nationalId) {
     return NextResponse.json(
       { message: "Both 'email' and 'national-id' fields are required." },
       { status: 400 },
     );
+  }
+
+  const reject = (reason: string) => {
+    logCheck({
+      electionId,
+      voterAccountId,
+      email,
+      nationalId,
+      biometric,
+      eligible: false,
+      reason,
+    });
+    return NextResponse.json({ message: reason }, { status: 400 });
+  };
+
+  // --- Demo biometric check ---------------------------------------------------
+  if (!fingerprint && !eyes) {
+    return reject("Either fingerprint or eyes is required.");
+  }
+  if (fingerprint && !ACCEPTED_FINGERPRINTS.includes(fingerprint)) {
+    return reject("Fingerprint scan did not match.");
+  }
+  if (eyes && !ACCEPTED_EYE_SCANS.includes(eyes)) {
+    return reject("Eye scan did not match.");
   }
 
   // --- Lookup ---------------------------------------------------------------
@@ -62,7 +101,15 @@ export async function POST(req: NextRequest) {
     ? "Voter found in database."
     : "No voter found with matching email and national ID.";
 
-  logCheck({ electionId, voterAccountId, email, nationalId, eligible, reason });
+  logCheck({
+    electionId,
+    voterAccountId,
+    email,
+    nationalId,
+    biometric,
+    eligible,
+    reason,
+  });
 
   if (!eligible) {
     return NextResponse.json(

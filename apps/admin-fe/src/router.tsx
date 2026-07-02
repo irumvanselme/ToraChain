@@ -2,9 +2,11 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RequireAuth } from "@tora-chain/fe-common";
 import { Layout } from "./components/layout.tsx";
 import { ElectionsListPage } from "./elections/list";
+import { UsersListPage } from "./users/list";
 import { ElectionCreatePage } from "./elections/create.tsx";
 import { ElectionDetailPage } from "./elections/detail.tsx";
 import { ElectionEditPage } from "./elections/edit.tsx";
+import { PendingApprovalsPage } from "./auditors/pending-approvals";
 import { NotFoundPage } from "./not-found.tsx";
 import { Spinner } from "@tora-chain/ui-components";
 
@@ -28,6 +30,11 @@ export const router = createBrowserRouter([
       { path: "elections/new", element: <ElectionCreatePage /> },
       { path: "elections/:id", element: <ElectionDetailPage /> },
       { path: "elections/:id/edit", element: <ElectionEditPage /> },
+      { path: "users", element: <UsersListPage /> },
+      {
+        path: "auditors/pending-approvals",
+        element: <PendingApprovalsPage />,
+      },
     ],
   },
   { path: "*", element: <NotFoundPage /> },

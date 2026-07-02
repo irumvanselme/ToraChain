@@ -252,7 +252,7 @@ export default function ElectionDetailPage({
 
   const isActive = election.status === "active";
   const isClosed =
-    election.status === "closed" || election.status === "archived";
+    election.status === "ended" || election.status === "archived";
   const isEnrolled =
     eligibilityPhase === "admin_granted" || eligibilityPhase === "enrolled";
   const hasVoted = ballot?.voter.hasVoted ?? false;
@@ -282,7 +282,11 @@ export default function ElectionDetailPage({
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h1 className="text-2xl font-bold leading-snug">{election.title}</h1>
-          <Badge tone={STATUS_TONE[election.status]} outline>
+          <Badge
+            tone={STATUS_TONE[election.status]}
+            outline
+            className="shrink-0 whitespace-nowrap"
+          >
             {statusLabel(election.status)}
           </Badge>
         </div>

@@ -20,22 +20,31 @@ import {
 } from "../api/elections.ts";
 import { formatDateTime, statusLabel, STATUS_TONE } from "../lib/format";
 
-type VoterStatus = Extract<ElectionStatus, "active" | "scheduled">;
+type VoterStatus = Extract<
+  ElectionStatus,
+  "enrolling_voters" | "active" | "scheduled"
+>;
 
 const FILTER_OPTIONS = [
+  { value: "enrolling_voters" as const, label: "Enrolling voters" },
   { value: "active" as const, label: "Active" },
   { value: "scheduled" as const, label: "Upcoming" },
 ] satisfies Array<{ value: VoterStatus; label: string }>;
 
 const TONE_MAP: Record<VoterStatus | "", "primary" | "success" | "info"> = {
   "": "primary",
+  enrolling_voters: "info",
   active: "success",
   scheduled: "info",
 };
 
 function StatusBadge({ status }: { status: ElectionStatus }) {
   return (
-    <Badge tone={STATUS_TONE[status]} outline>
+    <Badge
+      tone={STATUS_TONE[status]}
+      outline
+      className="shrink-0 whitespace-nowrap"
+    >
       {statusLabel(status)}
     </Badge>
   );
@@ -175,7 +184,7 @@ export default function ElectionsPage() {
                 onClick={() => router.push(`/elections/${election.electionId}`)}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold leading-snug">
+                  <h3 className="font-semibold leading-snug min-w-0">
                     {election.title}
                   </h3>
                   <StatusBadge status={election.status} />

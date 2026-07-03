@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Input } from "@tora-chain/ui-components";
+import { ElectionStatusBadge, Input } from "@tora-chain/ui-components";
 import { useAudit } from "../lib/audit-context";
 import {
   listElections,
@@ -11,42 +11,26 @@ import {
 } from "../api/elections.ts";
 import { ApiError } from "@/app/api/errors";
 
-const STATUS_BADGE: Record<string, string> = {
-  active: "bg-green-100 text-green-800",
-  ended: "bg-gray-100 text-gray-700",
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const cls = STATUS_BADGE[status] ?? "bg-yellow-100 text-yellow-800";
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cls}`}
-    >
-      {status}
-    </span>
-  );
-}
-
 function ElectionCard({ election }: { election: AuditElection }) {
   return (
     <Link
       href={`/elections/${election.electionId}`}
-      className="block bg-white rounded-lg border border-gray-200 p-5 hover:border-indigo-400 hover:shadow-sm transition"
+      className="block bg-base-100 rounded-lg border border-base-300 p-5 hover:border-primary hover:shadow-sm transition"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <h2 className="text-base font-semibold text-gray-900 truncate">
+          <h2 className="text-base font-semibold text-base-content truncate">
             {election.title}
           </h2>
           {election.description && (
-            <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+            <p className="mt-1 text-sm text-base-content/60 line-clamp-2">
               {election.description}
             </p>
           )}
         </div>
-        <StatusBadge status={election.status} />
+        <ElectionStatusBadge status={election.status} />
       </div>
-      <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
+      <div className="mt-3 flex items-center gap-4 text-xs text-base-content/60">
         <span>{election.totalVotes.toLocaleString()} votes</span>
         {election.startTime && (
           <span>
@@ -87,10 +71,10 @@ export default function DashboardPage() {
   const totalPages = envelope?.pagination.totalPages ?? 1;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-base-200">
       <main className="container mx-auto px-1 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Elections</h2>
+          <h2 className="text-lg font-semibold text-base-content">Elections</h2>
           <div className="w-56">
             <Input
               type="search"
@@ -108,13 +92,13 @@ export default function DashboardPage() {
         </div>
 
         {loading && (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-base-content/40">
             Loading elections…
           </div>
         )}
 
         {error && (
-          <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+          <div className="rounded-md bg-error/10 border border-error/20 p-4 text-sm text-error">
             {error}
           </div>
         )}
@@ -122,7 +106,7 @@ export default function DashboardPage() {
         {!loading && !error && envelope && (
           <>
             {envelope.data.length === 0 ? (
-              <div className="text-center py-16 text-gray-400">
+              <div className="text-center py-16 text-base-content/40">
                 No elections found.
               </div>
             ) : (
@@ -141,11 +125,11 @@ export default function DashboardPage() {
                     setPage((p) => p - 1);
                     setLoading(true);
                   }}
-                  className="px-3 py-1.5 rounded border border-gray-300 text-sm disabled:opacity-40"
+                  className="px-3 py-1.5 rounded border border-base-300 text-sm disabled:opacity-40"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-base-content/60">
                   Page {page} of {totalPages}
                 </span>
                 <button
@@ -154,7 +138,7 @@ export default function DashboardPage() {
                     setPage((p) => p + 1);
                     setLoading(true);
                   }}
-                  className="px-3 py-1.5 rounded border border-gray-300 text-sm disabled:opacity-40"
+                  className="px-3 py-1.5 rounded border border-base-300 text-sm disabled:opacity-40"
                 >
                   Next
                 </button>

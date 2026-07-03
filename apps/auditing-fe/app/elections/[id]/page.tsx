@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import {
+  ElectionStatusBadge,
+  electionStatusLabel,
+} from "@tora-chain/ui-components";
 import { useAudit } from "@/app/lib/audit-context";
 import {
   getElection,
@@ -40,7 +44,7 @@ function DownloadButton({
   return (
     <button
       onClick={handleDownload}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-base-300 text-sm text-base-content/80 hover:bg-base-200 transition"
     >
       ↓ {label}
     </button>
@@ -69,9 +73,11 @@ function ResultsTab({
 
   if (loading)
     return (
-      <div className="text-gray-400 py-8 text-center">Loading results…</div>
+      <div className="text-base-content/40 py-8 text-center">
+        Loading results…
+      </div>
     );
-  if (error) return <div className="text-red-600 text-sm">{error}</div>;
+  if (error) return <div className="text-error text-sm">{error}</div>;
   if (!results) return null;
 
   const maxVotes = Math.max(...results.candidates.map((c) => c.voteCount), 1);
@@ -79,7 +85,7 @@ function ResultsTab({
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-base-content/60">
           {results.totalVotes.toLocaleString()} total votes
         </p>
         <DownloadButton
@@ -94,8 +100,10 @@ function ResultsTab({
           .map((c) => (
             <div key={c.candidateId}>
               <div className="flex justify-between text-sm mb-1">
-                <span className="font-medium text-gray-900">{c.fullName}</span>
-                <span className="text-gray-500">
+                <span className="font-medium text-base-content">
+                  {c.fullName}
+                </span>
+                <span className="text-base-content/60">
                   {c.voteCount.toLocaleString()} votes (
                   {results.totalVotes > 0
                     ? Math.round((c.voteCount / results.totalVotes) * 100)
@@ -103,9 +111,9 @@ function ResultsTab({
                   %)
                 </span>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-2 bg-base-200 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500 rounded-full transition-all"
+                  className="h-full bg-primary rounded-full transition-all"
                   style={{ width: `${(c.voteCount / maxVotes) * 100}%` }}
                 />
               </div>
@@ -140,15 +148,17 @@ function BlockchainTab({
 
   if (loading)
     return (
-      <div className="text-gray-400 py-8 text-center">Loading blockchain…</div>
+      <div className="text-base-content/40 py-8 text-center">
+        Loading blockchain…
+      </div>
     );
-  if (error) return <div className="text-red-600 text-sm">{error}</div>;
+  if (error) return <div className="text-error text-sm">{error}</div>;
   if (!blocks) return null;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-base-content/60">
           {blocks.length.toLocaleString()} block{blocks.length !== 1 ? "s" : ""}
         </p>
         <DownloadButton
@@ -158,19 +168,19 @@ function BlockchainTab({
         />
       </div>
       {blocks.length === 0 ? (
-        <p className="text-gray-400 text-sm">
+        <p className="text-base-content/40 text-sm">
           No blocks found for this election on the chain-node.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
+        <div className="overflow-x-auto rounded-lg border border-base-300">
+          <table className="min-w-full divide-y divide-base-300 text-sm">
+            <thead className="bg-base-200">
               <tr>
-                {["#", "Timestamp", "Candidate ID", "Hash", "Prev Hash"].map(
+                {["#", "Timestamp", "Commitment", "Hash", "Prev Hash"].map(
                   (h) => (
                     <th
                       key={h}
-                      className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-4 py-2 text-left text-xs font-medium text-base-content/60 uppercase tracking-wider"
                     >
                       {h}
                     </th>
@@ -178,22 +188,22 @@ function BlockchainTab({
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-base-200 bg-base-100">
               {blocks.map((b) => (
-                <tr key={b.blockIndex} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 font-mono text-gray-600">
-                    {b.blockIndex}
+                <tr key={b.index} className="hover:bg-base-200">
+                  <td className="px-4 py-2 font-mono text-base-content/70">
+                    {b.index}
                   </td>
-                  <td className="px-4 py-2 text-gray-600 whitespace-nowrap">
+                  <td className="px-4 py-2 text-base-content/70 whitespace-nowrap">
                     {new Date(b.timestamp).toLocaleString()}
                   </td>
-                  <td className="px-4 py-2 font-mono text-gray-600 truncate max-w-[120px]">
-                    {b.candidateId.slice(0, 8)}…
+                  <td className="px-4 py-2 font-mono text-base-content/70 truncate max-w-[120px]">
+                    {b.data.commitment.slice(0, 8)}…
                   </td>
-                  <td className="px-4 py-2 font-mono text-gray-600 truncate max-w-[120px]">
+                  <td className="px-4 py-2 font-mono text-base-content/70 truncate max-w-[120px]">
                     {b.hash.slice(0, 12)}…
                   </td>
-                  <td className="px-4 py-2 font-mono text-gray-600 truncate max-w-[120px]">
+                  <td className="px-4 py-2 font-mono text-base-content/70 truncate max-w-[120px]">
                     {b.prevHash.slice(0, 12)}…
                   </td>
                 </tr>
@@ -238,20 +248,20 @@ export default function ElectionDetailPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-4xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-base-200">
+      <main className="container mx-auto px-6 py-8">
         <Link
           href="/dashboard"
-          className="mb-6 inline-block text-sm text-indigo-600 hover:underline"
+          className="mb-6 inline-block text-sm text-primary hover:underline"
         >
           ← Back to elections
         </Link>
 
         {loading && (
-          <div className="text-center py-16 text-gray-400">Loading…</div>
+          <div className="text-center py-16 text-base-content/40">Loading…</div>
         )}
         {error && (
-          <div className="rounded-md bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+          <div className="rounded-md bg-error/10 border border-error/20 p-4 text-sm text-error">
             {error}
           </div>
         )}
@@ -261,18 +271,18 @@ export default function ElectionDetailPage() {
             <div className="mb-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-base-content">
                     {election.title}
                   </h1>
                   {election.description && (
-                    <p className="mt-1 text-gray-500">{election.description}</p>
+                    <p className="mt-1 text-base-content/60">
+                      {election.description}
+                    </p>
                   )}
                 </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded text-sm font-medium bg-gray-100 text-gray-700 capitalize whitespace-nowrap">
-                  {election.status}
-                </span>
+                <ElectionStatusBadge status={election.status} />
               </div>
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
+              <div className="mt-3 flex flex-wrap gap-4 text-sm text-base-content/60">
                 <span>{election.totalVotes.toLocaleString()} total votes</span>
                 {election.startTime && (
                   <span>
@@ -288,7 +298,7 @@ export default function ElectionDetailPage() {
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200 mb-6">
+            <div className="border-b border-base-300 mb-6">
               <nav className="flex gap-6">
                 {TABS.map((t) => (
                   <button
@@ -296,8 +306,8 @@ export default function ElectionDetailPage() {
                     onClick={() => setTab(t.key)}
                     className={`pb-3 text-sm font-medium border-b-2 transition ${
                       tab === t.key
-                        ? "border-indigo-600 text-indigo-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-base-content/60 hover:text-base-content/80"
                     }`}
                   >
                     {t.label}
@@ -307,11 +317,14 @@ export default function ElectionDetailPage() {
             </div>
 
             {tab === "overview" && (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-base-100 rounded-lg border border-base-300 p-6">
                 <dl className="grid grid-cols-2 gap-6 sm:grid-cols-3">
                   {[
                     { label: "Election ID", value: election.electionId },
-                    { label: "Status", value: election.status },
+                    {
+                      label: "Status",
+                      value: electionStatusLabel(election.status),
+                    },
                     {
                       label: "Total Votes",
                       value: election.totalVotes.toLocaleString(),
@@ -330,10 +343,10 @@ export default function ElectionDetailPage() {
                     },
                   ].map((item) => (
                     <div key={item.label}>
-                      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <dt className="text-xs font-medium text-base-content/60 uppercase tracking-wide">
                         {item.label}
                       </dt>
-                      <dd className="mt-1 text-sm text-gray-900 break-all">
+                      <dd className="mt-1 text-sm text-base-content break-all">
                         {item.value}
                       </dd>
                     </div>

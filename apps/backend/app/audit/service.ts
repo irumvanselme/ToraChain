@@ -30,12 +30,15 @@ export interface ElectionResultsDTO {
   candidates: CandidateResultDTO[];
 }
 
+// Mirrors the chain-node's `SerializedBlock` (@tora-chain/specs). Blocks are
+// deliberately anonymised: `data.voter` is a bigint-string derived from the
+// voting number and `data.commitment` is a hiding SHA-256 commitment to the
+// ballot — no candidate or voter identity is ever placed on-chain.
 export interface BlockEntry {
-  blockIndex: number;
+  index: number;
   electionId: string;
-  votingNumber: string;
-  candidateId: string;
-  timestamp: string;
+  data: { voter: string; commitment: string };
+  timestamp: number;
   prevHash: string;
   hash: string;
 }
@@ -164,7 +167,9 @@ export class AuditService {
 
     let res: Response;
     try {
-      res = await fetch(`${this.chainNodeUrl}/api/chain`);
+      res = await fetch(
+        `${this.chainNodeUrl}/api/chain?electionId=${encodeURIComponent(electionId)}`,
+      );
     } catch {
       throw AppError.internal("Could not reach the chain-node service.");
     }
@@ -173,7 +178,9 @@ export class AuditService {
       throw AppError.internal("Chain-node returned an unexpected error.");
     }
 
-    const allBlocks = (await res.json()) as BlockEntry[];
-    return allBlocks.filter((b) => b.electionId === electionId);
+    // The chain-node wraps its blocks in a `{ blocks: [...] }` envelope and
+    // already filters by the `electionId` query param above.
+    const body = (await res.json()) as { blocks: BlockEntry[] };
+    return body.blocks ?? [];
   }
 }

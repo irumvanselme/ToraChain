@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@tora-chain/fe-common";
 import {
   Alert,
-  Badge,
   Button,
+  ElectionStatusBadge,
   Modal,
   Spinner,
 } from "@tora-chain/ui-components";
@@ -44,7 +44,7 @@ import {
 import { ApiError } from "@/app/api/errors";
 import { sealBallot } from "@/app/lib/receipt";
 import { VoteReceipt } from "@/app/components/vote-receipt";
-import { formatDateTime, statusLabel, STATUS_TONE } from "../../lib/format";
+import { formatDateTime } from "../../lib/format";
 
 // ---- Eligibility state machine ------------------------------------------
 
@@ -314,13 +314,11 @@ export default function ElectionDetailPage({
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h1 className="text-2xl font-bold leading-snug">{election.title}</h1>
-          <Badge
-            tone={STATUS_TONE[election.status]}
+          <ElectionStatusBadge
+            status={election.status}
             outline
-            className="shrink-0 whitespace-nowrap"
-          >
-            {statusLabel(election.status)}
-          </Badge>
+            className="shrink-0"
+          />
         </div>
         {election.description && (
           <p className="text-base-content/70">{election.description}</p>

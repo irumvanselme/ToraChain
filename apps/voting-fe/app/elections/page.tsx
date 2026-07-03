@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Alert,
-  Badge,
   Card,
+  ElectionStatusBadge,
   EmptyState,
   PageHeader,
   Spinner,
@@ -18,7 +18,7 @@ import {
   type Election,
   type ElectionStatus,
 } from "../api/elections.ts";
-import { formatDateTime, statusLabel, STATUS_TONE } from "../lib/format";
+import { formatDateTime } from "../lib/format";
 
 type VoterStatus = Extract<
   ElectionStatus,
@@ -26,7 +26,7 @@ type VoterStatus = Extract<
 >;
 
 const FILTER_OPTIONS = [
-  { value: "enrolling_voters" as const, label: "Enrolling voters" },
+  { value: "enrolling_voters" as const, label: "Enrollment" },
   { value: "active" as const, label: "Active" },
   { value: "scheduled" as const, label: "Upcoming" },
 ] satisfies Array<{ value: VoterStatus; label: string }>;
@@ -39,15 +39,7 @@ const TONE_MAP: Record<VoterStatus | "", "primary" | "success" | "info"> = {
 };
 
 function StatusBadge({ status }: { status: ElectionStatus }) {
-  return (
-    <Badge
-      tone={STATUS_TONE[status]}
-      outline
-      className="shrink-0 whitespace-nowrap"
-    >
-      {statusLabel(status)}
-    </Badge>
-  );
+  return <ElectionStatusBadge status={status} outline className="shrink-0" />;
 }
 
 export default function ElectionsPage() {

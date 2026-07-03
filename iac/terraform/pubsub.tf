@@ -87,6 +87,15 @@ resource "google_pubsub_topic_iam_member" "master_publisher" {
   member  = "serviceAccount:${google_service_account.chain_master.email}"
 }
 
+# The node's ensureTopic()/ensureSubscription() startup checks call exists(),
+# which needs pubsub.topics.get / pubsub.subscriptions.get — not included in
+# the publisher/subscriber roles below. Viewer is read-only metadata access.
+resource "google_project_iam_member" "master_pubsub_viewer" {
+  project = var.project_id
+  role    = "roles/pubsub.viewer"
+  member  = "serviceAccount:${google_service_account.chain_master.email}"
+}
+
 # Master consumes validation responses and presence heartbeats from its own
 # fixed subscriptions above.
 resource "google_pubsub_subscription_iam_member" "master_subscriber" {

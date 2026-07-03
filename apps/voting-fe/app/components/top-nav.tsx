@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth, signOut } from "@tora-chain/fe-common";
 import { AccountMenu, AppHeader, LogoSquare } from "@tora-chain/ui-components";
-import { User } from "lucide-react";
+import { ShieldCheck, User } from "lucide-react";
 import { AUTH_API, AUTH_BASE } from "../lib/config.ts";
 
 const PROFILE_URL = `${AUTH_BASE}/voters/profile`;
@@ -37,6 +37,15 @@ export function TopNav() {
       account={
         user && (
           <AccountMenu user={user} onLogout={handleLogout}>
+            <li>
+              <Link
+                href="/verify"
+                className="flex items-center gap-2 rounded-none text-sm"
+              >
+                <ShieldCheck className="size-4 opacity-60" />
+                Verify vote
+              </Link>
+            </li>
             <li>
               <a
                 href={PROFILE_URL}

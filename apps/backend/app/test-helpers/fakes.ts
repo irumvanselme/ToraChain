@@ -23,7 +23,11 @@ import type {
   EligibilityListFilter,
   VotersRepository,
 } from "../voters/repository.ts";
-import type { RecordVoteInput, VotesRepository } from "../votes/repository.ts";
+import type {
+  RecordVoteInput,
+  VoteReceipt,
+  VotesRepository,
+} from "../votes/repository.ts";
 import type { AuthAccount, AuthDirectory } from "../voters/auth-directory.ts";
 import type { AuthCoreClient, CoreVoter } from "../auth/AuthCoreService.ts";
 
@@ -331,7 +335,7 @@ export class InMemoryVotersRepository implements VotersRepository {
 // ---- Votes ---------------------------------------------------------------
 
 export class InMemoryVotesRepository implements VotesRepository {
-  records: RecordVoteInput[] = [];
+  records: (RecordVoteInput & { castAt: Date })[] = [];
 
   constructor(private readonly voters: InMemoryVotersRepository) {}
 
@@ -341,8 +345,21 @@ export class InMemoryVotesRepository implements VotesRepository {
     await this.voters.updateEligibility(input.eligibilityId, {
       hasVoted: true,
     });
-    this.records.push(input);
-    return { castAt: nextDate() };
+    const castAt = nextDate();
+    this.records.push({ ...input, castAt });
+    return { castAt };
+  }
+
+  async findByEligibility(eligibilityId: string): Promise<VoteReceipt | null> {
+    const rec = this.records.find((r) => r.eligibilityId === eligibilityId);
+    if (!rec) return null;
+    return {
+      candidateId: rec.candidateId,
+      votingNumber: rec.votingNumber,
+      ciphertext: rec.ciphertext ?? null,
+      commitment: rec.commitment ?? null,
+      castAt: rec.castAt,
+    };
   }
 
   async tallies(electionId: string) {

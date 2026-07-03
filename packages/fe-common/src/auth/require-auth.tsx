@@ -14,12 +14,16 @@ export interface RequireAuthProps {
 }
 
 /**
- * Gate for authenticated content. While the session check is in flight it shows
- * the `fallback`; if there is no session it redirects the browser to the auth
+ * Gate for authenticated content. While the session check is in flight — or the
+ * backend JWT is still being fetched for a confirmed session — it shows the
+ * `fallback`; if there is no session it redirects the browser to the auth
  * service's sign-in page with a `redirect` back to the current location.
+ *
+ * Holding the fallback until `tokenReady` ensures children (which call the
+ * backend on mount) never fire a request before the token is cached.
  */
 export function RequireAuth({ children, fallback }: RequireAuthProps) {
-  const { user, loading, config } = useAuthContext();
+  const { user, loading, tokenReady, config } = useAuthContext();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -27,7 +31,7 @@ export function RequireAuth({ children, fallback }: RequireAuthProps) {
     }
   }, [loading, user, config]);
 
-  if (loading || !user) {
+  if (loading || !user || !tokenReady) {
     return fallback ?? <DefaultFallback />;
   }
 

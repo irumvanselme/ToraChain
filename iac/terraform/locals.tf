@@ -57,6 +57,8 @@ locals {
       memory        = "512Mi"
       env = {
         NODE_ENV = "demo"
+        # The elections backend fire-and-forget POSTs each committed vote to the
+        CHAIN_NODE_URL = "https://node.${local.domain}"
       }
     }
 

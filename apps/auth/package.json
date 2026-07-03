@@ -14,6 +14,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "health-check": "bun run scripts/health-check.ts",
+    "create-admin": "bun run scripts/create-admin.ts",
+    "gen:logos": "bun run scripts/gen-logos.ts",
     "generate:voters": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest generate --config app/auth/voters.ts --output migrations/voters.sql -y",
     "generate:admins": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest generate --config app/auth/admins.ts --output migrations/admins.sql -y",
     "generate:auditors": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest generate --config app/auth/auditors.ts --output migrations/auditors.sql -y",

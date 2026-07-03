@@ -1,22 +1,21 @@
 "use client";
 
-import { AUTH_API } from "../lib/config.ts";
+import { getTokenManager } from "@tora-chain/fe-common";
+
+import { AUTH_API, USER_TYPE } from "../lib/config.ts";
+
+// Shared token manager: exchanges the auditor session cookie for a JWT, caches
+// it in localStorage, and refreshes it when it is missing or about to expire.
+const tokens = getTokenManager({
+  key: USER_TYPE,
+  tokenEndpoint: `${AUTH_API}/token`,
+});
 
 /**
- * Exchanges the current session cookie for a short-lived JWT.
- * The JWT is then used as a Bearer token for backend API calls.
- * Returns null if the session is not active.
+ * Returns a valid auditor JWT for use as a Bearer token on backend API calls,
+ * refreshing from the session cookie when needed. Returns null if the session
+ * is not active.
  */
 export async function fetchAuditorToken(): Promise<string | null> {
-  try {
-    const res = await fetch(`${AUTH_API}/token`, {
-      credentials: "include",
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { token?: string };
-    return data.token ?? null;
-  } catch {
-    return null;
-  }
+  return tokens.getToken();
 }

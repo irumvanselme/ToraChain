@@ -16,6 +16,7 @@ import {
   localInputToIso,
   statusLabel,
 } from "../lib/format.ts";
+import { DateTimePicker } from "./date-time-picker.tsx";
 
 interface FieldState {
   title: string;
@@ -138,20 +139,19 @@ export function ElectionForm({
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input
+        <DateTimePicker
           label="Start time"
-          type="datetime-local"
           value={fields.startTime}
-          onChange={(e) => set("startTime")(e.target.value)}
+          onChange={set("startTime")}
           error={startTimeError}
           required
         />
-        <Input
+        <DateTimePicker
           label="End time"
-          type="datetime-local"
           value={fields.endTime}
-          onChange={(e) => set("endTime")(e.target.value)}
+          onChange={set("endTime")}
           error={endTimeError ?? windowError}
+          min={fields.startTime.slice(0, 10) || undefined}
           required
         />
       </div>

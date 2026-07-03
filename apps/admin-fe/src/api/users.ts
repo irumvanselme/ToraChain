@@ -34,3 +34,17 @@ export function listUsers(
     signal,
   });
 }
+
+export interface CreateAdminInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
+/** Admin self-registration is disabled — admins are created by other admins. */
+export function createAdmin(input: CreateAdminInput): Promise<DomainUser> {
+  return request<DomainUser>(`${CORE_API}/users/admins`, {
+    method: "POST",
+    body: input,
+  });
+}

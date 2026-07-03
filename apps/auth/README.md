@@ -9,6 +9,16 @@ All domains share one Postgres database; their tables are namespaced by prefix
 (`voter_*`, `admin_*`, `auditor_*`). A `/core` API (API-key authenticated) lets
 the backend look up voters by id.
 
+**Admins cannot self-register.** The admins domain has sign-up disabled (no
+`/admins/register` page, and `POST /admins/api/sign-up/email` is rejected).
+Admin accounts are created by existing admins from the admin frontend
+(`POST /core/api/users/admins`, admin-session gated) — bootstrap the first one
+with:
+
+```bash
+bun run create-admin -- --name "Jane Doe" --email jane@example.com --password "s3cret-pass"
+```
+
 ## Stack
 
 Bun · Elysia · better-auth (JWT + OpenAPI plugins) · `pg` · Zod · `@elysia/html`
@@ -43,6 +53,7 @@ bun run format:check
 bun run generate:all         # regenerate migrations from auth configs
 bun run migrate:all          # apply migrations to the database
 bun run health-check
+bun run create-admin         # bootstrap an admin account (self-registration is disabled)
 ```
 
 Adding a domain: add the `EUserType` value, a `*App` class, and register it in

@@ -16,6 +16,11 @@ export interface AuthConfig {
   authApi: string;
   /** Build the sign-in URL carrying a `redirect` back to `redirectTo`. */
   loginUrl: (redirectTo: string) => string;
+  /**
+   * Token-manager key for this domain (the user type). When set, `logout`
+   * also clears the cached backend JWT so the next session starts clean.
+   */
+  tokenKey?: string;
 }
 
 export interface AuthState {

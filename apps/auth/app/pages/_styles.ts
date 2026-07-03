@@ -92,7 +92,11 @@ export const DEV_BANNER_CSS = css`
 export const CSS = css`
   :root {
     color-scheme: light dark;
-    --accent: #4f46e5;
+    /* ToraChain brand palette (see assets/logo-*.svg). */
+    --brand-slate: #374a59;
+    --brand-slate-dark: #2c3b47;
+    --brand-sky: #84beef;
+    --accent: var(--brand-slate);
     --border: #d1d5db;
   }
   * {
@@ -124,14 +128,25 @@ export const CSS = css`
   .brand {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.85rem;
     margin-bottom: 1.75rem;
   }
-  .logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--accent);
+  .brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  /* The embedded SVGs carry fixed width/height attributes; CSS overrides them
+     so the mark and wordmark scale together and share a baseline. */
+  .logo-mark svg {
+    display: block;
+    height: 2.4rem;
+    width: auto;
+  }
+  .logo-wordmark svg {
+    display: block;
+    height: 1.6rem;
+    width: auto;
   }
   .domain {
     font-size: 0.9rem;
@@ -177,6 +192,9 @@ export const CSS = css`
     font-size: 1.125rem;
     font-weight: 600;
     cursor: pointer;
+  }
+  button:hover:not(:disabled) {
+    background: var(--brand-slate-dark);
   }
   button:disabled {
     opacity: 0.6;

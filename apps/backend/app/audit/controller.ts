@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 
 import { requireApprovedAuditor } from "./auth-client.ts";
 import type { AuditService } from "./service.ts";
+import type { AuthGuard } from "../auth/protect.ts";
 import {
   AuditElectionIdParams,
   AuditElectionListSchema,
@@ -15,8 +16,10 @@ import {
 export function AuditController(
   service: AuditService,
   auditorsAuthUrl: string,
+  auth: AuthGuard,
 ) {
   return new Elysia({ tags: ["Audit"] })
+    .use(auth)
     .get(
       "/audit/elections",
       async ({ request, query }) => {
@@ -27,6 +30,7 @@ export function AuditController(
         return service.listElections(query);
       },
       {
+        protect: ["auditors"],
         query: AuditListQuerySchema,
         response: {
           200: AuditElectionListSchema,
@@ -51,6 +55,7 @@ export function AuditController(
         return service.getElection(params.id);
       },
       {
+        protect: ["auditors"],
         params: AuditElectionIdParams,
         response: {
           200: AuditElectionSchema,
@@ -76,6 +81,7 @@ export function AuditController(
         return service.getResults(params.id);
       },
       {
+        protect: ["auditors"],
         params: AuditElectionIdParams,
         response: {
           200: ElectionResultsSchema,
@@ -101,6 +107,7 @@ export function AuditController(
         return service.getBlockchainData(params.id);
       },
       {
+        protect: ["auditors"],
         params: AuditElectionIdParams,
         response: {
           200: BlockchainDataSchema,

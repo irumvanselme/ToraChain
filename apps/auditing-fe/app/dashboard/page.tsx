@@ -61,7 +61,7 @@ function ElectionCard({ election }: { election: AuditElection }) {
 }
 
 export default function DashboardPage() {
-  const { token, auditStatus } = useAudit();
+  const { token } = useAudit();
   const [envelope, setEnvelope] = useState<ElectionListEnvelope | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,26 +87,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              ToraChain Auditing
-            </h1>
-            <p className="text-sm text-gray-500">
-              {auditStatus?.org?.name ?? "Auditing Portal"}
-            </p>
-          </div>
-          <a
-            href={`${process.env.NEXT_PUBLIC_AUTH_BASE}/profile`}
-            className="text-sm text-indigo-600 hover:underline"
-          >
-            {auditStatus?.name ?? "Profile"}
-          </a>
-        </div>
-      </header>
-
       <main className="max-w-5xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">Elections</h2>

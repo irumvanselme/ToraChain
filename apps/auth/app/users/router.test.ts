@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import { UsersRouter, type UsersDeps } from "./_router.ts";
 import { EUserType } from "../types.ts";
+import { CoreHttpError } from "../core/errors.ts";
 import type {
+  CreateAdminInput,
   DomainUserDTO,
   DomainUsersApi,
   ListUsersInput,
@@ -26,6 +28,24 @@ function makeUser(userType: EUserType, i: number): DomainUserDTO {
 class FakeUsersApi implements DomainUsersApi {
   usersByType = new Map<EUserType, DomainUserDTO[]>();
   calls: Array<{ userType: EUserType; input: ListUsersInput }> = [];
+  createCalls: CreateAdminInput[] = [];
+
+  async createAdmin(input: CreateAdminInput): Promise<DomainUserDTO> {
+    this.createCalls.push(input);
+    const admins = this.usersByType.get(EUserType.ADMINS) ?? [];
+    if (admins.some((u) => u.email === input.email)) {
+      throw CoreHttpError.conflict(
+        `An admin with email ${input.email} already exists.`,
+      );
+    }
+    const user: DomainUserDTO = {
+      ...makeUser(EUserType.ADMINS, admins.length),
+      name: input.name,
+      email: input.email,
+    };
+    this.usersByType.set(EUserType.ADMINS, [...admins, user]);
+    return user;
+  }
 
   async list(
     userType: EUserType,
@@ -145,5 +165,65 @@ describe("UsersRouter", () => {
     const res = await call("/core/api/users/admins?limit=1000", ADMIN);
     expect(res.status).toBe(400);
     expect(res.body.code).toBe("VALIDATION");
+  });
+
+  describe("create admin", () => {
+    const post = async (
+      body: unknown,
+      headers: Record<string, string> = {},
+    ): Promise<{ status: number; body: Record<string, unknown> }> => {
+      const res = await app.handle(
+        new Request("http://localhost/core/api/users/admins", {
+          method: "POST",
+          headers: { "content-type": "application/json", ...headers },
+          body: JSON.stringify(body),
+        }),
+      );
+      return {
+        status: res.status,
+        body: (await res.json()) as Record<string, unknown>,
+      };
+    };
+
+    const INPUT = {
+      name: "New Admin",
+      email: "new-admin@example.com",
+      password: "s3cret-pass",
+    };
+
+    test("rejects creation without an admin session", async () => {
+      const res = await post(INPUT);
+      expect(res.status).toBe(401);
+      expect(res.body.code).toBe("UNAUTHORIZED");
+      expect(users.createCalls).toEqual([]);
+    });
+
+    test("creates an admin and returns 201", async () => {
+      const res = await post(INPUT, ADMIN);
+      expect(res.status).toBe(201);
+      expect(res.body.name).toBe(INPUT.name);
+      expect(res.body.email).toBe(INPUT.email);
+      expect(users.createCalls).toEqual([INPUT]);
+    });
+
+    test("400 on an invalid email or short password", async () => {
+      const badEmail = await post({ ...INPUT, email: "not-an-email" }, ADMIN);
+      expect(badEmail.status).toBe(400);
+      expect(badEmail.body.code).toBe("VALIDATION");
+
+      const shortPassword = await post({ ...INPUT, password: "short" }, ADMIN);
+      expect(shortPassword.status).toBe(400);
+      expect(shortPassword.body.code).toBe("VALIDATION");
+      expect(users.createCalls).toEqual([]);
+    });
+
+    test("409 when the email is already taken", async () => {
+      const first = await post(INPUT, ADMIN);
+      expect(first.status).toBe(201);
+
+      const duplicate = await post(INPUT, ADMIN);
+      expect(duplicate.status).toBe(409);
+      expect(duplicate.body.code).toBe("CONFLICT");
+    });
   });
 });

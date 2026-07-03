@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe } from "vitest";
 import type { Database } from "@tora-chain/be-common/database";
 
 import { FakeAuthCore } from "../../app/test-helpers/fakes.ts";
+import { AllowAllVerifier } from "../../app/test-helpers/auth.ts";
 import { bootstrapDatabase, hasTestDb, truncateAll } from "./setup.ts";
 
 export interface TestApp {
@@ -40,7 +41,14 @@ export async function setupContext(): Promise<TestContext> {
     new NullAuthDirectory(),
     authCore,
   );
-  const app = buildApp(services, database) as TestApp;
+  // Bypass JWT verification in integration tests — every route is protected,
+  // but we exercise them without minting real tokens.
+  const app = buildApp(
+    services,
+    database,
+    undefined,
+    new AllowAllVerifier(),
+  ) as TestApp;
 
   const call: Call = async (method, path, body) => {
     const res = await app.handle(

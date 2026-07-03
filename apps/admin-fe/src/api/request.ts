@@ -1,4 +1,15 @@
+import { getTokenManager } from "@tora-chain/fe-common";
+
 import { ApiError, NetworkError, type RequestOptions } from "api/error";
+import { AUTH_API, USER_TYPE } from "lib/config";
+
+// Backend routes are protected by admin JWTs. The manager exchanges the admin
+// session cookie for a token, caches it, and refreshes/retries on 401. Auth
+// `/core` endpoints ignore the extra Bearer header and keep using the cookie.
+const tokens = getTokenManager({
+  key: USER_TYPE,
+  tokenEndpoint: `${AUTH_API}/token`,
+});
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
   if (!query) return path;
@@ -18,7 +29,7 @@ export async function request<T>(
 
   let res: Response;
   try {
-    res = await fetch(buildUrl(path, query), {
+    res = await tokens.authFetch(buildUrl(path, query), {
       method,
       credentials: "include",
       signal,

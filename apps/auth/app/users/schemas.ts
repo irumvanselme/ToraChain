@@ -12,6 +12,12 @@ export const ListUsersQuery = t.Object({
   q: t.Optional(t.String()),
 });
 
+export const CreateAdminBody = t.Object({
+  name: t.String({ minLength: 1 }),
+  email: t.String({ format: "email" }),
+  password: t.String({ minLength: 8 }),
+});
+
 export const DomainUserSchema = t.Object({
   id: t.String(),
   name: t.String(),

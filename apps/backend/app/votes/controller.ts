@@ -8,13 +8,16 @@ import {
   Params,
 } from "./schemas.ts";
 import type { VotesService } from "./service.ts";
+import type { AuthGuard } from "../auth/protect.ts";
 
-export function VotesController(service: VotesService) {
+export function VotesController(service: VotesService, auth: AuthGuard) {
   return new Elysia({ tags: ["Voting"] })
+    .use(auth)
     .get(
       "/elections/:id/voter/:voterId/vote",
       ({ params }) => service.getBallot(params.id, params.voterId),
       {
+        protect: ["voters", "admins"],
         params: Params,
         response: {
           200: BallotSchema,
@@ -41,6 +44,7 @@ export function VotesController(service: VotesService) {
         return result;
       },
       {
+        protect: ["voters"],
         params: Params,
         body: CastBodySchema,
         response: {

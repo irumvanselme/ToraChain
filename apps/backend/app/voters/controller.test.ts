@@ -9,6 +9,7 @@ import {
   InMemoryVotersRepository,
 } from "../test-helpers/fakes.ts";
 import { readJson, type TestApp } from "../test-helpers/http.ts";
+import { testAuthGuard } from "../test-helpers/auth.ts";
 import { VotersController } from "./controller.ts";
 import { VotersService } from "./service.ts";
 
@@ -27,7 +28,9 @@ beforeEach(() => {
     new ElectionsService(elections),
     directory,
   );
-  app = new Elysia().use(errorHandler).use(VotersController(service));
+  app = new Elysia()
+    .use(errorHandler)
+    .use(VotersController(service, testAuthGuard()));
   electionId = elections.seed().electionId;
 });
 

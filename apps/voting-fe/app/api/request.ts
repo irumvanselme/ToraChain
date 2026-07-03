@@ -1,5 +1,14 @@
-import { API_BASE } from "../lib/config.ts";
+import { getTokenManager } from "@tora-chain/fe-common";
+
+import { API_BASE, AUTH_API, USER_TYPE } from "../lib/config.ts";
 import { ApiError, NetworkError } from "@/app/api/errors.ts";
+
+// Backend routes require a voter JWT: exchange the session cookie for a token,
+// cache it, and refresh/retry once on 401.
+const tokens = getTokenManager({
+  key: USER_TYPE,
+  tokenEndpoint: `${AUTH_API}/token`,
+});
 
 export interface RequestOptions {
   method?: string;
@@ -28,7 +37,7 @@ export async function request<T>(
 
   let res: Response;
   try {
-    res = await fetch(buildUrl(url, query), {
+    res = await tokens.authFetch(buildUrl(url, query), {
       method,
       credentials: "include",
       signal,

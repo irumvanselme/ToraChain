@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { getSession, signOut } from "./session";
+import { clearStoredToken } from "../token/manager";
 import { AuthContext, type AuthContextValue } from "./context";
 import type { AuthConfig, AuthUser } from "./types";
 
@@ -12,7 +13,7 @@ export interface AuthProviderProps {
 }
 
 export function AuthProvider({ config, children }: AuthProviderProps) {
-  const { authApi, loginUrl } = config;
+  const { authApi, loginUrl, tokenKey } = config;
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,9 +25,10 @@ export function AuthProvider({ config, children }: AuthProviderProps) {
 
   const logout = useCallback(async () => {
     await signOut(authApi);
+    if (tokenKey) clearStoredToken(tokenKey);
     setUser(null);
     // window.location.href = loginUrl(window.location.href);
-  }, [authApi, loginUrl]);
+  }, [authApi, loginUrl, tokenKey]);
 
   useEffect(() => {
     const controller = new AbortController();

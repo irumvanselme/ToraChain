@@ -11,9 +11,14 @@ import {
   UpsertBodySchema,
 } from "./schemas.ts";
 import type { IntegrationsService } from "./service.ts";
+import type { AuthGuard } from "../auth/protect.ts";
 
-export function IntegrationsController(service: IntegrationsService) {
+export function IntegrationsController(
+  service: IntegrationsService,
+  auth: AuthGuard,
+) {
   return new Elysia({ tags: ["Integrations"] })
+    .use(auth)
     .get(
       "/elections/:id/integration",
       async ({ params, set }) => {
@@ -29,6 +34,7 @@ export function IntegrationsController(service: IntegrationsService) {
         return integration;
       },
       {
+        protect: ["admins"],
         params: ElectionParam,
         response: {
           200: IntegrationSchema,
@@ -50,6 +56,7 @@ export function IntegrationsController(service: IntegrationsService) {
         return integration;
       },
       {
+        protect: ["admins"],
         params: ElectionParam,
         body: UpsertBodySchema,
         response: {
@@ -73,6 +80,7 @@ export function IntegrationsController(service: IntegrationsService) {
         return null;
       },
       {
+        protect: ["admins"],
         params: ElectionParam,
         response: {
           204: t.Null(),
@@ -90,6 +98,7 @@ export function IntegrationsController(service: IntegrationsService) {
       ({ params, body }) =>
         service.checkEligibility(params.id, body.voterAccountId, body.fields),
       {
+        protect: ["voters"],
         params: ElectionParam,
         body: CheckBodySchema,
         response: {
@@ -119,6 +128,7 @@ export function IntegrationsController(service: IntegrationsService) {
         return eligibility;
       },
       {
+        protect: ["voters"],
         params: ElectionParam,
         body: EnrollBodySchema,
         response: {

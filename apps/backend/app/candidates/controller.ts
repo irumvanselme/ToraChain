@@ -13,13 +13,19 @@ import {
   ReplaceBodySchema,
 } from "./schemas.ts";
 import type { CandidatesService } from "./service.ts";
+import type { AuthGuard } from "../auth/protect.ts";
 
-export function CandidatesController(service: CandidatesService) {
+export function CandidatesController(
+  service: CandidatesService,
+  auth: AuthGuard,
+) {
   return new Elysia({ tags: ["Candidates"] })
+    .use(auth)
     .get(
       "/elections/:id/candidates",
       ({ params, query }) => service.list(params.id, query),
       {
+        protect: ["voters", "admins"],
         params: ElectionParam,
         query: ListQuerySchema,
         response: {
@@ -45,6 +51,7 @@ export function CandidatesController(service: CandidatesService) {
         return candidate;
       },
       {
+        protect: ["admins"],
         params: ElectionParam,
         body: CreateBodySchema,
         response: {
@@ -69,6 +76,7 @@ export function CandidatesController(service: CandidatesService) {
       ({ params, query }) =>
         service.get(params.id, params.candidateId, query.includeDeleted),
       {
+        protect: ["voters", "admins"],
         params: Params,
         query: GetQuerySchema,
         response: {
@@ -90,6 +98,7 @@ export function CandidatesController(service: CandidatesService) {
       ({ params, body }) =>
         service.replace(params.id, params.candidateId, body),
       {
+        protect: ["admins"],
         params: Params,
         body: ReplaceBodySchema,
         response: {
@@ -113,6 +122,7 @@ export function CandidatesController(service: CandidatesService) {
       "/elections/:id/candidates/:candidateId",
       ({ params, body }) => service.patch(params.id, params.candidateId, body),
       {
+        protect: ["admins"],
         params: Params,
         body: PatchBodySchema,
         response: {
@@ -136,6 +146,7 @@ export function CandidatesController(service: CandidatesService) {
       "/elections/:id/candidates/:candidateId",
       ({ params }) => service.remove(params.id, params.candidateId),
       {
+        protect: ["admins"],
         params: Params,
         response: {
           200: DeleteResponseSchema,

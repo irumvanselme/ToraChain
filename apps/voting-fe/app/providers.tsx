@@ -1,22 +1,22 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AuthProvider, RequireAuth } from "@tora-chain/fe-common";
-import { AUTH_API, loginUrl } from "./lib/config.ts";
-import { TopNav } from "./components/top-nav";
+import { AuthProvider } from "@tora-chain/fe-common";
+import { AUTH_API, USER_TYPE, loginUrl } from "./lib/config.ts";
 
 /**
- * Client-side auth boundary. The root layout is a Server Component, so it can't
- * pass the `loginUrl` function into a Client Component directly — this wrapper
- * builds the config on the client and gates the whole app behind a session.
+ * App-wide auth context. The root layout is a Server Component, so it can't
+ * build the `loginUrl` function itself — this wrapper constructs the config on
+ * the client and makes the session available to the whole tree, including the
+ * public landing page (which shows "Sign in" vs "View elections" based on it).
+ *
+ * Route gating lives in `app/elections/layout.tsx`, NOT here, so `/` stays
+ * publicly accessible.
  */
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider config={{ authApi: AUTH_API, loginUrl }}>
-      <RequireAuth>
-        <TopNav />
-        <main className="flex-1 flex flex-col">{children}</main>
-      </RequireAuth>
+    <AuthProvider config={{ authApi: AUTH_API, loginUrl, tokenKey: USER_TYPE }}>
+      {children}
     </AuthProvider>
   );
 }

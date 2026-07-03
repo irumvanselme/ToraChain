@@ -10,6 +10,7 @@ import {
   InMemoryVotesRepository,
 } from "../test-helpers/fakes.ts";
 import { readJson, type TestApp } from "../test-helpers/http.ts";
+import { testAuthGuard } from "../test-helpers/auth.ts";
 import { VotesController } from "./controller.ts";
 import { VotesService } from "./service.ts";
 
@@ -30,7 +31,9 @@ beforeEach(() => {
     votesRepo,
     () => new Date("2026-06-09T12:00:00Z"),
   );
-  app = new Elysia().use(errorHandler).use(VotesController(service));
+  app = new Elysia()
+    .use(errorHandler)
+    .use(VotesController(service, testAuthGuard()));
 });
 
 const req = (path: string, init?: RequestInit) =>

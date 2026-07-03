@@ -1,6 +1,6 @@
 import { Html } from "@elysia/html";
 
-import type { EUserType } from "app/types.ts";
+import { canSelfRegister, type EUserType } from "app/types.ts";
 import { Layout } from "./layout.tsx";
 import { devLoginScript, formScript } from "./script.ts";
 import { getEnvironmentFullName } from "@tora-chain/configs";
@@ -47,7 +47,9 @@ export function Login({
         <p class="message"></p>
       </form>
       <nav class="links">
-        <a href={`/${userType}/register`}>Create account</a>
+        {canSelfRegister(userType) && (
+          <a href={`/${userType}/register`}>Create account</a>
+        )}
         <a href={`/${userType}/reset-password`}>Forgot password?</a>
       </nav>
       <script>

@@ -6,7 +6,7 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { Logger } from "@tora-chain/be-common";
 
 import { config } from "../env.ts";
-import { EUserType, tableNames } from "../types.ts";
+import { canSelfRegister, EUserType, tableNames } from "../types.ts";
 
 const logger = new Logger({ name: "auth.shared" });
 
@@ -45,6 +45,10 @@ export function createAuth(
     },
     emailAndPassword: {
       enabled: true,
+      // Domains without self-registration (admins) reject the public
+      // sign-up endpoint; their users are created via the admin plugin's
+      // server-side `createUser` instead.
+      disableSignUp: !canSelfRegister(userType),
     },
     user: { modelName: tables.user },
     session: { modelName: tables.session },

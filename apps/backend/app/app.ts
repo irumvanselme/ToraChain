@@ -40,6 +40,9 @@ import { IntegrationsController } from "./integrations/controller.ts";
 import { AuditService } from "./audit/service.ts";
 import { AuditController } from "./audit/controller.ts";
 
+import { RemoteJwtVerifier, type JwtVerifier } from "./auth/jwt.ts";
+import { createAuthGuard } from "./auth/protect.ts";
+
 export interface Services {
   elections: ElectionsService;
   candidates: CandidatesService;
@@ -120,7 +123,12 @@ export function buildApp(
   services: Services,
   database?: Database,
   auditorsAuthUrl?: string,
+  verifier: JwtVerifier = new RemoteJwtVerifier(),
 ) {
+  // Shared auth guard: every controller reuses this one instance so Elysia
+  // dedupes it and the JWKS caches inside `verifier` are shared.
+  const auth = createAuthGuard(verifier);
+
   const app = new Elysia()
     .use(reqLogger)
     .use(errorHandler)
@@ -132,15 +140,16 @@ export function buildApp(
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       }),
     )
-    .use(ElectionsController(services.elections))
-    .use(CandidatesController(services.candidates))
-    .use(VotersController(services.voters))
-    .use(VotesController(services.votes))
-    .use(IntegrationsController(services.integrations))
+    .use(ElectionsController(services.elections, auth))
+    .use(CandidatesController(services.candidates, auth))
+    .use(VotersController(services.voters, auth))
+    .use(VotesController(services.votes, auth))
+    .use(IntegrationsController(services.integrations, auth))
     .use(
       AuditController(
         services.audit,
         auditorsAuthUrl ?? config.auditorsAuthUrl,
+        auth,
       ),
     );
 

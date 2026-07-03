@@ -21,10 +21,11 @@
   "dependencies": {
     "@elysiajs/cors": "^1.4.2",
     "@elysiajs/openapi": "^1.4.0",
-    "@tora-chain/configs": "workspace:*",
     "@tora-chain/be-common": "workspace:*",
+    "@tora-chain/configs": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "elysia": "^1.4.28",
+    "jose": "^6.2.3",
     "pg": "^8.21.0",
     "zod": "^4.4.3"
   },

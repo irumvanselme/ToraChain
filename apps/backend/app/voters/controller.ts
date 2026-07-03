@@ -12,13 +12,16 @@ import {
   PatchBodySchema,
 } from "./schemas.ts";
 import type { VotersService } from "./service.ts";
+import type { AuthGuard } from "../auth/protect.ts";
 
-export function VotersController(service: VotersService) {
+export function VotersController(service: VotersService, auth: AuthGuard) {
   return new Elysia({ tags: ["Voters"] })
+    .use(auth)
     .get(
       "/elections/:id/voters",
       ({ params, query }) => service.list(params.id, query),
       {
+        protect: ["admins"],
         params: ElectionParam,
         query: ListQuerySchema,
         response: {
@@ -44,6 +47,7 @@ export function VotersController(service: VotersService) {
         return eligibility;
       },
       {
+        protect: ["admins"],
         params: ElectionParam,
         body: GrantBodySchema,
         response: {
@@ -68,6 +72,7 @@ export function VotersController(service: VotersService) {
       ({ params, query }) =>
         service.get(params.id, params.voterId, query.includeDeleted),
       {
+        protect: ["admins"],
         params: Params,
         query: GetQuerySchema,
         response: {
@@ -88,6 +93,7 @@ export function VotersController(service: VotersService) {
       "/elections/:id/voters/:voterId",
       ({ params, body }) => service.patch(params.id, params.voterId, body),
       {
+        protect: ["admins"],
         params: Params,
         body: PatchBodySchema,
         response: {
@@ -111,6 +117,7 @@ export function VotersController(service: VotersService) {
       "/elections/:id/voters/:voterId",
       ({ params }) => service.remove(params.id, params.voterId),
       {
+        protect: ["admins"],
         params: Params,
         response: {
           200: DeleteResponseSchema,

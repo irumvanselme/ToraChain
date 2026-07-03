@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# voting-fe
 
-## Getting Started
+Voter app for ToraChain — Next.js App Router + React 19, styled with Tailwind
+CSS v4 + DaisyUI and the shared `@tora-chain/ui-components` library. Voters sign
+in against the **voters** identity domain, enroll in elections (delegated to an
+external eligibility API), cast an encrypted ballot, and later verify their vote
+against the backend **and** the on-chain record.
 
-First, run the development server:
+See [docs/frontends.md](../../docs/frontends.md) for the shared frontend patterns.
+
+## Routes
+
+| Route | Auth | Purpose |
+| ----- | ---- | ------- |
+| `/` | public | Landing page + sign-in CTA |
+| `/elections` | `RequireAuth` | Elections list with status filters |
+| `/elections/[id]` | `RequireAuth` | Eligibility/enrollment, cast ballot, receipt, tallies |
+| `/verify` | `RequireAuth` | Paste a receipt to verify a vote |
+
+## Key flows
+
+- **Enrollment** — a per-election eligibility integration drives a state machine
+  (`idle → checking → eligible → enrolling → enrolled`) and renders its
+  `formFields` (incl. demo `fingerprint` / `eyes` biometric widgets).
+- **Voting** — the ballot is sealed client-side (AES-256-GCM in
+  `app/lib/receipt.ts`) and cast with its `ciphertext` + `commitment`; the AES
+  key stays with the voter in the receipt (QR + text), never server-side.
+- **Verification** (`/verify`) — re-derives the commitment, decrypts with the
+  receipt key, and cross-checks the backend record against the blockchain node
+  (`api/chain.ts`, public read).
+
+## Auth
+
+`AuthProvider` (from `@tora-chain/fe-common`) wraps the app at the root so the
+public landing page can read the session. Backend calls exchange the session
+cookie for a short-lived voter JWT (`getTokenManager` → `{AUTH_API}/token`) and
+send it alongside `credentials: "include"`, auto-refreshing on 401.
+
+## Running locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
+bun run dev          # http://localhost:3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Service URLs (`apiLink`, `idpLink`, `chainNodeLink`) come from
+`@tora-chain/configs` — there are **no env vars**; `getEnv()` resolves
+`development` vs `demo`. Start the auth + backend services (and a chain node for
+on-chain verification) for full functionality.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+bun run dev          # next dev --port 3001
+bun run build        # next build (output: standalone)
+bun run start        # next start
+bun run lint         # eslint .
+bun run test         # vitest run
+bun run format:check
+```

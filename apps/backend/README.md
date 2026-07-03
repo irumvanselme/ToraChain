@@ -10,6 +10,8 @@ stack. Bodies are JSON, ids are UUIDs, timestamps are ISO 8601 UTC, and errors
 use `{ code, message, details }`. Voter eligibility is checked against the auth
 service's `/core` API.
 
+See [docs/backend.md](../../docs/backend.md) for the full design write-up.
+
 ## Stack
 
 Bun · Elysia · Drizzle ORM · `pg` · Zod · OpenAPI (`@elysiajs/openapi`).
@@ -17,7 +19,7 @@ Bun · Elysia · Drizzle ORM · `pg` · Zod · OpenAPI (`@elysiajs/openapi`).
 ## Setup
 
 ```bash
-cp .env.example .env          # fill ELECTIONS_DB_URI + AUTH_SERVICE_URL
+cp .env.example .env          # fill ELECTIONS_DB_URI
 bun install
 bun run db:migrate            # apply Drizzle migrations
 bun run dev                   # http://localhost:3001
@@ -27,13 +29,18 @@ OpenAPI docs are served at `/docs`.
 
 ## Environment
 
-| Var                                   | Required | Notes                                            |
-| ------------------------------------- | -------- | ------------------------------------------------ |
-| `ELECTIONS_DB_URI`                    | yes      | Postgres connection string.                      |
-| `AUTH_SERVICE_URL`                    | yes      | Auth service base URL.                           |
-| `PORT`                                | no       | Default `3001`.                                  |
-| `TRUSTED_ORIGINS`                     | no       | Comma-separated; defaults to `AUTH_SERVICE_URL`. |
-| `AUTH_CORE_URL` / `AUTH_CORE_API_KEY` | no       | Enable voter lookups via the `/core` API.        |
+Validated at load by `app/env.ts` (Zod). The auth `/core` URL, chain-node base,
+and `trustedOrigins` are derived from `@tora-chain/configs`, **not** env vars.
+
+| Var                 | Required | Notes                                                             |
+| ------------------- | -------- | ----------------------------------------------------------------- |
+| `ELECTIONS_DB_URI`  | yes      | Postgres connection string.                                       |
+| `PORT`              | no       | Default `3001`; dev `.env` uses `8000`.                           |
+| `NODE_ENV`          | no       | `development` vs `production`; selects the configs URL set.       |
+| `AUTH_CORE_API_KEY` | no       | Enables voter lookups via the auth `/core` API (else disabled).   |
+| `CHAIN_NODE_URL`    | no       | Chain master URL; when set, cast votes are forwarded (audit).     |
+| `LOG_LEVEL`         | no       | Default `info` (via `@tora-chain/be-common`).                     |
+| `LOG_PRETTY`        | no       | Pretty logs; defaults on unless `NODE_ENV=production`.            |
 
 ## Scripts
 

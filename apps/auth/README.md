@@ -9,6 +9,8 @@ All domains share one Postgres database; their tables are namespaced by prefix
 (`voter_*`, `admin_*`, `auditor_*`). A `/core` API (API-key authenticated) lets
 the backend look up voters by id.
 
+See [docs/auth.md](../../docs/auth.md) for the full design write-up.
+
 **Admins cannot self-register.** The admins domain has sign-up disabled (no
 `/admins/register` page, and `POST /admins/api/sign-up/email` is rejected).
 Admin accounts are created by existing admins from the admin frontend
@@ -35,13 +37,17 @@ bun run dev                   # http://localhost:3000
 
 ## Environment
 
-| Var                  | Required | Notes                                           |
-| -------------------- | -------- | ----------------------------------------------- |
-| `BETTER_AUTH_SECRET` | yes      | Signs sessions/JWTs.                            |
-| `BETTER_AUTH_URL`    | yes      | Public base URL.                                |
-| `AUTH_DB_URI`        | yes      | Shared Postgres connection string.              |
-| `PORT`               | no       | Default `3000`.                                 |
-| `TRUSTED_ORIGINS`    | no       | Comma-separated; defaults to `BETTER_AUTH_URL`. |
+Validated at load by `app/env.ts` (Zod). The `baseURL` and `trustedOrigins`
+are **not** env vars — they come from `@tora-chain/configs`.
+
+| Var                  | Required | Notes                                                          |
+| -------------------- | -------- | -------------------------------------------------------------- |
+| `BETTER_AUTH_SECRET` | yes      | Signs sessions/JWTs across all three domains.                  |
+| `AUTH_DB_URI`        | yes      | Shared Postgres connection string (voter_*/admin_*/auditor_*). |
+| `PORT`               | no       | Default `3000`; dev `.env` uses `8001`.                        |
+| `NODE_ENV`           | no       | `development` vs `production`; selects the configs URL set.    |
+| `LOG_LEVEL`          | no       | Default `info` (via `@tora-chain/be-common`).                  |
+| `LOG_PRETTY`         | no       | Pretty logs; defaults on unless `NODE_ENV=production`.         |
 
 ## Scripts
 

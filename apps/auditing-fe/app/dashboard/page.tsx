@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Input } from "@tora-chain/ui-components";
 import { useAudit } from "../lib/audit-context";
 import {
   listElections,
@@ -87,21 +88,23 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="container mx-auto px-1 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900">Elections</h2>
-          <input
-            type="search"
-            placeholder="Search elections…"
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPage(1);
-              setLoading(true);
-              setError(null);
-            }}
-            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          <div className="w-56">
+            <Input
+              type="search"
+              placeholder="Search elections…"
+              aria-label="Search elections"
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPage(1);
+                setLoading(true);
+                setError(null);
+              }}
+            />
+          </div>
         </div>
 
         {loading && (

@@ -8,4 +8,4 @@ interface ContainerProps extends React.PropsWithChildren {
 export const Container: React.FC<ContainerProps> = ({
   children,
   className = "",
-}) => <div className={cn("container mx-auto", className)}>{children}</div>;
+}) => <div className={cn("container mx-auto px-1", className)}>{children}</div>;

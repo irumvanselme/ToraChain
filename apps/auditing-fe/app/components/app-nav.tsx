@@ -26,7 +26,6 @@ export function AppNav() {
 
   return (
     <AppHeader
-      containerClassName="max-w-5xl"
       brand={
         <Link
           href="/dashboard"

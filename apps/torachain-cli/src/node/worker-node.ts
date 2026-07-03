@@ -1,26 +1,33 @@
 import express from "express";
-import { io as connectSocket, type Socket } from "socket.io-client";
 import { randomUUID } from "node:crypto";
+import type { Message, Subscription, Topic } from "@google-cloud/pubsub";
 import {
   ALL_ELECTIONS,
-  SOCKET_EVENTS,
+  TOPICS,
+  newBlockFilter,
   type SerializedBlock,
   type ValidateBlockPayload,
   type NewBlockPayload,
-  type SyncResponsePayload,
-  type ServerToClientEvents,
-  type ClientToServerEvents,
+  type WorkerPresencePayload,
 } from "@tora-chain/specs";
 import { JsonBlockStore } from "../storage/json-store.ts";
 import { hexToBigInt, computeBlockHash } from "../chain/hash-bridge.ts";
 import { serveViewer } from "../web/viewer.ts";
+import { ensureTopic, ensureSubscription } from "../pubsub/client.ts";
+
+const HEARTBEAT_INTERVAL_MS = 5_000;
+const MASTER_RETRY_DELAY_MS = 2_000;
 
 export class WorkerNode {
   readonly nodeId: string;
   private readonly store: JsonBlockStore;
-  private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null =
-    null;
   private connected = false;
+
+  private blockValidatedTopic!: Topic;
+  private presenceTopic!: Topic;
+  private newBlockSub!: Subscription;
+  private validateBlockSub!: Subscription;
+  private heartbeat!: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly port: number,
@@ -37,48 +44,23 @@ export class WorkerNode {
     this.startViewer();
 
     console.log(
-      `[worker] ${this.nodeId} subscribing to "${this.electionId}" at ${this.masterUrl}`,
+      `[worker] ${this.nodeId} subscribing to "${this.electionId}" (master: ${this.masterUrl})`,
     );
 
-    this.socket = connectSocket(this.masterUrl, {
-      query: {
-        nodeId: this.nodeId,
-        port: String(this.port),
-        electionId: this.electionId,
-      },
-      reconnection: true,
-      reconnectionDelay: 2000,
-    });
+    await this.syncFromMaster();
+    await this.connectPubSub();
+    this.startHeartbeat();
+    this.connected = true;
 
-    this.socket.on("connect", () => {
-      this.connected = true;
-      console.log(`[worker] ${this.nodeId} connected to master`);
-      // Request chain sync immediately on connect
-      this.socket!.emit(SOCKET_EVENTS.SYNC_REQUEST, {});
-    });
+    console.log(`[worker] ${this.nodeId} ready`);
+  }
 
-    this.socket.on("disconnect", (reason) => {
-      this.connected = false;
-      console.log(`[worker] ${this.nodeId} disconnected: ${reason}`);
-    });
-
-    this.socket.on(
-      SOCKET_EVENTS.SYNC_RESPONSE,
-      (payload: SyncResponsePayload) => {
-        void this.syncChain(payload.blocks);
-      },
-    );
-
-    this.socket.on(
-      SOCKET_EVENTS.VALIDATE_BLOCK,
-      (payload: ValidateBlockPayload) => {
-        this.handleValidate(payload);
-      },
-    );
-
-    this.socket.on(SOCKET_EVENTS.NEW_BLOCK, (payload: NewBlockPayload) => {
-      void this.handleNewBlock(payload);
-    });
+  async stop(): Promise<void> {
+    clearInterval(this.heartbeat);
+    await Promise.allSettled([
+      this.newBlockSub?.delete(),
+      this.validateBlockSub?.delete(),
+    ]);
   }
 
   // Local viewer so anyone running a node can watch the chain in a browser.
@@ -98,6 +80,7 @@ export class WorkerNode {
     });
 
     app.get("/api/chain", async (_req, res) => {
+      res.set("Access-Control-Allow-Origin", "*");
       res.json({ blocks: await this.store.getAll() });
     });
 
@@ -108,11 +91,104 @@ export class WorkerNode {
     });
   }
 
+  // Pull the current chain state over HTTP before joining the pub/sub, since
+  // Pub/Sub only delivers blocks committed from here on. Retries
+  // indefinitely — in local dev the master and its workers usually start
+  // concurrently, so the master's REST API may not be up yet.
+  private async syncFromMaster(): Promise<void> {
+    const url = new URL("/api/chain", this.masterUrl);
+    if (this.electionId !== ALL_ELECTIONS) {
+      url.searchParams.set("electionId", this.electionId);
+    }
+
+    for (;;) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const { blocks } = (await res.json()) as { blocks: SerializedBlock[] };
+        await this.syncChain(blocks);
+        return;
+      } catch {
+        console.log(
+          `[worker] ${this.nodeId} master not reachable yet, retrying in ${MASTER_RETRY_DELAY_MS}ms…`,
+        );
+        await new Promise((r) => setTimeout(r, MASTER_RETRY_DELAY_MS));
+      }
+    }
+  }
+
+  private async connectPubSub(): Promise<void> {
+    const newBlockTopic = await ensureTopic(TOPICS.NEW_BLOCK);
+    const validateBlockTopic = await ensureTopic(TOPICS.VALIDATE_BLOCK);
+    this.blockValidatedTopic = await ensureTopic(TOPICS.BLOCK_VALIDATED);
+    this.presenceTopic = await ensureTopic(TOPICS.WORKER_PRESENCE);
+
+    this.newBlockSub = await ensureSubscription(
+      newBlockTopic,
+      `${TOPICS.NEW_BLOCK}-worker-${this.nodeId}`,
+      { filter: newBlockFilter(this.electionId) },
+    );
+    this.newBlockSub.on("message", (message: Message) => {
+      const payload = JSON.parse(message.data.toString()) as NewBlockPayload;
+      void this.handleNewBlock(payload).finally(() => message.ack());
+    });
+    this.newBlockSub.on("error", (err) =>
+      console.error(
+        `[worker] ${this.nodeId} new-block subscription error:`,
+        err,
+      ),
+    );
+
+    // pBFT: validate every election's candidate blocks, not just the one
+    // this worker is subscribed to — no filter.
+    this.validateBlockSub = await ensureSubscription(
+      validateBlockTopic,
+      `${TOPICS.VALIDATE_BLOCK}-worker-${this.nodeId}`,
+    );
+    this.validateBlockSub.on("message", (message: Message) => {
+      const payload = JSON.parse(
+        message.data.toString(),
+      ) as ValidateBlockPayload;
+      this.handleValidate(payload);
+      message.ack();
+    });
+    this.validateBlockSub.on("error", (err) =>
+      console.error(
+        `[worker] ${this.nodeId} validate-block subscription error:`,
+        err,
+      ),
+    );
+  }
+
+  // Pub/Sub has no notion of a live connection, so presence is a heartbeat
+  // the master ages out if it stops hearing from this node.
+  private startHeartbeat(): void {
+    const beat = () => {
+      const payload: WorkerPresencePayload = {
+        nodeId: this.nodeId,
+        electionId: this.electionId,
+        port: this.port,
+      };
+      void this.presenceTopic
+        .publishMessage({ json: payload })
+        .catch((err) =>
+          console.error(
+            `[worker] ${this.nodeId} failed to publish heartbeat:`,
+            err,
+          ),
+        );
+    };
+    beat();
+    this.heartbeat = setInterval(beat, HEARTBEAT_INTERVAL_MS);
+  }
+
   private expectedHash(block: ValidateBlockPayload): string {
     return computeBlockHash(
       block.index,
       BigInt(block.data.voter),
-      BigInt(block.data.candidate),
+      // commitment is a hex string — pass it verbatim (never through BigInt,
+      // which would throw on non-0x hex and drop leading zeros).
+      block.data.commitment,
       block.timestamp,
       hexToBigInt(block.prevHash),
     ).toString(16);
@@ -156,10 +232,8 @@ export class WorkerNode {
 
     try {
       const hash = this.expectedHash(payload);
-      this.socket!.emit(SOCKET_EVENTS.BLOCK_VALIDATED, {
-        nodeId: this.nodeId,
-        hash,
-        index: payload.index,
+      void this.blockValidatedTopic.publishMessage({
+        json: { nodeId: this.nodeId, hash, index: payload.index },
       });
       console.log(
         `[worker] ${this.nodeId} responded hash=${hash.slice(0, 12)}…`,
@@ -182,9 +256,5 @@ export class WorkerNode {
     console.log(
       `[worker] ${this.nodeId} wrote block ${payload.index} (hash=${payload.hash.slice(0, 12)}…)`,
     );
-  }
-
-  stop(): void {
-    this.socket?.disconnect();
   }
 }

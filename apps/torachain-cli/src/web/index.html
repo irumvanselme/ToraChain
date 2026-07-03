@@ -204,7 +204,7 @@
                 : `<div class="row"><span class="idx">Block #${b.index}</span>
                      <span class="time">${when(b.timestamp)}</span></div>
                    <div class="field"><b>Vote</b> voter <code title="${b.data.voter}">${short(b.data.voter)}</code>
-                     → candidate <code title="${b.data.candidate}">${short(b.data.candidate)}</code></div>
+                     → commitment <code title="${b.data.commitment}">${short(b.data.commitment)}</code></div>
                    <div class="field"><b>Hash</b> <code title="${b.hash}">${short(b.hash)}</code>
                      <b>Previous</b> <code title="${b.prevHash}">${short(b.prevHash)}</code></div>`;
             section.appendChild(card);

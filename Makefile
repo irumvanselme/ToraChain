@@ -12,7 +12,7 @@
 
 .PHONY: help install dev build test lint lint-fix format format-check check-types migrate ci clean \
 	torachain-cli-master torachain-cli-worker torachain-cli-network \
-	torachain-cli-test torachain-cli-check-types
+	torachain-cli-test torachain-cli-check-types torachain-cli-pubsub-emulator
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -32,9 +32,9 @@ dev: prepare-assets ## Run all dev services concurrently
 		"cd apps/auditing-fe && bun run dev" \
 		"cd examples/simple-voters-database && bun run dev" \
 		"./apps/torachain-cli/start --master --port 7100" \
-		"./apps/torachain-cli/start --port 7101 --master-url ws://localhost:7100" \
-		"./apps/torachain-cli/start --port 7102 --master-url ws://localhost:7100" \
-		"./apps/torachain-cli/start --port 7103 --master-url ws://localhost:7100"
+		"./apps/torachain-cli/start --port 7101 --master-url http://localhost:7100" \
+		"./apps/torachain-cli/start --port 7102 --master-url http://localhost:7100" \
+		"./apps/torachain-cli/start --port 7103 --master-url http://localhost:7100"
 
 build: prepare-assets admin-fe-build auditing-fe-build voting-fe-build ## Build all buildable projects
 
@@ -231,19 +231,24 @@ torachain-cli-master: ## Start the master blockchain node on port 7100
 torachain-cli-worker: ## Start a worker node (PORT, MASTER_URL, ELECTION overridable)
 	./apps/torachain-cli/start \
 		--port $${PORT:-7101} \
-		--master-url $${MASTER_URL:-ws://localhost:7100} \
+		--master-url $${MASTER_URL:-http://localhost:7100} \
 		--election $${ELECTION:-all}
 
 torachain-cli-network: ## Spin up master + 3 worker nodes via concurrently
 	npx concurrently -n master,worker-1,worker-2,worker-3 \
 		-c white,green,cyan,yellow \
 		"./apps/torachain-cli/start --master --port 7100" \
-		"./apps/torachain-cli/start --port 7101 --master-url ws://localhost:7100" \
-		"./apps/torachain-cli/start --port 7102 --master-url ws://localhost:7100" \
-		"./apps/torachain-cli/start --port 7103 --master-url ws://localhost:7100"
+		"./apps/torachain-cli/start --port 7101 --master-url http://localhost:7100" \
+		"./apps/torachain-cli/start --port 7102 --master-url http://localhost:7100" \
+		"./apps/torachain-cli/start --port 7103 --master-url http://localhost:7100"
 
 torachain-cli-test: ## Run torachain-cli tests
 	cd apps/torachain-cli && bun run test
 
 torachain-cli-check-types: ## Type-check torachain-cli
 	cd apps/torachain-cli && bun run check-types
+
+torachain-cli-pubsub-emulator: ## Run the local Pub/Sub emulator (master/workers need PUBSUB_EMULATOR_HOST set — see .env.example)
+	gcloud beta emulators pubsub start \
+		--project=$${PUBSUB_PROJECT:-torachain-local} \
+		--host-port=localhost:8085

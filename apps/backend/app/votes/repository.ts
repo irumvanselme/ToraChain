@@ -9,11 +9,26 @@ export interface RecordVoteInput {
   candidateId: string;
   eligibilityId: string;
   votingNumber: string;
+  // Vote-verification receipt data (optional — omitted by legacy clients).
+  ciphertext?: string;
+  commitment?: string;
 }
 
 export interface CandidateTally {
   candidateId: string;
   count: number;
+}
+
+/**
+ * The stored side of a vote a voter needs to verify their receipt against:
+ * the encrypted ballot and the candidate that was actually counted.
+ */
+export interface VoteReceipt {
+  candidateId: string;
+  votingNumber: string;
+  ciphertext: string | null;
+  commitment: string | null;
+  castAt: Date;
 }
 
 export interface VotesRepository {
@@ -24,6 +39,8 @@ export interface VotesRepository {
    */
   recordVote(input: RecordVoteInput): Promise<{ castAt: Date } | null>;
   tallies(electionId: string): Promise<CandidateTally[]>;
+  /** The voter's own recorded vote, resolved by their eligibility. */
+  findByEligibility(eligibilityId: string): Promise<VoteReceipt | null>;
 }
 
 export class DrizzleVotesRepository implements VotesRepository {
@@ -52,11 +69,28 @@ export class DrizzleVotesRepository implements VotesRepository {
           candidateId: input.candidateId,
           eligibilityId: input.eligibilityId,
           votingNumber: input.votingNumber,
+          ciphertext: input.ciphertext ?? null,
+          commitment: input.commitment ?? null,
         })
         .returning({ castAt: votes.castAt });
 
       return { castAt: vote!.castAt };
     });
+  }
+
+  async findByEligibility(eligibilityId: string): Promise<VoteReceipt | null> {
+    const [row] = await this.db
+      .select({
+        candidateId: votes.candidateId,
+        votingNumber: votes.votingNumber,
+        ciphertext: votes.ciphertext,
+        commitment: votes.commitment,
+        castAt: votes.castAt,
+      })
+      .from(votes)
+      .where(eq(votes.eligibilityId, eligibilityId))
+      .limit(1);
+    return row ?? null;
   }
 
   async tallies(electionId: string): Promise<CandidateTally[]> {

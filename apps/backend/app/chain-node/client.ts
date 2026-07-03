@@ -1,7 +1,9 @@
 export interface ChainVoteInput {
   electionId: string;
   votingNumber: string;
-  candidateId: string;
+  // SHA-256 hex commitment to the voter's encrypted ballot; anchored on-chain
+  // in place of the (enumerable) candidate id.
+  commitment: string;
 }
 
 export interface ChainNodeClient {

@@ -7,12 +7,12 @@ describe("Block Data", () => {
     test("should create a block data object with valid parameters", () => {
       // GIVEN valid parameters
       const givenVoterNumber = randomBigInt(20);
-      const givenCandidateNumber = randomBigInt(20);
+      const givenCommitment = randomBigInt(20).toString(16);
 
       // WHEN we create a block data object
       const blockDataObject = new ElectionsBlockData(
         givenVoterNumber,
-        givenCandidateNumber,
+        givenCommitment,
       );
 
       // THEN the object should be created successfully
@@ -22,7 +22,7 @@ describe("Block Data", () => {
       expect(blockDataObject.voter).toEqual(givenVoterNumber);
 
       // @ts-ignore we are in testing mode
-      expect(blockDataObject.candidate).toBe(givenCandidateNumber);
+      expect(blockDataObject.commitment).toBe(givenCommitment);
     });
   });
 
@@ -31,7 +31,7 @@ describe("Block Data", () => {
       // GIVEN a block data object
       const blockDataObject = new ElectionsBlockData(
         randomBigInt(20),
-        randomBigInt(20),
+        randomBigInt(20).toString(16),
       );
 
       // WHEN we serialize the object to JSON
@@ -40,7 +40,7 @@ describe("Block Data", () => {
       // THEN it should a valid;
       expect(json).toMatchObject({
         voter: expect.any(String),
-        candidate: expect.any(String),
+        commitment: expect.any(String),
       });
     });
   });

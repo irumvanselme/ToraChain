@@ -62,8 +62,10 @@ locals {
 
     # torachain-cli master only.  Its chain viewer is served at
     # https://node.<domain>/ for anyone to inspect the blockchain.  Workers
-    # (subscribers) run anywhere — locally or on a VM — joining the pub/sub via
-    #   --master-url wss://node.<domain> --election <id>
+    # (subscribers) run anywhere — locally or on a VM — joining the Google
+    # Cloud Pub/Sub network (see pubsub.tf) via
+    #   GOOGLE_APPLICATION_CREDENTIALS=<worker-key.json> \
+    #   --master-url https://node.<domain> --election <id>
     chain_node = {
       cr_name    = "tora-chain-node"
       image_name = "chain-node"
@@ -74,7 +76,9 @@ locals {
       max_instances = 1
       cpu           = "1"
       memory        = "512Mi"
-      env           = {}
+      env = {
+        GOOGLE_CLOUD_PROJECT = var.project_id
+      }
     }
 
     demo_voters_database = {

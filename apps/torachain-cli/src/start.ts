@@ -24,6 +24,17 @@ if (isNaN(port) || port < 1 || port > 65535) {
   process.exit(1);
 }
 
+// Runs `stop()` on SIGINT/SIGTERM so a node cleans up its Pub/Sub
+// subscriptions (workers) or streaming pulls (master) instead of just dying.
+function registerShutdown(stop: () => Promise<void>): void {
+  const shutdown = async () => {
+    await stop();
+    process.exit(0);
+  };
+  process.on("SIGINT", () => void shutdown());
+  process.on("SIGTERM", () => void shutdown());
+}
+
 if (values["master"]) {
   const dbUri = process.env["CHAIN_DB_URI"] || undefined;
   let store;
@@ -39,11 +50,12 @@ if (values["master"]) {
   }
   const node = new MasterNode(port, store);
   await node.start();
+  registerShutdown(() => node.stop());
 } else {
   const masterUrl = values["master-url"];
   if (!masterUrl) {
     console.error(
-      "Worker nodes require --master-url (e.g. --master-url ws://localhost:7100)",
+      "Worker nodes require --master-url (e.g. --master-url http://localhost:7100)",
     );
     process.exit(1);
   }
@@ -54,4 +66,5 @@ if (values["master"]) {
     values["db-path"],
   );
   await node.start();
+  registerShutdown(() => node.stop());
 }

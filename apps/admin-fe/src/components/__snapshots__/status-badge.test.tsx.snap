@@ -4,7 +4,7 @@ exports[`StatusBadge > should render 1`] = `
 <body>
   <div>
     <span
-      class="badge badge-ghost"
+      class="badge badge-ghost whitespace-nowrap"
     >
       Draft
     </span>

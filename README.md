@@ -1,5 +1,9 @@
 # ToraChain
 
+[![CI](https://github.com/irumvanselme/ToraChain/actions/workflows/main.yaml/badge.svg)](https://github.com/irumvanselme/ToraChain/actions/workflows/main.yaml)
+[![Tests](https://github.com/irumvanselme/ToraChain/actions/workflows/backend-ci.yaml/badge.svg)](https://github.com/irumvanselme/ToraChain/actions/workflows/backend-ci.yaml)
+[![Deploy](https://github.com/irumvanselme/ToraChain/actions/workflows/deploy.yaml/badge.svg)](https://github.com/irumvanselme/ToraChain/actions/workflows/deploy.yaml)
+
 A **blockchain-backed elections/voting system**, built as a Bun monorepo. Votes
 are cast through a REST API, recorded on a per-election blockchain replicated
 over a publisher/subscriber node network, and independently auditable end to

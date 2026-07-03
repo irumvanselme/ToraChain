@@ -22,6 +22,13 @@
       "when": 1782233583585,
       "tag": "0002_cuddly_junta",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783060694267,
+      "tag": "0003_clear_the_twelve",
+      "breakpoints": true
     }
   ]
 }

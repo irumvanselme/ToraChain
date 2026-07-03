@@ -44,6 +44,14 @@ export const apiLink = link(
   "https://api.tora-chain-demo.iansel.me",
 );
 
+// The blockchain master node's public, CORS-open HTTP endpoint. Voters' browsers
+// read `GET /api/chain` from here to independently cross-check a vote's on-chain
+// commitment during verification, so a lying backend cannot fake a match.
+export const chainNodeLink = link(
+  "http://localhost:7100",
+  "https://node.tora-chain-demo.iansel.me",
+);
+
 export const DEV_LINKS: readonly DevLinkConfig[] = [
   {
     label: "Admin FE",

@@ -6,6 +6,7 @@ import {
   CastBodySchema,
   CastResultSchema,
   Params,
+  VerifyResultSchema,
 } from "./schemas.ts";
 import type { VotesService } from "./service.ts";
 import type { AuthGuard } from "../auth/protect.ts";
@@ -64,7 +65,31 @@ export function VotesController(service: VotesService, auth: AuthGuard) {
         detail: {
           summary: "Cast ballot",
           description:
-            "Casts a ballot after verifying eligibility, that the election is `active` and within its time window, and that the voter has not already voted. Errors: `403 NOT_ELIGIBLE`, `409 ALREADY_VOTED`, `409 ELECTION_NOT_OPEN`, `422 CANDIDATE_NOT_IN_ELECTION`.",
+            "Casts a ballot after verifying eligibility, that the election is `active` and within its time window, and that the voter has not already voted. Optionally accepts vote-verification receipt data (`ciphertext` + `commitment`); the server re-derives the commitment from the ciphertext and anchors it on-chain. Errors: `400 VALIDATION_ERROR` (mismatched/half-supplied receipt data), `403 NOT_ELIGIBLE`, `409 ALREADY_VOTED`, `409 ELECTION_NOT_OPEN`, `422 CANDIDATE_NOT_IN_ELECTION`.",
+        },
+      },
+    )
+    .get(
+      "/elections/:id/voter/:voterId/vote/verify",
+      ({ params, auth }) =>
+        service.verify(params.id, params.voterId, auth.userId),
+      {
+        protect: ["voters"],
+        params: Params,
+        response: {
+          200: VerifyResultSchema,
+          // Malformed ids.
+          400: ErrorSchema,
+          // Not the voter's own vote, or NOT_ELIGIBLE.
+          403: ErrorSchema,
+          // RESOURCE_NOT_FOUND (election, voter, or no recorded vote).
+          404: ErrorSchema,
+          500: ErrorSchema,
+        },
+        detail: {
+          summary: "Verify vote",
+          description:
+            "Returns the stored side of the requesting voter's own vote — the counted candidate (plaintext), the encrypted ballot record (`ciphertext`), and its on-chain `commitment` — so the voter's client can decrypt the receipt locally and confirm it matches. Gated to the vote's owner: `403 FORBIDDEN` for anyone else. `404` if no vote was recorded.",
         },
       },
     );

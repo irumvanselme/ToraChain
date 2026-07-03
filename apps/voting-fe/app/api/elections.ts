@@ -79,6 +79,14 @@ export interface CastResult {
   castAt: string;
 }
 
+export interface VerifyResult {
+  votingNumber: string;
+  countedCandidateId: string;
+  ciphertext: string | null;
+  commitment: string | null;
+  castAt: string;
+}
+
 export interface Eligibility {
   eligibilityId: string;
   voterId: string;
@@ -141,15 +149,39 @@ export function getBallot(
   });
 }
 
+export interface CastVotePayload {
+  candidateId: string;
+  // Optional vote-verification receipt data produced client-side. When present,
+  // the server anchors the commitment (not the candidate) on the blockchain.
+  ciphertext?: string;
+  commitment?: string;
+}
+
 export function castVote(
   electionId: string,
   voterId: string,
-  candidateId: string,
+  payload: CastVotePayload,
   signal?: AbortSignal,
 ): Promise<CastResult> {
   return request<CastResult>(`/elections/${electionId}/voter/${voterId}/vote`, {
     method: "POST",
-    body: { candidateId },
+    body: payload,
     signal,
   });
+}
+
+/**
+ * Fetch the stored side of the voter's own vote (counted candidate + encrypted
+ * ballot + on-chain commitment) so the client can decrypt the receipt locally
+ * and confirm it matches. Gated server-side to the vote's owner.
+ */
+export function verifyVote(
+  electionId: string,
+  voterId: string,
+  signal?: AbortSignal,
+): Promise<VerifyResult> {
+  return request<VerifyResult>(
+    `/elections/${electionId}/voter/${voterId}/vote/verify`,
+    { signal },
+  );
 }

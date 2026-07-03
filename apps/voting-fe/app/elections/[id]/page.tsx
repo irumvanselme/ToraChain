@@ -19,6 +19,7 @@ import {
   ClipboardCheck,
   Fingerprint,
   ScanEye,
+  ShieldCheck,
   Vote,
 } from "lucide-react";
 import {
@@ -41,6 +42,8 @@ import {
   type FormField,
 } from "@/app/api/integrations";
 import { ApiError } from "@/app/api/errors";
+import { sealBallot } from "@/app/lib/receipt";
+import { VoteReceipt } from "@/app/components/vote-receipt";
 import { formatDateTime, statusLabel, STATUS_TONE } from "../../lib/format";
 
 // ---- Eligibility state machine ------------------------------------------
@@ -91,6 +94,7 @@ export default function ElectionDetailPage({
   const [voting, setVoting] = useState(false);
   const [voteResult, setVoteResult] = useState<CastResult | null>(null);
   const [voteError, setVoteError] = useState<string | null>(null);
+  const [receiptString, setReceiptString] = useState<string | null>(null);
 
   // Track whether we've already kicked off the ballot/eligibility lookup so
   // the effect that depends on `election` + `user` doesn't re-run on every render.
@@ -219,12 +223,33 @@ export default function ElectionDetailPage({
   }, [id, user, integration, fieldValues]);
 
   const handleCastVote = useCallback(async () => {
-    if (!voterId || !selectedId) return;
+    if (!voterId || !selectedId || !ballot) return;
     setVoting(true);
     setVoteError(null);
     try {
-      const result = await castVote(id, voterId, selectedId);
+      const candidateName =
+        ballot.candidates.find((c) => c.candidateId === selectedId)?.fullName ??
+        "";
+
+      // Seal the ballot client-side: a fresh AES key encrypts the vote record;
+      // only its SHA-256 commitment leaves for the chain, and the key rides in
+      // the receipt the voter keeps — making them the sole later verifier.
+      const sealed = await sealBallot({
+        electionId: id,
+        voterId,
+        votingNumber: ballot.voter.votingNumber,
+        candidateId: selectedId,
+        candidateName,
+        castTime: new Date().toISOString(),
+      });
+
+      const result = await castVote(id, voterId, {
+        candidateId: selectedId,
+        ciphertext: sealed.ciphertext,
+        commitment: sealed.commitment,
+      });
       setVoteResult(result);
+      setReceiptString(sealed.receiptString);
       setConfirmOpen(false);
       const updated = await getBallot(id, voterId);
       setBallot(updated);
@@ -233,7 +258,7 @@ export default function ElectionDetailPage({
     } finally {
       setVoting(false);
     }
-  }, [id, voterId, selectedId]);
+  }, [id, voterId, selectedId, ballot]);
 
   if (loadingMain) {
     return (
@@ -362,6 +387,27 @@ export default function ElectionDetailPage({
                   </strong>
                 </span>
               </Alert>
+            )}
+
+            {receiptString && voteResult && (
+              <VoteReceipt
+                receiptString={receiptString}
+                votingNumber={voteResult.votingNumber}
+              />
+            )}
+
+            {(voteResult || hasVoted) && (
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => router.push("/verify")}
+                  className="gap-1"
+                >
+                  <ShieldCheck className="size-4" />
+                  Verify a vote
+                </Button>
+              </div>
             )}
 
             {displayCandidates.length === 0 ? (

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { ElectionsService } from "../elections/service.ts";
@@ -7,15 +9,26 @@ import {
   InMemoryVotersRepository,
   InMemoryVotesRepository,
 } from "../test-helpers/fakes.ts";
+import type { ChainNodeClient, ChainVoteInput } from "../chain-node/client.ts";
 import { VotesService } from "./service.ts";
 
 let elections: InMemoryElectionsRepository;
 let voters: InMemoryVotersRepository;
 let candidates: InMemoryCandidatesRepository;
 let votesRepo: InMemoryVotesRepository;
+let chain: SpyChainNode;
 let service: VotesService;
 
 const NOW = new Date("2026-06-09T12:00:00Z");
+
+const sha256Hex = (s: string) => createHash("sha256").update(s).digest("hex");
+
+class SpyChainNode implements ChainNodeClient {
+  submitted: ChainVoteInput[] = [];
+  submitVote(input: ChainVoteInput): void {
+    this.submitted.push(input);
+  }
+}
 
 function buildService() {
   return new VotesService(
@@ -24,6 +37,7 @@ function buildService() {
     candidates,
     votesRepo,
     () => NOW,
+    chain,
   );
 }
 
@@ -32,6 +46,7 @@ beforeEach(() => {
   voters = new InMemoryVotersRepository();
   candidates = new InMemoryCandidatesRepository();
   votesRepo = new InMemoryVotesRepository(voters);
+  chain = new SpyChainNode();
   service = buildService();
 });
 
@@ -217,6 +232,128 @@ describe("cast", () => {
         }),
       "NOT_ELIGIBLE",
       403,
+    );
+  });
+
+  test("stores the receipt and anchors the client commitment on-chain", async () => {
+    const { election, voter, candidate } = activeElectionWithVoter();
+    const ciphertext = "encrypted-ballot-record";
+    const commitment = sha256Hex(ciphertext);
+
+    await service.cast(election.electionId, voter.voterId, {
+      candidateId: candidate.candidateId,
+      ciphertext,
+      commitment,
+    });
+
+    expect(chain.submitted).toHaveLength(1);
+    expect(chain.submitted[0]).toMatchObject({
+      electionId: election.electionId,
+      votingNumber: "5001",
+      commitment,
+    });
+    const stored = votesRepo.records[0];
+    expect(stored?.ciphertext).toBe(ciphertext);
+    expect(stored?.commitment).toBe(commitment);
+  });
+
+  test("400 when commitment does not match the ciphertext hash", async () => {
+    const { election, voter, candidate } = activeElectionWithVoter();
+    await expectError(
+      () =>
+        service.cast(election.electionId, voter.voterId, {
+          candidateId: candidate.candidateId,
+          ciphertext: "encrypted-ballot-record",
+          commitment: sha256Hex("something-else"),
+        }),
+      "VALIDATION_ERROR",
+      400,
+    );
+    // Nothing recorded on a rejected commitment.
+    expect(votesRepo.records).toHaveLength(0);
+  });
+
+  test("400 when only one of ciphertext/commitment is supplied", async () => {
+    const { election, voter, candidate } = activeElectionWithVoter();
+    await expectError(
+      () =>
+        service.cast(election.electionId, voter.voterId, {
+          candidateId: candidate.candidateId,
+          ciphertext: "encrypted-ballot-record",
+        }),
+      "VALIDATION_ERROR",
+      400,
+    );
+  });
+
+  test("legacy cast without receipt still anchors a server-side commitment", async () => {
+    const { election, voter, candidate } = activeElectionWithVoter();
+    await service.cast(election.electionId, voter.voterId, {
+      candidateId: candidate.candidateId,
+    });
+    expect(chain.submitted).toHaveLength(1);
+    // Not the plaintext candidate — a SHA-256 hex hiding commitment.
+    expect(chain.submitted[0]?.commitment).toMatch(/^[0-9a-f]{64}$/);
+    expect(chain.submitted[0]?.commitment).not.toBe(candidate.candidateId);
+  });
+});
+
+describe("verify", () => {
+  const ACCOUNT = "voter-account-1";
+
+  function votedSetup() {
+    const election = elections.seed({ status: "active" });
+    const voter = voters.seedVoter({ accountId: ACCOUNT });
+    voters.seedEligibility({
+      voterId: voter.voterId,
+      electionId: election.electionId,
+      votingNumber: "5001",
+    });
+    const candidate = candidates.seed({ electionId: election.electionId });
+    return { election, voter, candidate };
+  }
+
+  test("returns the counted candidate and receipt for the owning voter", async () => {
+    const { election, voter, candidate } = votedSetup();
+    const ciphertext = "encrypted-ballot-record";
+    const commitment = sha256Hex(ciphertext);
+    await service.cast(election.electionId, voter.voterId, {
+      candidateId: candidate.candidateId,
+      ciphertext,
+      commitment,
+    });
+
+    const result = await service.verify(
+      election.electionId,
+      voter.voterId,
+      ACCOUNT,
+    );
+    expect(result).toMatchObject({
+      votingNumber: "5001",
+      countedCandidateId: candidate.candidateId,
+      ciphertext,
+      commitment,
+    });
+  });
+
+  test("403 FORBIDDEN when the caller is not the vote's owner", async () => {
+    const { election, voter, candidate } = votedSetup();
+    await service.cast(election.electionId, voter.voterId, {
+      candidateId: candidate.candidateId,
+    });
+    await expectError(
+      () => service.verify(election.electionId, voter.voterId, "someone-else"),
+      "FORBIDDEN",
+      403,
+    );
+  });
+
+  test("404 when the voter has not voted yet", async () => {
+    const { election, voter } = votedSetup();
+    await expectError(
+      () => service.verify(election.electionId, voter.voterId, ACCOUNT),
+      "RESOURCE_NOT_FOUND",
+      404,
     );
   });
 });

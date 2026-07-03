@@ -143,11 +143,36 @@ export class VotesService {
       );
     }
 
+    // Verification receipt data is optional (legacy/non-encrypting clients omit
+    // it) but must be supplied as a matched pair, and the commitment must be a
+    // faithful SHA-256 of the ciphertext — otherwise the value we anchor
+    // on-chain would not bind the voter's encrypted ballot and verification
+    // could never succeed. We re-derive it server-side rather than trusting
+    // the client's `commitment`.
+    let commitment: string | undefined;
+    if (input.ciphertext !== undefined || input.commitment !== undefined) {
+      if (input.ciphertext === undefined || input.commitment === undefined) {
+        throw AppError.validation(
+          "`ciphertext` and `commitment` must be provided together.",
+        );
+      }
+      const expected = sha256Hex(input.ciphertext);
+      if (expected !== input.commitment) {
+        throw AppError.validation(
+          "`commitment` does not match SHA-256 of `ciphertext`.",
+          { expected },
+        );
+      }
+      commitment = expected;
+    }
+
     const recorded = await this.votes.recordVote({
       electionId,
       candidateId: input.candidateId,
       eligibilityId: eligibility.eligibilityId,
       votingNumber: eligibility.votingNumber,
+      ciphertext: input.ciphertext,
+      commitment,
     });
 
     // A null result means a concurrent ballot won the race.
@@ -159,17 +184,72 @@ export class VotesService {
       );
     }
 
-    // Submit to the blockchain network (fire-and-forget audit trail)
+    // Anchor the vote on the blockchain network (fire-and-forget audit trail).
+    // We publish the hiding commitment — never the plaintext candidate — so the
+    // public chain viewer cannot enumerate individual votes. Legacy ballots
+    // without a client commitment fall back to a server-side hash so the chain
+    // still records a block, binding voter + candidate + cast time.
     this.chainNode.submitVote({
       electionId,
       votingNumber: eligibility.votingNumber,
-      candidateId: input.candidateId,
+      commitment:
+        commitment ??
+        sha256Hex(
+          `${eligibility.votingNumber}:${input.candidateId}:${recorded.castAt.toISOString()}`,
+        ),
     });
 
     return {
       accepted: true,
       votingNumber: eligibility.votingNumber,
       castAt: recorded.castAt.toISOString(),
+    };
+  }
+
+  /**
+   * Returns the stored side of a voter's own vote so their client can verify
+   * it: the candidate that was actually counted (plaintext) plus the encrypted
+   * ballot record and its on-chain commitment. The AES key never reaches the
+   * server, so the ciphertext is opaque here — only the voter holding the
+   * receipt key can open it and confirm it names the same candidate.
+   *
+   * Gated to the owning voter: a caller may only read the receipt for a vote
+   * tied to their own auth account, so a leaked voting number cannot expose
+   * someone else's counted candidate.
+   */
+  async verify(
+    electionId: string,
+    voterId: string,
+    requesterAccountId: string,
+  ): Promise<VerifyResult> {
+    const eligibility = await this.requireEligibility(electionId, voterId);
+
+    if (
+      !eligibility.accountId ||
+      eligibility.accountId !== requesterAccountId
+    ) {
+      throw AppError.forbidden("You may only verify your own vote.", {
+        electionId,
+        voterId,
+      });
+    }
+
+    const receipt = await this.votes.findByEligibility(
+      eligibility.eligibilityId,
+    );
+    if (!receipt) {
+      throw AppError.notFound(
+        `No vote has been recorded for voter ${voterId} in election ${electionId}.`,
+        { electionId, voterId },
+      );
+    }
+
+    return {
+      votingNumber: receipt.votingNumber,
+      countedCandidateId: receipt.candidateId,
+      ciphertext: receipt.ciphertext,
+      commitment: receipt.commitment,
+      castAt: receipt.castAt.toISOString(),
     };
   }
 }

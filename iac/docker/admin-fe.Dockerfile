@@ -18,8 +18,8 @@ ARG VITE_AUTH_BASE=https://idp.tora-chain-demo.iansel.me/admins
 ENV VITE_API_BASE=${VITE_API_BASE} \
     VITE_AUTH_BASE=${VITE_AUTH_BASE}
 
-ENV VITE_NODE_ENV=demo
-ENV NODE_ENV=demo
+ENV VITE_NODE_ENV=production
+ENV NODE_ENV=production
 
 RUN cd apps/admin-fe && bun run build
 

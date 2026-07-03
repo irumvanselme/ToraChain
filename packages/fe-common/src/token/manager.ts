@@ -145,6 +145,10 @@ export function createTokenManager(config: TokenManagerConfig): TokenManager {
   ): Promise<Response> {
     const send = (token: string | null): Promise<Response> => {
       const headers = new Headers(init.headers);
+      if(!token) {
+        console.error("Issue on the authFetch: no token provided.")
+      }
+
       if (token) headers.set("Authorization", `Bearer ${token}`);
       return fetch(input, { ...init, headers });
     };

@@ -13,6 +13,10 @@
     "./auth": {
       "types": "./src/auth/index.ts",
       "default": "./src/auth/index.ts"
+    },
+    "./token": {
+      "types": "./src/token/index.ts",
+      "default": "./src/token/index.ts"
     }
   },
   "scripts": {

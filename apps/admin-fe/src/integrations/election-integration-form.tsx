@@ -642,7 +642,13 @@ export function ElectionIntegrationForm({ electionId }: Props) {
                       Remove
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <Select
+                      label="Type"
+                      value={field.type ?? "string"}
+                      onChange={(e) => updateField(i, { type: e.target.value })}
+                      options={fieldTypeOptions(field.type ?? "string")}
+                    />
                     <Input
                       label="Field ID"
                       placeholder="national-id"
@@ -656,14 +662,6 @@ export function ElectionIntegrationForm({ electionId }: Props) {
                       onChange={(e) =>
                         updateField(i, { label: e.target.value })
                       }
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Select
-                      label="Type"
-                      value={field.type ?? "string"}
-                      onChange={(e) => updateField(i, { type: e.target.value })}
-                      options={fieldTypeOptions(field.type ?? "string")}
                     />
                     <Input
                       label="Description"

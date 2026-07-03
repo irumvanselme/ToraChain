@@ -16,4 +16,12 @@ export class CoreHttpError extends Error {
   static notFound(message: string): CoreHttpError {
     return new CoreHttpError(404, "RESOURCE_NOT_FOUND", message);
   }
+
+  static conflict(message: string): CoreHttpError {
+    return new CoreHttpError(409, "CONFLICT", message);
+  }
+
+  static badRequest(message: string): CoreHttpError {
+    return new CoreHttpError(400, "BAD_REQUEST", message);
+  }
 }

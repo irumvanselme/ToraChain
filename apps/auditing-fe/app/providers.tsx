@@ -5,11 +5,13 @@ import { useRouter, usePathname } from "next/navigation";
 import { AuthProvider, RequireAuth } from "@tora-chain/fe-common";
 import {
   AUTH_API,
+  USER_TYPE,
   loginUrl,
   ONBOARDING_URL,
   PENDING_URL,
 } from "./lib/config.ts";
 import { AuditProvider, useAudit } from "./lib/audit-context";
+import { AppNav } from "./components/app-nav";
 
 /** Redirects to onboarding or pending based on org approval status. */
 function OrgGate({ children }: { children: ReactNode }) {
@@ -61,7 +63,12 @@ function OrgGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <AppNav />
+      {children}
+    </>
+  );
 }
 
 /**
@@ -70,7 +77,7 @@ function OrgGate({ children }: { children: ReactNode }) {
  */
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider config={{ authApi: AUTH_API, loginUrl }}>
+    <AuthProvider config={{ authApi: AUTH_API, loginUrl, tokenKey: USER_TYPE }}>
       <RequireAuth>
         <AuditProvider>
           <OrgGate>{children}</OrgGate>

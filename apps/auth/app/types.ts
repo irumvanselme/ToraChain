@@ -10,6 +10,15 @@ export const USER_TYPE_PREFIX: Record<EUserType, string> = {
   [EUserType.AUDITORS]: "auditor",
 };
 
+/**
+ * Whether accounts in a domain may be created through the public sign-up
+ * flow. Admins are provisioned by existing admins (via the /core users API or
+ * the `create-admin` bootstrap script), never by self-registration.
+ */
+export function canSelfRegister(userType: EUserType): boolean {
+  return userType !== EUserType.ADMINS;
+}
+
 /** Table names for a domain's better-auth schema, e.g. `voter_users`. */
 export interface AuthTableNames {
   user: string;

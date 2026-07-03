@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Alert,
   Badge,
@@ -10,9 +11,10 @@ import {
   Table,
   type Column,
 } from "@tora-chain/ui-components";
-import { SearchIcon } from "lucide-react";
+import { PlusIcon, SearchIcon } from "lucide-react";
 import { USER_TYPES, type DomainUser, type UserType } from "api/users.ts";
 import { formatDateTime } from "lib/format.ts";
+import { CreateAdminModal } from "../create-admin-modal.tsx";
 import { useListUsers } from "./use-list-users.ts";
 
 const TAB_LABELS: Record<UserType, string> = {
@@ -70,11 +72,21 @@ export function UsersListPage() {
     patchParams,
   } = useListUsers();
 
+  const [addingAdmin, setAddingAdmin] = useState(false);
+
   return (
     <div className="flex flex-col gap-6 py-6">
       <PageHeader
         title="Users"
         description="Browse voter, admin, and auditor accounts."
+        actions={
+          userType === "admins" ? (
+            <Button onClick={() => setAddingAdmin(true)}>
+              <PlusIcon className="size-4" />
+              Add admin
+            </Button>
+          ) : undefined
+        }
       />
 
       <div role="tablist" className="tabs tabs-border">
@@ -127,12 +139,19 @@ export function UsersListPage() {
           description={
             q
               ? `No ${TAB_LABELS[userType].toLowerCase()} match “${q}”.`
-              : `Nobody has registered a ${TAB_LABELS[userType].toLowerCase().replace(/s$/, "")} account yet.`
+              : userType === "admins"
+                ? "Admins cannot register themselves — add one here."
+                : `Nobody has registered a ${TAB_LABELS[userType].toLowerCase().replace(/s$/, "")} account yet.`
           }
           action={
             q ? (
               <Button variant="ghost" onClick={() => patchParams({ q: "" })}>
                 Clear search
+              </Button>
+            ) : userType === "admins" ? (
+              <Button onClick={() => setAddingAdmin(true)}>
+                <PlusIcon className="size-4" />
+                Add admin
               </Button>
             ) : undefined
           }
@@ -157,6 +176,15 @@ export function UsersListPage() {
           )}
         </>
       )}
+
+      <CreateAdminModal
+        open={addingAdmin}
+        onClose={() => setAddingAdmin(false)}
+        onCreated={() => {
+          setAddingAdmin(false);
+          load();
+        }}
+      />
     </div>
   );
 }

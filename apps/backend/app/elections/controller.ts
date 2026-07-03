@@ -12,14 +12,20 @@ import {
   ReplaceBodySchema,
 } from "./schemas.ts";
 import type { ElectionsService } from "./service.ts";
+import type { AuthGuard } from "../auth/protect.ts";
 
 /** Convert an optional ISO string field to a Date (preserving null/undefined). */
 const toDate = (v: string | null | undefined): Date | null | undefined =>
   v === undefined || v === null ? v : new Date(v);
 
-export function ElectionsController(service: ElectionsService) {
+export function ElectionsController(
+  service: ElectionsService,
+  auth: AuthGuard,
+) {
   return new Elysia({ tags: ["Elections"] })
+    .use(auth)
     .get("/elections", ({ query }) => service.list(query), {
+      protect: ["voters", "admins", "auditors"],
       query: ListQuerySchema,
       response: {
         200: offsetEnvelopeSchema(ElectionSchema),
@@ -47,6 +53,7 @@ export function ElectionsController(service: ElectionsService) {
         return election;
       },
       {
+        protect: ["admins"],
         body: CreateBodySchema,
         response: {
           201: ElectionSchema,
@@ -67,6 +74,7 @@ export function ElectionsController(service: ElectionsService) {
       "/elections/:id",
       ({ params, query }) => service.get(params.id, query.includeDeleted),
       {
+        protect: ["voters", "admins", "auditors"],
         params: IdParams,
         query: GetQuerySchema,
         response: {
@@ -94,6 +102,7 @@ export function ElectionsController(service: ElectionsService) {
           status: body.status,
         }),
       {
+        protect: ["admins"],
         params: IdParams,
         body: ReplaceBodySchema,
         response: {
@@ -126,6 +135,7 @@ export function ElectionsController(service: ElectionsService) {
           status: body.status,
         }),
       {
+        protect: ["admins"],
         params: IdParams,
         body: PatchBodySchema,
         response: {
@@ -148,6 +158,7 @@ export function ElectionsController(service: ElectionsService) {
       },
     )
     .delete("/elections/:id", ({ params }) => service.remove(params.id), {
+      protect: ["admins"],
       params: IdParams,
       response: {
         200: DeleteResponseSchema,

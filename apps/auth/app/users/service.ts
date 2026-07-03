@@ -1,7 +1,8 @@
 import type { User, Where } from "better-auth";
+import { APIError } from "better-auth/api";
 
 import type { App } from "../_apps.ts";
-import type { EUserType } from "../types.ts";
+import { EUserType } from "../types.ts";
 import { CoreHttpError } from "../core/errors.ts";
 
 // ---- DTOs ----------------------------------------------------------------
@@ -36,10 +37,17 @@ export interface ListUsersInput {
   q?: string;
 }
 
+export interface CreateAdminInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
 // ---- Service interface (so the router can be tested with fakes) ----------
 
 export interface DomainUsersApi {
   list(userType: EUserType, input: ListUsersInput): Promise<UserListPage>;
+  createAdmin(input: CreateAdminInput): Promise<DomainUserDTO>;
 }
 
 /** Fields the better-auth admin plugin adds to the user model. */
@@ -104,5 +112,38 @@ export class DomainUsersService implements DomainUsersApi {
         totalPages: Math.max(1, Math.ceil(total / limit)),
       },
     };
+  }
+
+  /**
+   * Creates an admins-domain account. Public sign-up is disabled for admins,
+   * so this goes through the admin plugin's `createUser` endpoint — invoked
+   * server-side (no request headers) it skips the plugin's own session check,
+   * and like `list` the router has already verified an admins session.
+   */
+  async createAdmin(input: CreateAdminInput): Promise<DomainUserDTO> {
+    const app = this.apps.find((a) => a.userType === EUserType.ADMINS);
+    if (!app) {
+      throw CoreHttpError.notFound(`Unknown user domain: admins.`);
+    }
+
+    const email = input.email.toLowerCase();
+    const ctx = await app.auth.$context;
+    if (await ctx.internalAdapter.findUserByEmail(email)) {
+      throw CoreHttpError.conflict(
+        `An admin with email ${email} already exists.`,
+      );
+    }
+
+    try {
+      const { user } = await app.auth.api.createUser({
+        body: { name: input.name, email, password: input.password },
+      });
+      return serializeUser(user);
+    } catch (error) {
+      if (error instanceof APIError) {
+        throw CoreHttpError.badRequest(error.body?.message ?? error.message);
+      }
+      throw error;
+    }
   }
 }

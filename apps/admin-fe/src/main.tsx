@@ -6,10 +6,10 @@ import { AuthProvider } from "@tora-chain/fe-common";
 import { DevBanner, DevLinks } from "@tora-chain/ui-components";
 
 import "./index.css";
-import { AUTH_API, loginUrl } from "lib/config";
+import { AUTH_API, USER_TYPE, loginUrl } from "lib/config";
 import { router } from "./router";
 
-const authConfig = { authApi: AUTH_API, loginUrl };
+const authConfig = { authApi: AUTH_API, loginUrl, tokenKey: USER_TYPE };
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

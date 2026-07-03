@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { TriangleAlert } from "lucide-react";
+import { AppHeader, LogoSquare } from "@tora-chain/ui-components";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,27 +26,28 @@ export default function RootLayout({
         </div>
 
         {/* Navbar */}
-        <header className="sticky top-0 z-40 border-b border-base-300 bg-base-100">
-          <nav className="navbar max-w-5xl mx-auto px-4 min-h-14">
-            <div className="navbar-start flex items-center gap-3">
-              <div>Simple voters database</div>
-              <div className="divider divider-horizontal mx-0" />
-              <div className="flex flex-col leading-tight">
+        <AppHeader
+          containerClassName="max-w-5xl"
+          brand={
+            <div className="flex min-w-0 items-center gap-2">
+              <LogoSquare />
+              <span className="divider divider-horizontal mx-0" />
+              <span className="flex min-w-0 flex-col leading-tight">
                 <span className="text-sm font-semibold">
                   Simple Voters Database
                 </span>
                 <span className="text-xs text-base-content/50">
                   Eligibility API reference
                 </span>
-              </div>
-            </div>
-            <div className="navbar-end">
-              <span className="badge badge-warning badge-sm font-semibold">
-                dev only
               </span>
             </div>
-          </nav>
-        </header>
+          }
+          actions={
+            <span className="badge badge-warning badge-sm font-semibold">
+              dev only
+            </span>
+          }
+        />
 
         {/* Page content */}
         <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8">

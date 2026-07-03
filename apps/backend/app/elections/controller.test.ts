@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { errorHandler } from "../common/error-handler.ts";
 import { InMemoryElectionsRepository } from "../test-helpers/fakes.ts";
 import { readJson, type TestApp } from "../test-helpers/http.ts";
+import { testAuthGuard } from "../test-helpers/auth.ts";
 import { ElectionsController } from "./controller.ts";
 import { ElectionsService } from "./service.ts";
 
@@ -13,7 +14,9 @@ let app: TestApp;
 beforeEach(() => {
   repo = new InMemoryElectionsRepository();
   const service = new ElectionsService(repo);
-  app = new Elysia().use(errorHandler).use(ElectionsController(service));
+  app = new Elysia()
+    .use(errorHandler)
+    .use(ElectionsController(service, testAuthGuard()));
 });
 
 const req = (path: string, init?: RequestInit) =>

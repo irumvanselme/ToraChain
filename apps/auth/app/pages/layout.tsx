@@ -2,6 +2,11 @@ import { Html, type PropsWithChildren } from "@elysia/html";
 
 import type { EUserType } from "app/types";
 import { DEV_BANNER_CSS, CSS, FONT_STYLES } from "./_styles";
+import {
+  LOGO_MARK_SVG,
+  LOGO_WORDMARK_SVG,
+  LOGO_FAVICON_DATA_URI,
+} from "./_logos";
 
 const TITLES: Record<EUserType, string> = {
   voters: "Voter",
@@ -26,6 +31,7 @@ export function Layout({ userType, heading, children }: LayoutProps) {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title safe>{`ToraChain · ${domainTitle(userType)} ${heading}`}</title>
+        <link rel="icon" type="image/svg+xml" href={LOGO_FAVICON_DATA_URI} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link
@@ -54,7 +60,10 @@ export function Layout({ userType, heading, children }: LayoutProps) {
         </div>
         <main class="card">
           <header class="brand">
-            <span class="logo">ToraChain</span>
+            <span class="brand-lockup" aria-label="ToraChain">
+              <span class="logo-mark">{LOGO_MARK_SVG}</span>
+              <span class="logo-wordmark">{LOGO_WORDMARK_SVG}</span>
+            </span>
             <span class="domain" safe>
               {domainTitle(userType)} portal
             </span>

@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { html } from "@elysia/html";
 import { Logger, isProduction } from "@tora-chain/be-common";
-import { EUserType } from "../types.ts";
+import { canSelfRegister, EUserType } from "../types.ts";
 import { getDevCredential, type DevUserType } from "@tora-chain/configs";
 
 import { links, ok } from "app/utils/constants";
@@ -88,7 +88,11 @@ export const WebRouter = (appRegistry: AppRegistry) => {
             devLogin,
           }),
         )
-        .get(`/register`, async () => Register({ userType: app.userType }))
+        .get(`/register`, async () =>
+          canSelfRegister(app.userType)
+            ? Register({ userType: app.userType })
+            : new Response("Not found", { status: 404 }),
+        )
         .get(`/reset-password`, async () =>
           ResetPassword({ userType: app.userType }),
         )

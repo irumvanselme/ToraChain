@@ -8,6 +8,8 @@ import type { AppRegistry } from "../_apps.ts";
 import { CoreHttpError } from "../core/errors.ts";
 import { DomainUsersService, type DomainUsersApi } from "./service.ts";
 import {
+  CreateAdminBody,
+  DomainUserSchema,
   ErrorSchema,
   ListUsersQuery,
   UserListSchema,
@@ -98,6 +100,31 @@ export function UsersRouter(deps: UsersDeps) {
           summary: "List users in an identity domain",
           description:
             "Paginated list of `voters`, `admins`, or `auditors` accounts, newest first. Requires an admin session. Filter by email with `q`.",
+        },
+      },
+    )
+    .post(
+      "/admins",
+      async ({ request, body, set }) => {
+        await requireAdmin(deps, request.headers);
+        const created = await deps.users.createAdmin(body);
+        set.status = 201;
+        return created;
+      },
+      {
+        body: CreateAdminBody,
+        response: {
+          201: DomainUserSchema,
+          400: ErrorSchema,
+          401: ErrorSchema,
+          409: ErrorSchema,
+          500: ErrorSchema,
+        },
+        detail: {
+          tags: ["Users"],
+          summary: "Create an admin account",
+          description:
+            "Creates a new admins-domain account. Admin self-registration is disabled — admins are only provisioned by existing admins through this endpoint.",
         },
       },
     );

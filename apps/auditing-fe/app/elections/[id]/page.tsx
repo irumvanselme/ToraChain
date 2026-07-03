@@ -239,18 +239,14 @@ export default function ElectionDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto">
-          <Link
-            href="/dashboard"
-            className="text-sm text-indigo-600 hover:underline"
-          >
-            ← Back to elections
-          </Link>
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto px-6 py-8">
+        <Link
+          href="/dashboard"
+          className="mb-6 inline-block text-sm text-indigo-600 hover:underline"
+        >
+          ← Back to elections
+        </Link>
+
         {loading && (
           <div className="text-center py-16 text-gray-400">Loading…</div>
         )}

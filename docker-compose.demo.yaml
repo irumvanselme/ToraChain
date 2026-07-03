@@ -163,10 +163,10 @@ services:
     ports:
       - "3003:3003" # http://localhost:3003
 
-  # ── Blockchain network (master + 3 workers = pBFT quorum) ──────────────
-  # The master requires 3 live worker subscribers before accepting votes.
-  # CHAIN_DB_URI is intentionally unset: the master falls back to a JSON
-  # file inside the container (fine for a demo, wiped with the container).
+  # ── Blockchain network (master publisher + 3 worker subscribers) ───────
+  # The master publishes every committed block; the workers subscribe and
+  # replicate it. CHAIN_DB_URI is intentionally unset: the master falls back
+  # to a JSON file inside the container (fine for a demo, wiped with it).
   chain-master:
     <<: *app
     working_dir: /app/apps/torachain-cli

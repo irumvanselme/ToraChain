@@ -1,7 +1,9 @@
 # Blockchain Network
 
-A CLI-first, per-election blockchain that records votes on a **pBFT**-validated,
-append-only ledger. Transport is **Google Cloud Pub/Sub**.
+A CLI-first, per-election blockchain that records votes on an append-only
+ledger. Transport is **Google Cloud Pub/Sub**, in a simple **publisher /
+subscriber** model: the master publishes committed blocks, workers subscribe
+and only receive.
 
 > **Code:** [`apps/torachain-cli`](../apps/torachain-cli) · core chain logic in
 > `src/blockchain/`. Pub/Sub contracts live in
@@ -10,28 +12,32 @@ append-only ledger. Transport is **Google Cloud Pub/Sub**.
 
 ## Roles
 
-| Role        | Runs                                                                           | Does                                                                                                                                                                          |
-| ----------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Master**  | Express API on `:7100` (`POST /api/vote`, `GET /api/chain`, `GET /api/status`) | Runs a pBFT round per vote, persists the block, publishes it to `NEW_BLOCK`. Requires ≥ 3 live subscribers. Persists to Postgres (`CHAIN_DB_URI`), JSON file fallback in dev. |
-| **Workers** | `:7101…` (anywhere)                                                            | Sync a chain over HTTP from the master, subscribe to `NEW_BLOCK` (filtered per election), re-hash blocks locally, reject mismatches. Store a pretty-printed JSON file.        |
+| Role        | Runs                                                                           | Does                                                                                                                                                                                               |
+| ----------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Master**  | Express API on `:7100` (`POST /api/vote`, `GET /api/chain`, `GET /api/status`) | On each vote, builds the next block, persists it, and **publishes** it to `NEW_BLOCK`. Persists to Postgres (`CHAIN_DB_URI`), JSON file fallback in dev.                                           |
+| **Workers** | `:7101…` (anywhere)                                                            | Sync a chain over HTTP from the master, **subscribe** to `NEW_BLOCK` (filtered per election), re-hash blocks locally, reject mismatches. Store a JSON file. Pure subscribers — they never publish. |
 
-## Consensus (pBFT)
+## How a block propagates
 
 ```mermaid
 sequenceDiagram
-    participant M as Master
-    participant W as Workers (n)
-    M->>W: VALIDATE_BLOCK (candidate)
-    W-->>M: BLOCK_VALIDATED (computed hash)
-    Note over M: require ⌈2n/3⌉ hashes matching its own
-    M->>W: NEW_BLOCK (accepted, tagged electionId)
+    participant M as Master (publisher)
+    participant P as Pub/Sub (NEW_BLOCK)
+    participant W as Workers (subscribers)
+    M->>M: build + persist block
+    M->>P: publish NEW_BLOCK (tagged electionId)
+    P-->>W: deliver to each worker's subscription
+    Note over W: re-hash locally, reject on mismatch, persist
 ```
 
-- **Presence** — workers heartbeat to `WORKER_PRESENCE` every 5s; the master
-  ages out nodes after 3 missed intervals. This backs the quorum check.
+- **Publisher / subscriber only** — there is no consensus round, quorum, or
+  presence tracking. The master is the single source of truth and publishes
+  every committed block; workers replicate what they receive.
 - **Hashing** — goes through `ElectionBlock` (`src/chain/hash-bridge.ts`) so
   master and workers always agree; hashes are lowercase hex (`"0"` for genesis).
+  A worker that computes a different hash for a received block rejects it.
 - **Per-election chains** — each election has its own genesis block and chain.
+  A worker filters its subscription to one election (or `all`).
 - **Block contents** — a block records only the voter's number and the ballot
   **commitment** (SHA-256 of the voter-sealed ciphertext) — never the
   plaintext choice, so the public chain leaks nothing about how anyone voted.

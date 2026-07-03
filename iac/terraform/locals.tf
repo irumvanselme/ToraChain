@@ -71,7 +71,7 @@ locals {
       image_name = "chain-node"
       port       = 8080
       subdomains = ["node"]
-      # Single master — pBFT requires exactly one coordinator.
+      # Single master — it is the sole publisher of committed blocks.
       min_instances = 0
       max_instances = 1
       cpu           = "1"

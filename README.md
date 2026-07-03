@@ -1,8 +1,9 @@
 # ToraChain
 
 A **blockchain-backed elections/voting system**, built as a Bun monorepo. Votes
-are cast through a REST API, recorded on a per-election blockchain validated by a
-pBFT node network, and independently auditable end to end.
+are cast through a REST API, recorded on a per-election blockchain replicated
+over a publisher/subscriber node network, and independently auditable end to
+end.
 
 > **Live demo:** https://tora-chain-demo.iansel.me · **Elections API docs:** https://api.tora-chain-demo.iansel.me/docs
 

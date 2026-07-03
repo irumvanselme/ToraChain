@@ -15,7 +15,7 @@ const FEATURES = [
     icon: ShieldCheck,
     title: "Blockchain-backed integrity",
     description:
-      "Every ballot is written to a distributed ledger secured by pBFT consensus across independent nodes, so results can't be quietly altered.",
+      "Every ballot is written to a distributed ledger across independent nodes, so results can't be quietly altered.",
   },
   {
     icon: SearchCheck,
@@ -39,7 +39,7 @@ const FEATURES = [
     icon: Activity,
     title: "Real-time & resilient",
     description:
-      "A network of consensus nodes keeps voting available and tallies updating live as ballots are cast, with no single point of failure.",
+      "A network of independent nodes replicates every ballot as it is cast, so the ledger stays available and tallies update live.",
   },
   {
     icon: Globe,

@@ -24,8 +24,8 @@ flowchart TB
     end
 
     subgraph "Blockchain (torachain-cli)"
-        master["Master<br/>pBFT coordinator + Express API"]
-        workers["Workers ×N<br/>validate & replicate"]
+        master["Master<br/>publisher + Express API"]
+        workers["Workers ×N<br/>subscribe & replicate"]
         pubsub{{"Google Cloud Pub/Sub"}}
     end
 
@@ -39,8 +39,8 @@ flowchart TB
     api -->|/core voter lookup| auth
     api -->|eligibility / enroll| ext
     api -->|POST /api/vote| master
-    master <-->|publish/subscribe| pubsub
-    pubsub <--> workers
+    master -->|publish NEW_BLOCK| pubsub
+    pubsub -->|subscribe| workers
 
     auth --- authdb
     api --- apidb
@@ -66,21 +66,20 @@ sequenceDiagram
     V->>B: cast vote (candidate)
     B->>B: record ballot
     B-)M: submitVote() (fire-and-forget)
-    M->>W: pBFT round (VALIDATE_BLOCK)
-    W-->>M: computed hashes (BLOCK_VALIDATED)
-    M->>W: publish accepted block (NEW_BLOCK)
-    Note over M,W: ⌈2n/3⌉ agreement required
+    M->>M: build + persist block
+    M->>W: publish block (NEW_BLOCK)
+    Note over M,W: workers re-hash locally, reject mismatches
 ```
 
 ## Design decisions
 
-| Choice                                           | Why                                                                                                                                                                                                    |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Separate auth service, 3 identity domains**    | Voters, admins, and auditors have different lifecycles and trust levels; table-prefix isolation keeps them independent while sharing one database and one codebase.                                    |
-| **Fire-and-forget vote submission to the chain** | The ballot is recorded synchronously in Postgres; chain replication is asynchronous so voter latency never depends on consensus. A `Null` chain client keeps tests and chain-less deployments working. |
-| **Per-election blockchain**                      | Each election is an isolated chain with its own genesis block, so one election's load or history never affects another.                                                                                |
-| **pBFT over Pub/Sub**                            | Byzantine fault tolerance gives auditable integrity without proof-of-work cost; Pub/Sub decouples the master from workers so nodes can run anywhere.                                                   |
-| **External eligibility API**                     | Real voter registries are owned by third parties; delegating eligibility via a documented HTTP contract keeps ToraChain registry-agnostic.                                                             |
+| Choice                                           | Why                                                                                                                                                                                                                                 |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Separate auth service, 3 identity domains**    | Voters, admins, and auditors have different lifecycles and trust levels; table-prefix isolation keeps them independent while sharing one database and one codebase.                                                                 |
+| **Fire-and-forget vote submission to the chain** | The ballot is recorded synchronously in Postgres; chain replication is asynchronous so voter latency never depends on the chain. A `Null` chain client keeps tests and chain-less deployments working.                              |
+| **Per-election blockchain**                      | Each election is an isolated chain with its own genesis block, so one election's load or history never affects another.                                                                                                             |
+| **Publisher / subscriber over Pub/Sub**          | The master is the single publisher of committed blocks; workers subscribe and replicate. Pub/Sub decouples the master from workers so nodes can run anywhere, and each worker re-hashes received blocks so tampering is detectable. |
+| **External eligibility API**                     | Real voter registries are owned by third parties; delegating eligibility via a documented HTTP contract keeps ToraChain registry-agnostic.                                                                                          |
 
 ## Where the code lives
 
@@ -89,6 +88,6 @@ sequenceDiagram
 | Identity & sessions | `apps/auth`                                           | [auth.md](auth.md)                     |
 | Elections / votes   | `apps/backend`                                        | [backend.md](backend.md)               |
 | User interfaces     | `apps/admin-fe`, `apps/voting-fe`, `apps/auditing-fe` | [frontends.md](frontends.md)           |
-| Consensus & ledger  | `apps/torachain-cli`                                  | [blockchain.md](blockchain.md)         |
+| Chain & ledger      | `apps/torachain-cli`                                  | [blockchain.md](blockchain.md)         |
 | Data model          | Drizzle `model.ts` per module                         | [erd.md](erd.md)                       |
 | Deploy / infra      | `iac/`                                                | [infrastructure.md](infrastructure.md) |

@@ -12,7 +12,7 @@
 | Validation              | **Zod** + Elysia `t`                                        | all backends               |
 | Admin frontend          | **React 19 + Vite**, Tailwind CSS v4, DaisyUI               | `admin-fe`                 |
 | Voter/Auditor frontends | **Next.js (App Router) + React 19**                         | `voting-fe`, `auditing-fe` |
-| Blockchain node         | **Express** + custom pBFT + `@google-cloud/pubsub`          | `torachain-cli`            |
+| Blockchain node         | **Express** + `@google-cloud/pubsub` (publisher/subscriber) | `torachain-cli`            |
 | Messaging               | **Google Cloud Pub/Sub** (emulator locally)                 | chain network              |
 | Logging                 | **pino**                                                    | `be-common`                |
 | Testing                 | **Vitest** (unit + integration)                             | all workspaces             |
@@ -42,9 +42,10 @@ the data model stays isolated and independently migratable.
 a session-gated SPA where a lightweight Vite build shines; the public-facing
 voter and auditor apps benefit from Next.js routing/SSR conventions.
 
-**Custom pBFT over Pub/Sub** — Byzantine fault tolerance provides tamper-evident
-vote integrity without proof-of-work energy cost, and Pub/Sub decouples the
-master coordinator from workers so nodes can join from anywhere.
+**Publisher/subscriber over Pub/Sub** — the master publishes each committed
+block and workers subscribe and replicate. Every worker re-hashes the blocks it
+receives, so tampering is detectable, and Pub/Sub decouples the master from
+workers so nodes can join from anywhere.
 
 **Shared packages** — `configs` (URLs/env), `be-common` (logging/db), `fe-common`
 (auth React utils), `ui-components` (DaisyUI atoms), and `specs` (Pub/Sub

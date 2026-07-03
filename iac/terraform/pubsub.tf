@@ -1,49 +1,15 @@
-# Pub/Sub backbone for the torachain-cli network (replaces the old
-# socket.io transport). Topic and fixed-subscription names must match
-# packages/specs/src/network.ts (TOPICS / MASTER_SUBSCRIPTIONS) — nodes also
-# create these on demand if missing, so a mismatch here just means falling
-# back to auto-creation with looser IAM than intended.
+# Pub/Sub backbone for the torachain-cli network. The master publishes every
+# committed block to a single shared topic tagged with an `electionId`
+# attribute; workers create their own subscription and only receive. The topic
+# name must match packages/specs/src/network.ts (TOPICS.NEW_BLOCK) — nodes also
+# create it on demand if missing, so a mismatch here just means falling back to
+# auto-creation with looser IAM than intended.
 
-locals {
-  chain_topics = {
-    new_block       = "torachain-new-block"
-    validate_block  = "torachain-validate-block"
-    block_validated = "torachain-block-validated"
-    worker_presence = "torachain-worker-presence"
-  }
-}
-
-resource "google_pubsub_topic" "chain" {
-  for_each = local.chain_topics
-
+resource "google_pubsub_topic" "new_block" {
   project = var.project_id
-  name    = each.value
+  name    = "torachain-new-block"
 
   depends_on = [google_project_service.apis]
-}
-
-# Master's two fixed, singleton subscriptions — provisioned ahead of time so
-# the master service account only needs subscriber rights on these specific
-# subscriptions, not the broader topic-level subscriber role workers need in
-# order to create their own.
-resource "google_pubsub_subscription" "block_validated_master" {
-  project = var.project_id
-  name    = "torachain-block-validated-master"
-  topic   = google_pubsub_topic.chain["block_validated"].id
-
-  expiration_policy {
-    ttl = "" # never expire — this is permanent infra, not an ephemeral worker
-  }
-}
-
-resource "google_pubsub_subscription" "worker_presence_master" {
-  project = var.project_id
-  name    = "torachain-worker-presence-master"
-  topic   = google_pubsub_topic.chain["worker_presence"].id
-
-  expiration_policy {
-    ttl = "" # never expire
-  }
 }
 
 # ── Service accounts ─────────────────────────────────────────────────────────
@@ -77,12 +43,10 @@ resource "google_service_account" "chain_worker" {
 
 # ── IAM ───────────────────────────────────────────────────────────────────────
 
-# Master publishes candidate blocks (pBFT) and committed blocks (publish).
+# Master publishes committed blocks to the shared topic.
 resource "google_pubsub_topic_iam_member" "master_publisher" {
-  for_each = toset(["new_block", "validate_block"])
-
   project = var.project_id
-  topic   = google_pubsub_topic.chain[each.value].name
+  topic   = google_pubsub_topic.new_block.name
   role    = "roles/pubsub.publisher"
   member  = "serviceAccount:${google_service_account.chain_master.email}"
 }
@@ -96,40 +60,14 @@ resource "google_project_iam_member" "master_pubsub_viewer" {
   member  = "serviceAccount:${google_service_account.chain_master.email}"
 }
 
-# Master consumes validation responses and presence heartbeats from its own
-# fixed subscriptions above.
-resource "google_pubsub_subscription_iam_member" "master_subscriber" {
-  for_each = {
-    block_validated = google_pubsub_subscription.block_validated_master.name
-    worker_presence = google_pubsub_subscription.worker_presence_master.name
-  }
-
-  project      = var.project_id
-  subscription = each.value
-  role         = "roles/pubsub.subscriber"
-  member       = "serviceAccount:${google_service_account.chain_master.email}"
-}
-
-# Workers subscribe to new_block/validate_block — granted at the topic level
-# (rather than on a fixed subscription) because each worker creates its own
-# subscription on startup so it gets an independent copy of the stream.
+# Workers subscribe to new_block — granted at the topic level (rather than on a
+# fixed subscription) because each worker creates its own subscription on
+# startup so it gets an independent copy of the stream.
 # roles/pubsub.subscriber includes subscriptions.create + attachSubscription,
-# scoped to just these two topics.
+# scoped to just this topic.
 resource "google_pubsub_topic_iam_member" "worker_subscriber" {
-  for_each = toset(["new_block", "validate_block"])
-
   project = var.project_id
-  topic   = google_pubsub_topic.chain[each.value].name
+  topic   = google_pubsub_topic.new_block.name
   role    = "roles/pubsub.subscriber"
-  member  = "serviceAccount:${google_service_account.chain_worker.email}"
-}
-
-# Workers publish their validation responses and liveness heartbeats.
-resource "google_pubsub_topic_iam_member" "worker_publisher" {
-  for_each = toset(["block_validated", "worker_presence"])
-
-  project = var.project_id
-  topic   = google_pubsub_topic.chain[each.value].name
-  role    = "roles/pubsub.publisher"
   member  = "serviceAccount:${google_service_account.chain_worker.email}"
 }

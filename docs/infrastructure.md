@@ -22,29 +22,29 @@ flowchart TB
     end
 
     ar["Artifact Registry<br/>(container images)"]
-    psub{{"Pub/Sub topics<br/>NEW_BLOCK / VALIDATE_BLOCK / ..."}}
+    psub{{"Pub/Sub topic<br/>NEW_BLOCK"}}
     workers["Chain workers<br/>(anywhere: VM / local)"]
 
     users --> lb --> admincr & votingcr & auditcr & authcr & apicr & nodecr & votersdb
     ar -.image.-> admincr & votingcr & auditcr & authcr & apicr & nodecr
-    nodecr <--> psub <--> workers
+    nodecr -->|publish| psub -->|subscribe| workers
 ```
 
 ## What Terraform manages
 
 Files in [`iac/terraform`](../iac/terraform):
 
-| File                                | Responsibility                                                                |
-| ----------------------------------- | ----------------------------------------------------------------------------- |
-| `apis.tf`                           | Enable required GCP APIs                                                      |
-| `artifact_registry.tf`              | Docker image registry                                                         |
-| `cloud_run.tf`                      | One Cloud Run v2 service per app (`for_each` over `locals.services`)          |
-| `load_balancer.tf`                  | Global HTTPS LB + host-based routing                                          |
-| `dns.tf`                            | `*.tora-chain-demo.iansel.me` records + managed certs                         |
-| `pubsub.tf`                         | Chain topics/subscriptions + `chain_master` / `chain_worker` service accounts |
-| `locals.tf`                         | Service catalog: image, port, subdomains, scaling, env                        |
-| `variables.tf` / `terraform.tfvars` | Project id, region, image tags, secrets                                       |
-| `outputs.tf`                        | Service URLs, worker SA for key generation                                    |
+| File                                | Responsibility                                                       |
+| ----------------------------------- | -------------------------------------------------------------------- |
+| `apis.tf`                           | Enable required GCP APIs                                             |
+| `artifact_registry.tf`              | Docker image registry                                                |
+| `cloud_run.tf`                      | One Cloud Run v2 service per app (`for_each` over `locals.services`) |
+| `load_balancer.tf`                  | Global HTTPS LB + host-based routing                                 |
+| `dns.tf`                            | `*.tora-chain-demo.iansel.me` records + managed certs                |
+| `pubsub.tf`                         | `NEW_BLOCK` topic + `chain_master` / `chain_worker` service accounts |
+| `locals.tf`                         | Service catalog: image, port, subdomains, scaling, env               |
+| `variables.tf` / `terraform.tfvars` | Project id, region, image tags, secrets                              |
+| `outputs.tf`                        | Service URLs, worker SA for key generation                           |
 
 Each service maps to a subdomain of `tora-chain-demo.iansel.me` (`admin`,
 `voting`/root, `auditing`, `idp`, `api`, `node`) via the load balancer's
@@ -54,9 +54,9 @@ host rules, derived automatically from `locals.tf`.
 
 - **Scale to zero** (`min_instances = 0`) keeps idle demo cost near nothing;
   CPU bursts during requests (`cpu_idle = true`).
-- **Single chain master** (`max_instances = 1`) because pBFT needs exactly one
-  coordinator; **workers run outside Cloud Run** and join via Pub/Sub with a
-  `chain_worker` service-account key.
+- **Single chain master** (`max_instances = 1`) because it is the sole
+  publisher of committed blocks; **workers run outside Cloud Run** and
+  subscribe via Pub/Sub with a `chain_worker` service-account key.
 - **Secrets are injected per service** as Cloud Run env vars from Terraform
   variables (`BETTER_AUTH_SECRET`, `*_DB_URI`, `ELIGIBILITY_API_KEY`), never
   committed.

@@ -1,33 +1,29 @@
 import express from "express";
 import { randomUUID } from "node:crypto";
-import type { Message, Subscription, Topic } from "@google-cloud/pubsub";
+import type { Message, Subscription } from "@google-cloud/pubsub";
 import {
   ALL_ELECTIONS,
   TOPICS,
   newBlockFilter,
   type SerializedBlock,
-  type ValidateBlockPayload,
   type NewBlockPayload,
-  type WorkerPresencePayload,
 } from "@tora-chain/specs";
 import { JsonBlockStore } from "../storage/json-store.ts";
 import { hexToBigInt, computeBlockHash } from "../chain/hash-bridge.ts";
 import { serveViewer } from "../web/viewer.ts";
 import { ensureTopic, ensureSubscription } from "../pubsub/client.ts";
 
-const HEARTBEAT_INTERVAL_MS = 5_000;
 const MASTER_RETRY_DELAY_MS = 2_000;
 
+// A worker is a pure subscriber: it syncs the existing chain from the master
+// over HTTP, then subscribes to NEW_BLOCK and only receives. It re-hashes each
+// block locally and rejects mismatches, but never publishes anything back.
 export class WorkerNode {
   readonly nodeId: string;
   private readonly store: JsonBlockStore;
   private connected = false;
 
-  private blockValidatedTopic!: Topic;
-  private presenceTopic!: Topic;
   private newBlockSub!: Subscription;
-  private validateBlockSub!: Subscription;
-  private heartbeat!: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly port: number,
@@ -49,18 +45,13 @@ export class WorkerNode {
 
     await this.syncFromMaster();
     await this.connectPubSub();
-    this.startHeartbeat();
     this.connected = true;
 
     console.log(`[worker] ${this.nodeId} ready`);
   }
 
   async stop(): Promise<void> {
-    clearInterval(this.heartbeat);
-    await Promise.allSettled([
-      this.newBlockSub?.delete(),
-      this.validateBlockSub?.delete(),
-    ]);
+    await Promise.allSettled([this.newBlockSub?.delete()]);
   }
 
   // Local viewer so anyone running a node can watch the chain in a browser.
@@ -119,9 +110,6 @@ export class WorkerNode {
 
   private async connectPubSub(): Promise<void> {
     const newBlockTopic = await ensureTopic(TOPICS.NEW_BLOCK);
-    const validateBlockTopic = await ensureTopic(TOPICS.VALIDATE_BLOCK);
-    this.blockValidatedTopic = await ensureTopic(TOPICS.BLOCK_VALIDATED);
-    this.presenceTopic = await ensureTopic(TOPICS.WORKER_PRESENCE);
 
     this.newBlockSub = await ensureSubscription(
       newBlockTopic,
@@ -138,51 +126,9 @@ export class WorkerNode {
         err,
       ),
     );
-
-    // pBFT: validate every election's candidate blocks, not just the one
-    // this worker is subscribed to — no filter.
-    this.validateBlockSub = await ensureSubscription(
-      validateBlockTopic,
-      `${TOPICS.VALIDATE_BLOCK}-worker-${this.nodeId}`,
-    );
-    this.validateBlockSub.on("message", (message: Message) => {
-      const payload = JSON.parse(
-        message.data.toString(),
-      ) as ValidateBlockPayload;
-      this.handleValidate(payload);
-      message.ack();
-    });
-    this.validateBlockSub.on("error", (err) =>
-      console.error(
-        `[worker] ${this.nodeId} validate-block subscription error:`,
-        err,
-      ),
-    );
   }
 
-  // Pub/Sub has no notion of a live connection, so presence is a heartbeat
-  // the master ages out if it stops hearing from this node.
-  private startHeartbeat(): void {
-    const beat = () => {
-      const payload: WorkerPresencePayload = {
-        nodeId: this.nodeId,
-        electionId: this.electionId,
-        port: this.port,
-      };
-      void this.presenceTopic
-        .publishMessage({ json: payload })
-        .catch((err) =>
-          console.error(
-            `[worker] ${this.nodeId} failed to publish heartbeat:`,
-            err,
-          ),
-        );
-    };
-    beat();
-    this.heartbeat = setInterval(beat, HEARTBEAT_INTERVAL_MS);
-  }
-
-  private expectedHash(block: ValidateBlockPayload): string {
+  private expectedHash(block: SerializedBlock): string {
     return computeBlockHash(
       block.index,
       BigInt(block.data.voter),
@@ -224,23 +170,6 @@ export class WorkerNode {
     console.log(
       `[worker] ${this.nodeId} chain ready: ${await this.store.count()} blocks`,
     );
-  }
-
-  // pBFT: respond with the hash this node computes for the candidate block.
-  private handleValidate(payload: ValidateBlockPayload): void {
-    console.log(`[worker] ${this.nodeId} validating block ${payload.index}`);
-
-    try {
-      const hash = this.expectedHash(payload);
-      void this.blockValidatedTopic.publishMessage({
-        json: { nodeId: this.nodeId, hash, index: payload.index },
-      });
-      console.log(
-        `[worker] ${this.nodeId} responded hash=${hash.slice(0, 12)}…`,
-      );
-    } catch (err) {
-      console.error(`[worker] ${this.nodeId} failed to validate block:`, err);
-    }
   }
 
   // Published block received from the subscription: verify, then persist.

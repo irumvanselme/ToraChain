@@ -39,7 +39,7 @@ This starts:
 | `backend`          | Elections API (migrated on boot; OpenAPI `/docs`) | http://api.localhost:8000      |
 | `example-voters`   | Example external eligibility provider (seeded)    | http://localhost:3003          |
 | `chain-master`     | Blockchain master node + chain viewer             | http://localhost:7100          |
-| `chain-worker-1…3` | Blockchain validator nodes (pBFT quorum)          | http://localhost:7101–7103     |
+| `chain-worker-1…3` | Blockchain subscriber nodes (replicate the chain) | http://localhost:7101–7103     |
 | `auth-db`          | Postgres for the auth service                     | internal                       |
 | `elections-db`     | Postgres for the elections API                    | internal                       |
 | `pubsub-emulator`  | Google Cloud Pub/Sub emulator (chain transport)   | internal                       |

@@ -163,17 +163,17 @@
         extra.hidden = false;
         extra.innerHTML =
           s.role === "master"
-            ? `subscribers <b>${s.connectedNodes}</b>`
+            ? `mode <b>publisher</b>`
             : `subscribed to <b>${s.electionId}</b>`;
 
         const health = document.getElementById("health");
-        const up = s.role === "master" ? s.ready : s.connected;
+        // The master is up whenever /api/status responds; a worker also needs
+        // to have reached the master to be considered online.
+        const up = s.role === "master" ? true : s.connected;
         health.className = "chip " + (up ? "ok" : "bad");
         health.innerHTML = up
           ? "<b>● online</b>"
-          : s.role === "master"
-            ? "<b>● waiting for subscribers</b>"
-            : "<b>● master unreachable</b>";
+          : "<b>● master unreachable</b>";
       }
 
       function renderChain(blocks) {

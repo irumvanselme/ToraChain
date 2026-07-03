@@ -67,7 +67,14 @@ function OrgGate({ children }: { children: ReactNode }) {
  */
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider config={{ authApi: AUTH_API, loginUrl, tokenKey: USER_TYPE }}>
+    <AuthProvider
+      config={{
+        authApi: AUTH_API,
+        loginUrl,
+        tokenKey: USER_TYPE,
+        tokenEndpoint: `${AUTH_API}/token`,
+      }}
+    >
       <RequireAuth>
         <AuditProvider>
           <OrgGate>{children}</OrgGate>

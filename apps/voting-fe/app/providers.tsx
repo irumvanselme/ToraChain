@@ -15,7 +15,14 @@ import { AUTH_API, USER_TYPE, loginUrl } from "./lib/config.ts";
  */
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider config={{ authApi: AUTH_API, loginUrl, tokenKey: USER_TYPE }}>
+    <AuthProvider
+      config={{
+        authApi: AUTH_API,
+        loginUrl,
+        tokenKey: USER_TYPE,
+        tokenEndpoint: `${AUTH_API}/token`,
+      }}
+    >
       {children}
     </AuthProvider>
   );

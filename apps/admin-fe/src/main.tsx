@@ -9,7 +9,12 @@ import "./index.css";
 import { AUTH_API, USER_TYPE, loginUrl } from "lib/config";
 import { router } from "./router";
 
-const authConfig = { authApi: AUTH_API, loginUrl, tokenKey: USER_TYPE };
+const authConfig = {
+  authApi: AUTH_API,
+  loginUrl,
+  tokenKey: USER_TYPE,
+  tokenEndpoint: `${AUTH_API}/token`,
+};
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

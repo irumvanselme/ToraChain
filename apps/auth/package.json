@@ -16,13 +16,13 @@
     "health-check": "bun run scripts/health-check.ts",
     "create-admin": "bun run scripts/create-admin.ts",
     "gen:logos": "bun run scripts/gen-logos.ts",
-    "generate:voters": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest generate --config app/auth/voters.ts --output migrations/voters.sql -y",
-    "generate:admins": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest generate --config app/auth/admins.ts --output migrations/admins.sql -y",
-    "generate:auditors": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest generate --config app/auth/auditors.ts --output migrations/auditors.sql -y",
+    "generate:voters": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx better-auth generate --config app/auth/voters.ts --output migrations/voters.sql -y",
+    "generate:admins": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx better-auth generate --config app/auth/admins.ts --output migrations/admins.sql -y",
+    "generate:auditors": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx better-auth generate --config app/auth/auditors.ts --output migrations/auditors.sql -y",
     "generate:all": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bun run generate:voters && bun run generate:admins && bun run generate:auditors",
-    "migrate:voters": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest migrate --config app/auth/voters.ts -y",
-    "migrate:admins": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest migrate --config app/auth/admins.ts -y",
-    "migrate:auditors": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx @better-auth/cli@latest migrate --config app/auth/auditors.ts -y",
+    "migrate:voters": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx better-auth migrate --config app/auth/voters.ts -y",
+    "migrate:admins": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx better-auth migrate --config app/auth/admins.ts -y",
+    "migrate:auditors": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx better-auth migrate --config app/auth/auditors.ts -y",
     "migrate:core": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bun run scripts/migrate-core.ts",
     "migrate:all": "bun run migrate:voters && bun run migrate:admins && bun run migrate:auditors && bun run migrate:core"
   },
@@ -39,6 +39,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@better-auth/cli": "^1.4.21",
     "@eslint/js": "^10.0.1",
     "@types/bun": "latest",
     "@types/pg": "^8.20.0",

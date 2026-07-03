@@ -1,4 +1,11 @@
-import { index, numeric, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  index,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { candidates } from "../candidates/model.ts";
 import { elections } from "../elections/model.ts";
@@ -26,6 +33,12 @@ export const votes = pgTable(
       precision: 78,
       scale: 0,
     }).notNull(),
+    // Vote-verification receipt data (nullable — legacy/non-encrypting clients
+    // omit them). `ciphertext` is the voter's AES-GCM encrypted ballot record
+    // (base64); `commitment` is its SHA-256 hex, also anchored on-chain. The
+    // AES key never reaches the server, so only the voter can open the ciphertext.
+    ciphertext: text("ciphertext"),
+    commitment: text("commitment"),
     castAt: timestamp("cast_at", { withTimezone: true, mode: "date" })
       .notNull()
       .defaultNow(),

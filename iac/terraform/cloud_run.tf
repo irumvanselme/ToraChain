@@ -12,6 +12,11 @@ resource "google_cloud_run_v2_service" "services" {
   ingress = "INGRESS_TRAFFIC_ALL"
 
   template {
+    # The chain_node (torachain-cli master) service publishes/consumes
+    # Pub/Sub via this dedicated SA instead of the default compute SA — see
+    # iac/terraform/pubsub.tf for the topic/subscription IAM bindings.
+    service_account = each.key == "chain_node" ? google_service_account.chain_master.email : null
+
     scaling {
       min_instance_count = each.value.min_instances
       max_instance_count = each.value.max_instances

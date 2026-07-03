@@ -29,3 +29,12 @@ output "domain_map" {
   description = "Custom hostname → service mapping deployed by this workspace"
   value       = local.host_to_svc
 }
+
+output "chain_worker_service_account" {
+  description = <<-EOT
+    Email of the service account to generate worker-node keys from:
+      gcloud iam service-accounts keys create key.json --iam-account=<this>
+    Distribute the resulting key.json to whoever runs a torachain-cli worker.
+  EOT
+  value       = google_service_account.chain_worker.email
+}

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { AppError } from "../common/errors.ts";
 import type { CandidatesRepository } from "../candidates/repository.ts";
 import type { ElectionStatus } from "../elections/model.ts";
@@ -20,12 +22,32 @@ export interface BallotState {
 
 export interface CastBallotInput {
   candidateId: string;
+  // Vote-verification receipt data, produced client-side. Optional so legacy /
+  // non-encrypting clients keep working. When present they are stored and the
+  // commitment (not the candidate) is anchored on-chain.
+  ciphertext?: string;
+  commitment?: string;
 }
 
 export interface CastBallotResult {
   accepted: true;
   votingNumber: string;
   castAt: string;
+}
+
+export interface VerifyResult {
+  votingNumber: string;
+  /** The candidate that was actually recorded/counted (plaintext). */
+  countedCandidateId: string;
+  /** The voter's encrypted ballot record; null for pre-verification votes. */
+  ciphertext: string | null;
+  commitment: string | null;
+  castAt: string;
+}
+
+/** SHA-256 hex of a string, matching the client's commitment computation. */
+function sha256Hex(input: string): string {
+  return createHash("sha256").update(input).digest("hex");
 }
 
 export class VotesService {

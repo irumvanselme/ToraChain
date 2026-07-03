@@ -10,8 +10,8 @@ describe("ElectionBlock", () => {
       // GIVEN
       const index = 1;
       const voter = randomBigInt(8);
-      const candidate = randomBigInt(8);
-      const data = new ElectionsBlockData(voter, candidate);
+      const commitment = randomBigInt(8).toString(16);
+      const data = new ElectionsBlockData(voter, commitment);
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
 
@@ -28,7 +28,7 @@ describe("ElectionBlock", () => {
     test("should create blocks with various index values", () => {
       // GIVEN different indices
       const indices = [0, 1, 100, 999999];
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
 
@@ -46,10 +46,10 @@ describe("ElectionBlock", () => {
       // GIVEN extreme bigint values
       const index = 1;
       const extremeLargeVoter = BigInt("999999999999999999999999999999");
-      const extremeLargeCandidate = BigInt("888888888888888888888888888888");
+      const extremeLargeCommitment = "888888888888888888888888888888";
       const data = new ElectionsBlockData(
         extremeLargeVoter,
-        extremeLargeCandidate,
+        extremeLargeCommitment,
       );
       const timestamp = 0; // Unix epoch
       const prevHash = BigInt(0);
@@ -65,7 +65,7 @@ describe("ElectionBlock", () => {
     test("should create blocks with zero timestamp", () => {
       // GIVEN
       const index = 1;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = 0;
       const prevHash = randomBigInt(16);
 
@@ -80,7 +80,7 @@ describe("ElectionBlock", () => {
     test("should create blocks with zero hashOfPreviousBlock", () => {
       // GIVEN
       const index = 0; // Genesis block scenario
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = BigInt(0);
 
@@ -98,8 +98,8 @@ describe("ElectionBlock", () => {
       // GIVEN identical inputs
       const index = 1;
       const voter = randomBigInt(10);
-      const candidate = randomBigInt(10);
-      const data = new ElectionsBlockData(voter, candidate);
+      const commitment = randomBigInt(10).toString(16);
+      const data = new ElectionsBlockData(voter, commitment);
       const timestamp = 1625097600000;
       const prevHash = randomBigInt(20);
 
@@ -114,8 +114,8 @@ describe("ElectionBlock", () => {
     test("should generate different hashes for different indices", () => {
       // GIVEN
       const voter = randomBigInt(8);
-      const candidate = randomBigInt(8);
-      const data = new ElectionsBlockData(voter, candidate);
+      const commitment = randomBigInt(8).toString(16);
+      const data = new ElectionsBlockData(voter, commitment);
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
 
@@ -130,8 +130,8 @@ describe("ElectionBlock", () => {
     test("should generate different hashes for different data", () => {
       // GIVEN
       const index = 1;
-      const data1 = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
-      const data2 = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data1 = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
+      const data2 = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
 
@@ -146,7 +146,7 @@ describe("ElectionBlock", () => {
     test("should generate different hashes for different timestamps", () => {
       // GIVEN
       const index = 1;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const prevHash = randomBigInt(16);
 
       // WHEN
@@ -160,7 +160,7 @@ describe("ElectionBlock", () => {
     test("should generate different hashes for different previous block hashes", () => {
       // GIVEN
       const index = 1;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
 
       // WHEN
@@ -174,7 +174,7 @@ describe("ElectionBlock", () => {
     test("hash should be accessible via getter", () => {
       // GIVEN
       const index = 1;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
 
@@ -193,8 +193,8 @@ describe("ElectionBlock", () => {
       // GIVEN
       const index = 1;
       const voter = randomBigInt(8);
-      const candidate = randomBigInt(8);
-      const data = new ElectionsBlockData(voter, candidate);
+      const commitment = randomBigInt(8).toString(16);
+      const data = new ElectionsBlockData(voter, commitment);
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
 
@@ -208,7 +208,7 @@ describe("ElectionBlock", () => {
     test("block with tampered index should fail validation", () => {
       // GIVEN a valid block
       const index = 2;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
       const block = new ElectionBlock(index, data, timestamp, prevHash);
@@ -226,7 +226,7 @@ describe("ElectionBlock", () => {
     test("block with tampered timestamp should fail validation", () => {
       // GIVEN a valid block
       const index = 2;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
       const block = new ElectionBlock(index, data, timestamp, prevHash);
@@ -244,7 +244,7 @@ describe("ElectionBlock", () => {
     test("block with tampered previous hash should fail validation", () => {
       // GIVEN a valid block
       const index = 2;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
       const block = new ElectionBlock(index, data, timestamp, prevHash);
@@ -262,7 +262,7 @@ describe("ElectionBlock", () => {
     test("block with tampered data should fail validation", () => {
       // GIVEN a valid block
       const index = 2;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
       const block = new ElectionBlock(index, data, timestamp, prevHash);
@@ -271,7 +271,7 @@ describe("ElectionBlock", () => {
 
       // WHEN we tamper with the data
       // @ts-ignore - intentionally mutate private property for testing
-      block.data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      block.data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
 
       // THEN the block should fail validation
       expect(block.IsValid()).toBe(false);
@@ -280,7 +280,7 @@ describe("ElectionBlock", () => {
     test("block with all fields tampered should fail validation", () => {
       // GIVEN a valid block
       const index = 3;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = 100;
       const prevHash = randomBigInt(12);
       const block = new ElectionBlock(index, data, timestamp, prevHash);
@@ -303,8 +303,8 @@ describe("ElectionBlock", () => {
       // GIVEN
       const index = 3;
       const voter = randomBigInt(6);
-      const candidate = randomBigInt(6);
-      const data = new ElectionsBlockData(voter, candidate);
+      const commitment = randomBigInt(6).toString(16);
+      const data = new ElectionsBlockData(voter, commitment);
       const timestamp = 100;
       const prevHash = randomBigInt(12);
 
@@ -317,7 +317,7 @@ describe("ElectionBlock", () => {
         index: index,
         data: {
           voter: voter.toString(),
-          candidate: candidate.toString(),
+          commitment: commitment,
         },
         timestamp: timestamp,
         hashOfPreviousBlock: prevHash.toString(),
@@ -328,8 +328,8 @@ describe("ElectionBlock", () => {
       // GIVEN
       const index = 1;
       const voter = BigInt("12345678901234567890");
-      const candidate = BigInt("98765432109876543210");
-      const data = new ElectionsBlockData(voter, candidate);
+      const commitment = "98765432109876543210";
+      const data = new ElectionsBlockData(voter, commitment);
       const timestamp = 1625097600000;
       const prevHash = BigInt("111222333444555666777");
 
@@ -339,17 +339,17 @@ describe("ElectionBlock", () => {
 
       // THEN
       expect(typeof json.data.voter).toBe("string");
-      expect(typeof json.data.candidate).toBe("string");
+      expect(typeof json.data.commitment).toBe("string");
       expect(typeof json.hashOfPreviousBlock).toBe("string");
       expect(json.data.voter).toBe("12345678901234567890");
-      expect(json.data.candidate).toBe("98765432109876543210");
+      expect(json.data.commitment).toBe("98765432109876543210");
       expect(json.hashOfPreviousBlock).toBe("111222333444555666777");
     });
 
     test("toJSON should return consistent structure across multiple calls", () => {
       // GIVEN
       const index = 2;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = Date.now();
       const prevHash = randomBigInt(16);
       const block = new ElectionBlock(index, data, timestamp, prevHash);
@@ -372,8 +372,8 @@ describe("ElectionBlock", () => {
       // GIVEN identical inputs
       const index = 4;
       const voter = randomBigInt(6);
-      const candidate = randomBigInt(6);
-      const data = new ElectionsBlockData(voter, candidate);
+      const commitment = randomBigInt(6).toString(16);
+      const data = new ElectionsBlockData(voter, commitment);
       const timestamp = Date.now();
       const prevHash = randomBigInt(8);
 
@@ -391,7 +391,7 @@ describe("ElectionBlock", () => {
     test("toJSON should have consistent key ordering", () => {
       // GIVEN
       const index = 5;
-      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+      const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
       const timestamp = 1234567890;
       const prevHash = randomBigInt(10);
 
@@ -416,7 +416,7 @@ describe("ElectionBlock", () => {
 
       // WHEN creating a small blockchain
       for (let i = 0; i < 3; i++) {
-        const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8));
+        const data = new ElectionsBlockData(randomBigInt(8), randomBigInt(8).toString(16));
         const block = new ElectionBlock(
           i,
           data,
@@ -444,8 +444,8 @@ describe("ElectionBlock", () => {
       // GIVEN
       const index = 7;
       const voter = randomBigInt(8);
-      const candidate = randomBigInt(8);
-      const data = new ElectionsBlockData(voter, candidate);
+      const commitment = randomBigInt(8).toString(16);
+      const data = new ElectionsBlockData(voter, commitment);
       const timestamp = 1625097600000;
       const prevHash = randomBigInt(16);
 
@@ -454,7 +454,7 @@ describe("ElectionBlock", () => {
       const json = originalBlock.toJSON();
 
       // WHEN recreating from extracted data
-      const recreatedData = new ElectionsBlockData(voter, candidate);
+      const recreatedData = new ElectionsBlockData(voter, commitment);
       const recreatedBlock = new ElectionBlock(
         json.index,
         recreatedData,

@@ -4,7 +4,7 @@ import assert from "node:assert";
 
 interface ElectionBlockInput {
   voter: bigint;
-  candidate: bigint;
+  commitment: string;
 }
 
 export class BlockChain {
@@ -24,7 +24,7 @@ export class BlockChain {
     this.blocks.push(
       new ElectionBlock(
         this.blocks.length + 1,
-        new ElectionsBlockData(block.voter, block.candidate),
+        new ElectionsBlockData(block.voter, block.commitment),
         Date.now(),
         previousBlock.hash,
       ),
@@ -32,6 +32,6 @@ export class BlockChain {
   }
 
   static getGenesisBlock(election: bigint) {
-    return new ElectionBlock(0, new ElectionsBlockData(0n, 0n), Date.now(), 0n);
+    return new ElectionBlock(0, new ElectionsBlockData(0n, "0"), Date.now(), 0n);
   }
 }

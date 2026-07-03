@@ -4,6 +4,7 @@ locals {
     "compute.googleapis.com",
     "dns.googleapis.com",
     "artifactregistry.googleapis.com",
+    "pubsub.googleapis.com",
   ]
 }
 

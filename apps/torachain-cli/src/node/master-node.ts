@@ -1,21 +1,19 @@
 import express from "express";
 import { createServer } from "node:http";
-import { Server as SocketServer, type Socket } from "socket.io";
 import { EventEmitter } from "node:events";
 import { randomUUID } from "node:crypto";
+import type { Message, Subscription, Topic } from "@google-cloud/pubsub";
 import {
-  ALL_ELECTIONS,
-  electionTopic,
-  SOCKET_EVENTS,
+  TOPICS,
+  MASTER_SUBSCRIPTIONS,
   type SerializedBlock,
   type ValidateBlockPayload,
   type BlockValidatedPayload,
-  type SyncRequestPayload,
-  type ServerToClientEvents,
-  type ClientToServerEvents,
+  type WorkerPresencePayload,
 } from "@tora-chain/specs";
 import type { BlockStore } from "../storage/store.ts";
 import { runPbftRound } from "../consensus/pbft.ts";
+import { ensureTopic, ensureSubscription } from "../pubsub/client.ts";
 import {
   idToBigInt,
   hexToBigInt,
@@ -25,28 +23,35 @@ import { serveViewer } from "../web/viewer.ts";
 
 const MIN_NODES = 3;
 
+// A worker is considered live if we've heard a heartbeat within the last
+// three intervals; stale entries are swept out on the same cadence.
+const PRESENCE_HEARTBEAT_MS = 5_000;
+const PRESENCE_TTL_MS = PRESENCE_HEARTBEAT_MS * 3;
+
 interface VoteInput {
   electionId: string;
   votingNumber: string;
-  candidateId: string;
+  // SHA-256 hex commitment to the voter's encrypted ballot record. Anchored
+  // verbatim on-chain; opaque so it does not leak the (small) candidate set.
+  commitment: string;
 }
 
-interface Subscriber {
-  nodeId: string;
-  socketId: string;
-  electionId: string;
-  connectedAt: number;
-  port?: number;
+interface Subscriber extends WorkerPresencePayload {
+  lastSeenAt: number;
 }
 
 export class MasterNode {
   readonly nodeId: string;
   private readonly subscribers = new Map<string, Subscriber>();
 
-  // Internal bus: routes per-socket BLOCK_VALIDATED events into active rounds
+  // Internal bus: routes BLOCK_VALIDATED messages into active pBFT rounds
   private readonly validationBus = new EventEmitter();
-  private io: SocketServer<ClientToServerEvents, ServerToClientEvents> | null =
-    null;
+
+  private newBlockTopic!: Topic;
+  private validateBlockTopic!: Topic;
+  private blockValidatedSub!: Subscription;
+  private presenceSub!: Subscription;
+  private presenceSweep!: ReturnType<typeof setInterval>;
 
   // Consensus rounds run one at a time so concurrent votes for the same
   // election can't both build on the same latest block.
@@ -61,6 +66,7 @@ export class MasterNode {
 
   async start(): Promise<void> {
     await this.store.init();
+    await this.connectPubSub();
 
     const app = express();
     app.use(express.json());
@@ -70,12 +76,12 @@ export class MasterNode {
 
     app.post("/api/vote", async (req, res) => {
       const body = req.body as Partial<VoteInput>;
-      const { electionId, votingNumber, candidateId } = body;
+      const { electionId, votingNumber, commitment } = body;
 
-      if (!electionId || !votingNumber || !candidateId) {
+      if (!electionId || !votingNumber || !commitment) {
         res
           .status(400)
-          .json({ error: "Missing electionId, votingNumber, or candidateId" });
+          .json({ error: "Missing electionId, votingNumber, or commitment" });
         return;
       }
 
@@ -89,7 +95,7 @@ export class MasterNode {
 
       try {
         const block = await this.enqueue(() =>
-          this.runConsensus({ electionId, votingNumber, candidateId }),
+          this.runConsensus({ electionId, votingNumber, commitment }),
         );
         res
           .status(202)
@@ -107,16 +113,15 @@ export class MasterNode {
         connectedNodes: this.subscribers.size,
         blockCount: await this.store.count(),
         ready: this.subscribers.size >= MIN_NODES,
-        subscribers: Array.from(this.subscribers.values()).map((s) => ({
-          nodeId: s.nodeId,
-          electionId: s.electionId,
-          port: s.port,
-          connectedAt: s.connectedAt,
-        })),
+        subscribers: Array.from(this.subscribers.values()),
       });
     });
 
+    // Public, read-only chain export. CORS-open so a voter's browser can
+    // independently re-fetch the on-chain commitment when verifying a vote —
+    // the whole point of the chain is to be an untrusted-backend cross-check.
     app.get("/api/chain", async (req, res) => {
+      res.set("Access-Control-Allow-Origin", "*");
       const electionId = req.query["electionId"];
       res.json({
         blocks: await this.store.getAll(
@@ -125,17 +130,7 @@ export class MasterNode {
       });
     });
 
-    // ── Socket.io: pub/sub subscribers ────────────────────────────────────────
-
     const httpServer = createServer(app);
-    this.io = new SocketServer<ClientToServerEvents, ServerToClientEvents>(
-      httpServer,
-      { cors: { origin: "*" } },
-    );
-    this.io.on("connection", (socket) => {
-      this.handleSubscriber(socket);
-    });
-
     httpServer.listen(this.port, () => {
       console.log(`[master] ${this.nodeId} listening on :${this.port}`);
       console.log(
@@ -144,56 +139,89 @@ export class MasterNode {
     });
   }
 
-  private handleSubscriber(
-    socket: Socket<ClientToServerEvents, ServerToClientEvents>,
-  ): void {
-    const query = socket.handshake.query;
-    const nodeId = (query["nodeId"] as string | undefined) ?? randomUUID();
-    const port = parseInt((query["port"] as string | undefined) ?? "0", 10);
-    const electionId =
-      (query["electionId"] as string | undefined) ?? ALL_ELECTIONS;
-
-    socket.join(electionTopic(electionId));
-    this.subscribers.set(nodeId, {
-      nodeId,
-      socketId: socket.id,
-      electionId,
-      connectedAt: Date.now(),
-      port: port || undefined,
-    });
-
-    console.log(
-      `[master] Subscribed: ${nodeId} → ${electionTopic(electionId)} (${this.subscribers.size} nodes total)`,
-    );
-
-    socket.on(SOCKET_EVENTS.SYNC_REQUEST, async (_p: SyncRequestPayload) => {
-      const blocks = await this.store.getAll(
-        electionId === ALL_ELECTIONS ? undefined : electionId,
-      );
-      socket.emit(SOCKET_EVENTS.SYNC_RESPONSE, { blocks });
-    });
-
-    // Route validation responses into the active consensus round
-    socket.on(
-      SOCKET_EVENTS.BLOCK_VALIDATED,
-      (payload: BlockValidatedPayload) => {
-        this.validationBus.emit("validated", payload);
-      },
-    );
-
-    socket.on("disconnect", () => {
-      this.subscribers.delete(nodeId);
-      console.log(
-        `[master] Unsubscribed: ${nodeId} (${this.subscribers.size} nodes remaining)`,
-      );
-    });
+  async stop(): Promise<void> {
+    clearInterval(this.presenceSweep);
+    await Promise.allSettled([
+      this.blockValidatedSub?.close(),
+      this.presenceSub?.close(),
+    ]);
+    await this.store.close();
   }
 
-  // Publish a committed block to its election topic (and the firehose topic).
+  // ── Pub/Sub wiring ───────────────────────────────────────────────────────────
+
+  private async connectPubSub(): Promise<void> {
+    this.newBlockTopic = await ensureTopic(TOPICS.NEW_BLOCK);
+    this.validateBlockTopic = await ensureTopic(TOPICS.VALIDATE_BLOCK);
+    const blockValidatedTopic = await ensureTopic(TOPICS.BLOCK_VALIDATED);
+    const presenceTopic = await ensureTopic(TOPICS.WORKER_PRESENCE);
+
+    this.blockValidatedSub = await ensureSubscription(
+      blockValidatedTopic,
+      MASTER_SUBSCRIPTIONS.BLOCK_VALIDATED,
+      { neverExpire: true },
+    );
+    this.blockValidatedSub.on("message", (message: Message) => {
+      const payload = JSON.parse(
+        message.data.toString(),
+      ) as BlockValidatedPayload;
+      this.validationBus.emit("validated", payload);
+      message.ack();
+    });
+    this.blockValidatedSub.on("error", (err) =>
+      console.error("[master] block-validated subscription error:", err),
+    );
+
+    this.presenceSub = await ensureSubscription(
+      presenceTopic,
+      MASTER_SUBSCRIPTIONS.WORKER_PRESENCE,
+      { neverExpire: true },
+    );
+    this.presenceSub.on("message", (message: Message) => {
+      const payload = JSON.parse(
+        message.data.toString(),
+      ) as WorkerPresencePayload;
+      const isNew = !this.subscribers.has(payload.nodeId);
+      this.subscribers.set(payload.nodeId, {
+        ...payload,
+        lastSeenAt: Date.now(),
+      });
+      if (isNew) {
+        console.log(
+          `[master] Subscribed: ${payload.nodeId} → ${payload.electionId} (${this.subscribers.size} nodes total)`,
+        );
+      }
+      message.ack();
+    });
+    this.presenceSub.on("error", (err) =>
+      console.error("[master] presence subscription error:", err),
+    );
+
+    this.presenceSweep = setInterval(
+      () => this.pruneStaleSubscribers(),
+      PRESENCE_HEARTBEAT_MS,
+    );
+  }
+
+  private pruneStaleSubscribers(): void {
+    const cutoff = Date.now() - PRESENCE_TTL_MS;
+    for (const [nodeId, subscriber] of this.subscribers) {
+      if (subscriber.lastSeenAt < cutoff) {
+        this.subscribers.delete(nodeId);
+        console.log(
+          `[master] Unsubscribed: ${nodeId} (${this.subscribers.size} nodes remaining)`,
+        );
+      }
+    }
+  }
+
+  // Publish a committed block; the "electionId" attribute lets each worker's
+  // subscription filter for just the election it cares about.
   private publish(block: SerializedBlock): void {
-    this.io!.to(electionTopic(block.electionId))
-      .to(electionTopic(ALL_ELECTIONS))
-      .emit(SOCKET_EVENTS.NEW_BLOCK, block);
+    void this.newBlockTopic.publishMessage({
+      json: block,
+      attributes: { electionId: block.electionId },
+    });
   }
 
   private enqueue<T>(job: () => Promise<T>): Promise<T> {
@@ -212,7 +240,7 @@ export class MasterNode {
     const genesis: SerializedBlock = {
       index: 0,
       electionId,
-      data: { voter: "0", candidate: "0" },
+      data: { voter: "0", commitment: "0" },
       timestamp: Date.now(),
       prevHash: "0",
       hash: "0",
@@ -228,11 +256,10 @@ export class MasterNode {
     const timestamp = Date.now();
 
     const voterBigInt = idToBigInt(vote.votingNumber);
-    const candidateBigInt = idToBigInt(vote.candidateId);
     const hash = computeBlockHash(
       nextIndex,
       voterBigInt,
-      candidateBigInt,
+      vote.commitment,
       timestamp,
       hexToBigInt(latest.hash),
     ).toString(16);
@@ -242,7 +269,7 @@ export class MasterNode {
       electionId: vote.electionId,
       data: {
         voter: voterBigInt.toString(),
-        candidate: candidateBigInt.toString(),
+        commitment: vote.commitment,
       },
       timestamp,
       prevHash: latest.hash,
@@ -256,8 +283,9 @@ export class MasterNode {
     };
     this.validationBus.on("validated", handler);
 
-    // pBFT: every connected subscriber validates, regardless of topic
-    this.io!.emit(SOCKET_EVENTS.VALIDATE_BLOCK, candidate);
+    // pBFT: every live subscriber validates, regardless of the election it's
+    // subscribed to — consensus needs all available validators to weigh in.
+    await this.validateBlockTopic.publishMessage({ json: candidate });
 
     const result = await promise;
     this.validationBus.off("validated", handler);

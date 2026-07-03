@@ -22,13 +22,13 @@ export function hexToBigInt(hex: string): bigint {
 export function computeBlockHash(
   index: number,
   voterBigInt: bigint,
-  candidateBigInt: bigint,
+  commitment: string,
   timestamp: number,
   prevHashBigInt: bigint,
 ): bigint {
   const block = new ElectionBlock(
     index,
-    new ElectionsBlockData(voterBigInt, candidateBigInt),
+    new ElectionsBlockData(voterBigInt, commitment),
     timestamp,
     prevHashBigInt,
   );

@@ -83,12 +83,8 @@
           "name": "candidates_election_id_elections_election_id_fk",
           "tableFrom": "candidates",
           "tableTo": "elections",
-          "columnsFrom": [
-            "election_id"
-          ],
-          "columnsTo": [
-            "election_id"
-          ],
+          "columnsFrom": ["election_id"],
+          "columnsTo": ["election_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -98,9 +94,7 @@
         "candidates_candidate_number_unique": {
           "name": "candidates_candidate_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "candidate_number"
-          ]
+          "columns": ["candidate_number"]
         }
       },
       "policies": {},
@@ -201,9 +195,7 @@
         "elections_election_number_unique": {
           "name": "elections_election_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "election_number"
-          ]
+          "columns": ["election_number"]
         }
       },
       "policies": {},
@@ -269,12 +261,8 @@
           "name": "election_integrations_election_id_elections_election_id_fk",
           "tableFrom": "election_integrations",
           "tableTo": "elections",
-          "columnsFrom": [
-            "election_id"
-          ],
-          "columnsTo": [
-            "election_id"
-          ],
+          "columnsFrom": ["election_id"],
+          "columnsTo": ["election_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -284,9 +272,7 @@
         "election_integrations_election_id_unique": {
           "name": "election_integrations_election_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "election_id"
-          ]
+          "columns": ["election_id"]
         }
       },
       "policies": {},
@@ -401,12 +387,8 @@
           "name": "eligibilities_voter_id_voters_voter_id_fk",
           "tableFrom": "eligibilities",
           "tableTo": "voters",
-          "columnsFrom": [
-            "voter_id"
-          ],
-          "columnsTo": [
-            "voter_id"
-          ],
+          "columnsFrom": ["voter_id"],
+          "columnsTo": ["voter_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -414,12 +396,8 @@
           "name": "eligibilities_election_id_elections_election_id_fk",
           "tableFrom": "eligibilities",
           "tableTo": "elections",
-          "columnsFrom": [
-            "election_id"
-          ],
-          "columnsTo": [
-            "election_id"
-          ],
+          "columnsFrom": ["election_id"],
+          "columnsTo": ["election_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -429,9 +407,7 @@
         "eligibilities_voting_number_unique": {
           "name": "eligibilities_voting_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "voting_number"
-          ]
+          "columns": ["voting_number"]
         }
       },
       "policies": {},
@@ -483,9 +459,7 @@
         "voters_email_unique": {
           "name": "voters_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -569,12 +543,8 @@
           "name": "votes_election_id_elections_election_id_fk",
           "tableFrom": "votes",
           "tableTo": "elections",
-          "columnsFrom": [
-            "election_id"
-          ],
-          "columnsTo": [
-            "election_id"
-          ],
+          "columnsFrom": ["election_id"],
+          "columnsTo": ["election_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -582,12 +552,8 @@
           "name": "votes_candidate_id_candidates_candidate_id_fk",
           "tableFrom": "votes",
           "tableTo": "candidates",
-          "columnsFrom": [
-            "candidate_id"
-          ],
-          "columnsTo": [
-            "candidate_id"
-          ],
+          "columnsFrom": ["candidate_id"],
+          "columnsTo": ["candidate_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -595,12 +561,8 @@
           "name": "votes_eligibility_id_eligibilities_eligibility_id_fk",
           "tableFrom": "votes",
           "tableTo": "eligibilities",
-          "columnsFrom": [
-            "eligibility_id"
-          ],
-          "columnsTo": [
-            "eligibility_id"
-          ],
+          "columnsFrom": ["eligibility_id"],
+          "columnsTo": ["eligibility_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -610,9 +572,7 @@
         "votes_eligibility_id_unique": {
           "name": "votes_eligibility_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "eligibility_id"
-          ]
+          "columns": ["eligibility_id"]
         }
       },
       "policies": {},

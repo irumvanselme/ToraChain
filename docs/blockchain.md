@@ -10,10 +10,10 @@ append-only ledger. Transport is **Google Cloud Pub/Sub**.
 
 ## Roles
 
-| Role | Runs | Does |
-| ---- | ---- | ---- |
-| **Master** | Express API on `:7100` (`POST /api/vote`, `GET /api/chain`, `GET /api/status`) | Runs a pBFT round per vote, persists the block, publishes it to `NEW_BLOCK`. Requires ≥ 3 live subscribers. Persists to Postgres (`CHAIN_DB_URI`), JSON file fallback in dev. |
-| **Workers** | `:7101…` (anywhere) | Sync a chain over HTTP from the master, subscribe to `NEW_BLOCK` (filtered per election), re-hash blocks locally, reject mismatches. Store a pretty-printed JSON file. |
+| Role        | Runs                                                                           | Does                                                                                                                                                                          |
+| ----------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Master**  | Express API on `:7100` (`POST /api/vote`, `GET /api/chain`, `GET /api/status`) | Runs a pBFT round per vote, persists the block, publishes it to `NEW_BLOCK`. Requires ≥ 3 live subscribers. Persists to Postgres (`CHAIN_DB_URI`), JSON file fallback in dev. |
+| **Workers** | `:7101…` (anywhere)                                                            | Sync a chain over HTTP from the master, subscribe to `NEW_BLOCK` (filtered per election), re-hash blocks locally, reject mismatches. Store a pretty-printed JSON file.        |
 
 ## Consensus (pBFT)
 

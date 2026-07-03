@@ -19,13 +19,13 @@ Identity provider for ToraChain, built on **Elysia + better-auth + Postgres**.
 
 ## Key facts
 
-| Aspect | Detail |
-| ------ | ------ |
-| Entry point | `apps/auth/app/server.ts` (`AuthServer` → `AppRegistry`) |
-| Domain enum | `EUserType` in `apps/auth/app/types.ts` |
-| Env | `BETTER_AUTH_SECRET`, `AUTH_DB_URI`, `PORT` |
-| Migrations | better-auth CLI, one SQL file per domain (`migrate:all`) |
-| Admins | cannot self-register; bootstrap with `bun run create-admin` |
+| Aspect      | Detail                                                      |
+| ----------- | ----------------------------------------------------------- |
+| Entry point | `apps/auth/app/server.ts` (`AuthServer` → `AppRegistry`)    |
+| Domain enum | `EUserType` in `apps/auth/app/types.ts`                     |
+| Env         | `BETTER_AUTH_SECRET`, `AUTH_DB_URI`, `PORT`                 |
+| Migrations  | better-auth CLI, one SQL file per domain (`migrate:all`)    |
+| Admins      | cannot self-register; bootstrap with `bun run create-admin` |
 
 The multi-domain registry pattern is the core design idea — see the
 [architecture doc](architecture.md) and [AGENTS.md](../AGENTS.md) for the full

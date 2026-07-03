@@ -15,10 +15,10 @@ AuditProvider → OrgGate`. `OrgGate` redirects auditors with no org to the auth
 service's onboarding page, pending/rejected ones to its pending page, and
 approved ones to `/dashboard`.
 
-| Route | Purpose |
-| ----- | ------- |
-| `/` | Redirects approved auditors to `/dashboard` |
-| `/dashboard` | Elections list (search + pagination, vote counts) |
+| Route             | Purpose                                                                     |
+| ----------------- | --------------------------------------------------------------------------- |
+| `/`               | Redirects approved auditors to `/dashboard`                                 |
+| `/dashboard`      | Elections list (search + pagination, vote counts)                           |
 | `/elections/[id]` | Audit detail — Overview, Results (chart + JSON), Blockchain (blocks + JSON) |
 
 Onboarding / pending pages are served by the **auth service**, not this app.

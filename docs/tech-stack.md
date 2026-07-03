@@ -2,22 +2,22 @@
 
 ## Overview
 
-| Layer | Technology | Used in |
-| ----- | ---------- | ------- |
-| Runtime | **Bun** (TypeScript executed directly, no build step) | all backends, tooling |
-| Backend framework | **Elysia** | `auth`, `backend` |
-| Identity | **better-auth** (JWT, OpenAPI, admin, organization plugins) | `auth` |
-| ORM / DB access | **Drizzle ORM** + `pg` | `backend`, `be-common` |
-| Database | **PostgreSQL 17** | all services |
-| Validation | **Zod** + Elysia `t` | all backends |
-| Admin frontend | **React 19 + Vite**, Tailwind CSS v4, DaisyUI | `admin-fe` |
-| Voter/Auditor frontends | **Next.js (App Router) + React 19** | `voting-fe`, `auditing-fe` |
-| Blockchain node | **Express** + custom pBFT + `@google-cloud/pubsub` | `torachain-cli` |
-| Messaging | **Google Cloud Pub/Sub** (emulator locally) | chain network |
-| Logging | **pino** | `be-common` |
-| Testing | **Vitest** (unit + integration) | all workspaces |
-| Tooling | ESLint, Prettier, Makefile task runner | monorepo |
-| Package management | Bun workspaces (`bun.lock`) | monorepo |
+| Layer                   | Technology                                                  | Used in                    |
+| ----------------------- | ----------------------------------------------------------- | -------------------------- |
+| Runtime                 | **Bun** (TypeScript executed directly, no build step)       | all backends, tooling      |
+| Backend framework       | **Elysia**                                                  | `auth`, `backend`          |
+| Identity                | **better-auth** (JWT, OpenAPI, admin, organization plugins) | `auth`                     |
+| ORM / DB access         | **Drizzle ORM** + `pg`                                      | `backend`, `be-common`     |
+| Database                | **PostgreSQL 17**                                           | all services               |
+| Validation              | **Zod** + Elysia `t`                                        | all backends               |
+| Admin frontend          | **React 19 + Vite**, Tailwind CSS v4, DaisyUI               | `admin-fe`                 |
+| Voter/Auditor frontends | **Next.js (App Router) + React 19**                         | `voting-fe`, `auditing-fe` |
+| Blockchain node         | **Express** + custom pBFT + `@google-cloud/pubsub`          | `torachain-cli`            |
+| Messaging               | **Google Cloud Pub/Sub** (emulator locally)                 | chain network              |
+| Logging                 | **pino**                                                    | `be-common`                |
+| Testing                 | **Vitest** (unit + integration)                             | all workspaces             |
+| Tooling                 | ESLint, Prettier, Makefile task runner                      | monorepo                   |
+| Package management      | Bun workspaces (`bun.lock`)                                 | monorepo                   |
 
 ## Why these choices
 

@@ -32,6 +32,11 @@ export class BlockChain {
   }
 
   static getGenesisBlock(election: bigint) {
-    return new ElectionBlock(0, new ElectionsBlockData(0n, "0"), Date.now(), 0n);
+    return new ElectionBlock(
+      0,
+      new ElectionsBlockData(0n, "0"),
+      Date.now(),
+      0n,
+    );
   }
 }

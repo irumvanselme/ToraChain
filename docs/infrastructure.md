@@ -34,17 +34,17 @@ flowchart TB
 
 Files in [`iac/terraform`](../iac/terraform):
 
-| File | Responsibility |
-| ---- | -------------- |
-| `apis.tf` | Enable required GCP APIs |
-| `artifact_registry.tf` | Docker image registry |
-| `cloud_run.tf` | One Cloud Run v2 service per app (`for_each` over `locals.services`) |
-| `load_balancer.tf` | Global HTTPS LB + host-based routing |
-| `dns.tf` | `*.tora-chain-demo.iansel.me` records + managed certs |
-| `pubsub.tf` | Chain topics/subscriptions + `chain_master` / `chain_worker` service accounts |
-| `locals.tf` | Service catalog: image, port, subdomains, scaling, env |
-| `variables.tf` / `terraform.tfvars` | Project id, region, image tags, secrets |
-| `outputs.tf` | Service URLs, worker SA for key generation |
+| File                                | Responsibility                                                                |
+| ----------------------------------- | ----------------------------------------------------------------------------- |
+| `apis.tf`                           | Enable required GCP APIs                                                      |
+| `artifact_registry.tf`              | Docker image registry                                                         |
+| `cloud_run.tf`                      | One Cloud Run v2 service per app (`for_each` over `locals.services`)          |
+| `load_balancer.tf`                  | Global HTTPS LB + host-based routing                                          |
+| `dns.tf`                            | `*.tora-chain-demo.iansel.me` records + managed certs                         |
+| `pubsub.tf`                         | Chain topics/subscriptions + `chain_master` / `chain_worker` service accounts |
+| `locals.tf`                         | Service catalog: image, port, subdomains, scaling, env                        |
+| `variables.tf` / `terraform.tfvars` | Project id, region, image tags, secrets                                       |
+| `outputs.tf`                        | Service URLs, worker SA for key generation                                    |
 
 Each service maps to a subdomain of `tora-chain-demo.iansel.me` (`admin`,
 `voting`/root, `auditing`, `idp`, `api`, `node`) via the load balancer's

@@ -15,11 +15,11 @@ Service URLs are **not** configured here — they come from
 the backends cross-origin via their `*.localhost` subdomains, so the auth
 cookies are `SameSite=None; Secure` (set by the auth service):
 
-| Base (`lib/config.ts`) | Resolves to (dev)                | Purpose                          |
-| ---------------------- | -------------------------------- | -------------------------------- |
-| `AUTH_BASE`            | `http://idp.localhost:8001/admins` | sign-in pages + better-auth API  |
-| `CORE_API`             | `http://idp.localhost:8001/core/api` | admin/user + audit-org lookups   |
-| `API_BASE`             | `http://api.localhost:8000`      | elections API (`/elections`, …)  |
+| Base (`lib/config.ts`) | Resolves to (dev)                    | Purpose                         |
+| ---------------------- | ------------------------------------ | ------------------------------- |
+| `AUTH_BASE`            | `http://idp.localhost:8001/admins`   | sign-in pages + better-auth API |
+| `CORE_API`             | `http://idp.localhost:8001/core/api` | admin/user + audit-org lookups  |
+| `API_BASE`             | `http://api.localhost:8000`          | elections API (`/elections`, …) |
 
 The SPA itself is served at `http://admin.localhost:3000` (the `dev` script
 passes `--port 3000`).

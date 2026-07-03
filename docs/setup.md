@@ -2,7 +2,7 @@
 
 Two ways to run ToraChain locally:
 
-1. **Docker Compose (recommended)** — one command brings up the apps *and* their
+1. **Docker Compose (recommended)** — one command brings up the apps _and_ their
    databases. No Bun install required.
 2. **Native dev** — run each service with Bun for hot-reload while developing.
 
@@ -26,13 +26,13 @@ docker compose -f docker-compose.demo.yaml up --build
 
 This starts:
 
-| Container | Role | Exposed |
-| --------- | ---- | ------- |
-| `auth-db` | Postgres for the auth service | internal |
-| `elections-db` | Postgres for the elections API | internal |
-| `auth` | Identity provider (migrations run on boot) | via `:5173` |
-| `backend` | Elections API (migrations run on boot) | via `:5173` |
-| `admin-fe` | Admin SPA + proxy to auth & backend | **http://localhost:5173** |
+| Container      | Role                                       | Exposed                   |
+| -------------- | ------------------------------------------ | ------------------------- |
+| `auth-db`      | Postgres for the auth service              | internal                  |
+| `elections-db` | Postgres for the elections API             | internal                  |
+| `auth`         | Identity provider (migrations run on boot) | via `:5173`               |
+| `backend`      | Elections API (migrations run on boot)     | via `:5173`               |
+| `admin-fe`     | Admin SPA + proxy to auth & backend        | **http://localhost:5173** |
 
 ### First steps
 
@@ -100,15 +100,15 @@ in `apps/backend/.env`.
 
 ### Ports (dev)
 
-| Service | URL |
-| ------- | --- |
-| Backend / Elections API | http://api.localhost:8000 |
-| Auth / IdP | http://idp.localhost:8001 |
-| Admin app | http://admin.localhost:3000 |
-| Voting app | http://voting.localhost:3001 |
-| Auditing app | http://auditing.localhost:3002 |
-| Example voters DB | http://localhost:3003 |
-| Chain master | http://localhost:7100 |
+| Service                 | URL                            |
+| ----------------------- | ------------------------------ |
+| Backend / Elections API | http://api.localhost:8000      |
+| Auth / IdP              | http://idp.localhost:8001      |
+| Admin app               | http://admin.localhost:3000    |
+| Voting app              | http://voting.localhost:3001   |
+| Auditing app            | http://auditing.localhost:3002 |
+| Example voters DB       | http://localhost:3003          |
+| Chain master            | http://localhost:7100          |
 
 Service URLs come from [`packages/configs`](../packages/configs/README.md), not
 env vars — change [`links.ts`](../packages/configs/src/links.ts) to move a URL.

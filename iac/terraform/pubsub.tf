@@ -54,6 +54,9 @@ resource "google_service_account" "chain_master" {
   project      = var.project_id
   account_id   = "torachain-master"
   display_name = "ToraChain master node (Cloud Run)"
+
+  # Creating a service account needs the IAM API enabled first (apis.tf).
+  depends_on = [google_project_service.apis]
 }
 
 # Not attached to any GCP resource here — its key is handed out to whoever
@@ -67,6 +70,9 @@ resource "google_service_account" "chain_worker" {
   project      = var.project_id
   account_id   = "torachain-worker"
   display_name = "ToraChain worker node (key distributed to node operators)"
+
+  # Creating a service account needs the IAM API enabled first (apis.tf).
+  depends_on = [google_project_service.apis]
 }
 
 # ── IAM ───────────────────────────────────────────────────────────────────────

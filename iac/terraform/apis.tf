@@ -5,6 +5,8 @@ locals {
     "dns.googleapis.com",
     "artifactregistry.googleapis.com",
     "pubsub.googleapis.com",
+    # Required to create the chain_master / chain_worker service accounts (pubsub.tf).
+    "iam.googleapis.com",
   ]
 }
 

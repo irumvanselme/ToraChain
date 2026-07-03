@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ToraChain Node</title>
+    <style>
+      :root {
+        --bg: #f4f5f7;
+        --card: #ffffff;
+        --ink: #1f2430;
+        --muted: #6b7280;
+        --accent: #2563eb;
+        --ok: #16a34a;
+        --bad: #dc2626;
+        --border: #e5e7eb;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+      }
+      header {
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        padding: 16px 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+      header h1 {
+        font-size: 18px;
+        margin: 0 16px 0 0;
+      }
+      .chip {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .chip b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .chip.ok b {
+        color: var(--ok);
+      }
+      .chip.bad b {
+        color: var(--bad);
+      }
+      main {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .election {
+        margin-bottom: 32px;
+      }
+      .election h2 {
+        font-size: 14px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 0 12px;
+      }
+      .block {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 6px;
+        position: relative;
+      }
+      .block::after {
+        content: "⛓";
+        display: block;
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 12px;
+      }
+      .block:last-child::after {
+        content: "";
+        margin: 0;
+      }
+      .block .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 20px;
+        align-items: baseline;
+      }
+      .block .idx {
+        font-weight: 700;
+        color: var(--accent);
+        font-size: 15px;
+      }
+      .block .genesis {
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .block .time {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .field {
+        font-size: 13px;
+        margin-top: 6px;
+        color: var(--muted);
+        overflow-wrap: anywhere;
+      }
+      .field b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        background: var(--bg);
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 60px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>⛓ ToraChain Node</h1>
+      <span class="chip">node <b id="node-id">…</b></span>
+      <span class="chip">role <b id="role">…</b></span>
+      <span class="chip" id="extra" hidden></span>
+      <span class="chip">blocks <b id="block-count">…</b></span>
+      <span class="chip" id="health"><b>connecting…</b></span>
+    </header>
+    <main id="chain">
+      <p class="empty">Loading chain…</p>
+    </main>
+
+    <script>
+      const short = (s) => (s && s.length > 20 ? s.slice(0, 20) + "…" : s);
+      const when = (ts) => new Date(ts).toLocaleString();
+
+      function renderStatus(s) {
+        document.getElementById("node-id").textContent = s.nodeId;
+        document.getElementById("role").textContent = s.role;
+        document.getElementById("block-count").textContent = s.blockCount;
+
+        const extra = document.getElementById("extra");
+        extra.hidden = false;
+        extra.innerHTML =
+          s.role === "master"
+            ? `subscribers <b>${s.connectedNodes}</b>`
+            : `subscribed to <b>${s.electionId}</b>`;
+
+        const health = document.getElementById("health");
+        const up = s.role === "master" ? s.ready : s.connected;
+        health.className = "chip " + (up ? "ok" : "bad");
+        health.innerHTML = up
+          ? "<b>● online</b>"
+          : s.role === "master"
+            ? "<b>● waiting for subscribers</b>"
+            : "<b>● master unreachable</b>";
+      }
+
+      function renderChain(blocks) {
+        const main = document.getElementById("chain");
+        if (!blocks.length) {
+          main.innerHTML = '<p class="empty">No blocks yet.</p>';
+          return;
+        }
+
+        const byElection = new Map();
+        for (const b of blocks) {
+          if (!byElection.has(b.electionId)) byElection.set(b.electionId, []);
+          byElection.get(b.electionId).push(b);
+        }
+
+        main.innerHTML = "";
+        for (const [electionId, chain] of byElection) {
+          const section = document.createElement("section");
+          section.className = "election";
+          section.innerHTML = `<h2>Election ${electionId}</h2>`;
+          for (const b of chain) {
+            const card = document.createElement("article");
+            card.className = "block";
+            card.innerHTML =
+              b.index === 0
+                ? `<div class="row"><span class="genesis">Genesis block</span>
+                     <span class="time">${when(b.timestamp)}</span></div>`
+                : `<div class="row"><span class="idx">Block #${b.index}</span>
+                     <span class="time">${when(b.timestamp)}</span></div>
+                   <div class="field"><b>Vote</b> voter <code title="${b.data.voter}">${short(b.data.voter)}</code>
+                     → candidate <code title="${b.data.candidate}">${short(b.data.candidate)}</code></div>
+                   <div class="field"><b>Hash</b> <code title="${b.hash}">${short(b.hash)}</code>
+                     <b>Previous</b> <code title="${b.prevHash}">${short(b.prevHash)}</code></div>`;
+            section.appendChild(card);
+          }
+          main.appendChild(section);
+        }
+      }
+
+      async function refresh() {
+        try {
+          const [status, chain] = await Promise.all([
+            fetch("/api/status").then((r) => r.json()),
+            fetch("/api/chain").then((r) => r.json()),
+          ]);
+          renderStatus(status);
+          renderChain(chain.blocks);
+        } catch {
+          const health = document.getElementById("health");
+          health.className = "chip bad";
+          health.innerHTML = "<b>● node unreachable</b>";
+        }
+      }
+
+      refresh();
+      setInterval(refresh, 3000);
+    </script>
+  </body>
+</html>

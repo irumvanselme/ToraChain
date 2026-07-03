@@ -11,8 +11,8 @@
 # ===========================================================================
 
 .PHONY: help install dev build test lint lint-fix format format-check check-types migrate ci clean \
-	chain-node-master chain-node-worker chain-node-network \
-	tracability-dev tracability-build tracability-start
+	torachain-cli-master torachain-cli-worker torachain-cli-network \
+	torachain-cli-test torachain-cli-check-types
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -23,24 +23,22 @@ install: ## Install all workspace dependencies
 	bun install
 
 dev: prepare-assets ## Run all dev services concurrently
-	npx concurrently -n backend,auth,admin-fe,voting-fe,auditing-fe,blockchain,example-voters,chain-master,chain-w1,chain-w2,chain-w3,tracability \
-		-c blue,green,magenta,cyan,yellow,red,gray,white,white,white,white,cyan \
+	npx concurrently -n backend,auth,admin-fe,voting-fe,auditing-fe,example-voters,chain-master,chain-w1,chain-w2,chain-w3 \
+		-c blue,green,magenta,cyan,yellow,gray,white,white,white,white \
 		"cd apps/backend && bun run dev" \
 		"cd apps/auth && bun run dev" \
 		"cd apps/admin-fe && bun run dev" \
 		"cd apps/voting-fe && bun run dev" \
 		"cd apps/auditing-fe && bun run dev" \
-		"cd apps/blockchain && bun run dev" \
 		"cd examples/simple-voters-database && bun run dev" \
-		"./apps/chain-node/start --master --port 7100" \
-		"./apps/chain-node/start --port 7101 --master-url ws://localhost:7100" \
-		"./apps/chain-node/start --port 7102 --master-url ws://localhost:7100" \
-		"./apps/chain-node/start --port 7103 --master-url ws://localhost:7100" \
-		"cd apps/tracability && bun run dev"
+		"./apps/torachain-cli/start --master --port 7100" \
+		"./apps/torachain-cli/start --port 7101 --master-url ws://localhost:7100" \
+		"./apps/torachain-cli/start --port 7102 --master-url ws://localhost:7100" \
+		"./apps/torachain-cli/start --port 7103 --master-url ws://localhost:7100"
 
 build: prepare-assets admin-fe-build auditing-fe-build voting-fe-build ## Build all buildable projects
 
-test: backend-test auth-test ## Run all tests
+test: backend-test auth-test torachain-cli-test ## Run all tests
 
 lint: backend-lint auth-lint admin-fe-lint auditing-fe-lint voting-fe-lint ## Lint all projects
 
@@ -51,7 +49,7 @@ format: ## Format the whole repo (prettier)
 
 format-check: backend-format-check auth-format-check ## Check formatting (backend + auth)
 
-check-types: backend-check-types auth-check-types admin-fe-check-types ## Type-check all typed projects
+check-types: backend-check-types auth-check-types admin-fe-check-types torachain-cli-check-types ## Type-check all typed projects
 
 migrate: backend-db-migrate auth-migrate ## Run all database migrations
 
@@ -65,7 +63,6 @@ prepare-assets:
 	cp -r ./assets ./apps/admin-fe/public/_assets     					&& \
 	cp -r ./assets ./apps/voting-fe/public/_assets    					&& \
 	cp -r ./assets ./apps/auditing-fe/public/_assets  					&& \
-	cp -r ./assets ./apps/tracability/public/_assets  					&& \
 	cp -r ./assets ./examples/simple-voters-database/public/_assets
 
 # ===========================================================================
@@ -213,15 +210,6 @@ auditing-fe-lint: ## Lint auditing frontend
 	cd apps/auditing-fe && bun run lint
 
 # ===========================================================================
-# Blockchain
-# ===========================================================================
-
-.PHONY: blockchain-dev
-
-blockchain-dev: ## Run blockchain in watch mode
-	cd apps/blockchain && bun run dev
-
-# ===========================================================================
 # Examples
 # ===========================================================================
 
@@ -234,34 +222,28 @@ example-voters-seed: ## Seed the simple-voters-database with example data
 	cd examples/simple-voters-database && bun run seed
 
 # ===========================================================================
-# Chain Node
+# Torachain CLI (blockchain node network)
 # ===========================================================================
 
-chain-node-master: ## Start the master blockchain node on port 7000
-	./apps/chain-node/start --master --port 7100
+torachain-cli-master: ## Start the master blockchain node on port 7100
+	./apps/torachain-cli/start --master --port 7100
 
-chain-node-worker: ## Start a worker node (PORT=7101 MASTER_URL=ws://localhost:7100 overridable)
-	./apps/chain-node/start \
+torachain-cli-worker: ## Start a worker node (PORT, MASTER_URL, ELECTION overridable)
+	./apps/torachain-cli/start \
 		--port $${PORT:-7101} \
-		--master-url $${MASTER_URL:-ws://localhost:7100}
+		--master-url $${MASTER_URL:-ws://localhost:7100} \
+		--election $${ELECTION:-all}
 
-chain-node-network: ## Spin up master + 3 worker nodes via concurrently
+torachain-cli-network: ## Spin up master + 3 worker nodes via concurrently
 	npx concurrently -n master,worker-1,worker-2,worker-3 \
 		-c white,green,cyan,yellow \
-		"./apps/chain-node/start --master --port 7100" \
-		"./apps/chain-node/start --port 7101 --master-url ws://localhost:7100" \
-		"./apps/chain-node/start --port 7102 --master-url ws://localhost:7100" \
-		"./apps/chain-node/start --port 7103 --master-url ws://localhost:7100"
+		"./apps/torachain-cli/start --master --port 7100" \
+		"./apps/torachain-cli/start --port 7101 --master-url ws://localhost:7100" \
+		"./apps/torachain-cli/start --port 7102 --master-url ws://localhost:7100" \
+		"./apps/torachain-cli/start --port 7103 --master-url ws://localhost:7100"
 
-# ===========================================================================
-# Tracability
-# ===========================================================================
+torachain-cli-test: ## Run torachain-cli tests
+	cd apps/torachain-cli && bun run test
 
-tracability-dev: ## Run tracability dashboard in dev mode (port 4000)
-	cd apps/tracability && bun run dev
-
-tracability-build: ## Build tracability dashboard
-	cd apps/tracability && bun run build
-
-tracability-start: ## Start built tracability dashboard (port 4000)
-	cd apps/tracability && bun run start
+torachain-cli-check-types: ## Type-check torachain-cli
+	cd apps/torachain-cli && bun run check-types

@@ -60,29 +60,16 @@ locals {
       }
     }
 
-    # chain-node master only.  Workers use SQLite + persistent WebSocket which
-    # don't map cleanly to Cloud Run's ephemeral model; run workers locally or
-    # on a VM pointing their --master-url at https://node.<domain>.
+    # torachain-cli master only.  Its chain viewer is served at
+    # https://node.<domain>/ for anyone to inspect the blockchain.  Workers
+    # (subscribers) run anywhere — locally or on a VM — joining the pub/sub via
+    #   --master-url wss://node.<domain> --election <id>
     chain_node = {
       cr_name    = "tora-chain-node"
       image_name = "chain-node"
       port       = 8080
       subdomains = ["node"]
       # Single master — pBFT requires exactly one coordinator.
-      min_instances = 0
-      max_instances = 1
-      cpu           = "1"
-      memory        = "512Mi"
-      env = {
-        TRACABILITY_URL = "https://tracability.${local.domain}"
-      }
-    }
-
-    tracability = {
-      cr_name       = "tora-tracability"
-      image_name    = "tracability"
-      port          = 8080
-      subdomains    = ["tracability"]
       min_instances = 0
       max_instances = 1
       cpu           = "1"

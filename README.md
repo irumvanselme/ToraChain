@@ -13,7 +13,7 @@ end.
 
 ## Video
 
-![Video](https://drive.google.com/file/d/1NIr9bJ7WzyV_cZHkMz1k5c1vKsO8iFoC/view?usp=sharing)
+[Video](https://drive.google.com/file/d/1NIr9bJ7WzyV_cZHkMz1k5c1vKsO8iFoC/view?usp=sharing)
 
 
 ## Architecture at a glance

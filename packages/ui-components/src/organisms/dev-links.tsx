@@ -95,7 +95,20 @@ export function DevLinks({
   label = "Dev links",
 }: DevLinksProps) {
   const [open, setOpen] = useState(false);
+  // Flips one frame after the stack mounts so the entrance transition runs.
+  const [entered, setEntered] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setEntered(false);
+      return;
+    }
+    const raf = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setEntered(true)),
+    );
+    return () => cancelAnimationFrame(raf);
+  }, [open]);
 
   // Close on outside click and Escape while open.
   useEffect(() => {
@@ -129,8 +142,6 @@ export function DevLinks({
         flexDirection: "column",
         gap: 10,
         alignItems: isRight ? "flex-end" : "flex-start",
-        // Nearest the trigger first when animating in.
-        pointerEvents: open ? "auto" : "none",
         [isBottom ? "marginBottom" : "marginTop"]: 12,
       }}
     >
@@ -149,12 +160,12 @@ export function DevLinks({
               flexDirection: "column",
               alignItems: isRight ? "flex-end" : "flex-start",
               gap: 6,
-              opacity: open ? 1 : 0,
-              transform: open
+              opacity: entered ? 1 : 0,
+              transform: entered
                 ? "translateY(0) scale(1)"
                 : `translateY(${enterOffset}px) scale(0.9)`,
               transition: "opacity 160ms ease, transform 160ms ease",
-              transitionDelay: `${open ? order * 35 : 0}ms`,
+              transitionDelay: `${entered ? order * 35 : 0}ms`,
             }}
           >
             {showHeader && (
@@ -176,7 +187,6 @@ export function DevLinks({
               target={newTab ? "_blank" : undefined}
               rel={newTab ? "noreferrer" : undefined}
               title={link.href}
-              tabIndex={open ? 0 : -1}
               style={{
                 display: "flex",
                 flexDirection: isRight ? "row" : "row-reverse",
@@ -283,13 +293,13 @@ export function DevLinks({
     >
       {isBottom ? (
         <>
-          {stack}
+          {open && stack}
           {trigger}
         </>
       ) : (
         <>
           {trigger}
-          {stack}
+          {open && stack}
         </>
       )}
     </div>

@@ -19,7 +19,6 @@ variable "image_tags" {
     backend              = "latest"
     chain_node           = "latest"
     demo_voters_database = "latest"
-    tracability          = "latest"
     voting_fe            = "latest"
   }
 }
@@ -49,6 +48,14 @@ variable "demo_voters_db_secrets" {
   description = "Secrets injected into the demo-voters-database Cloud Run service"
   type = object({
     eligibility_api_key = string
+  })
+  sensitive = true
+}
+
+variable "chain_node_secrets" {
+  description = "Secrets injected into the chain-node (torachain-cli master) Cloud Run service"
+  type = object({
+    chain_db_uri = string
   })
   sensitive = true
 }

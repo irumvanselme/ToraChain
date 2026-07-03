@@ -105,11 +105,15 @@ jobs:
 
           demo=$(jq -cn --arg key "$DEMO_VOTERS_DB_API_KEY" '{eligibility_api_key:$key}')
           echo "TF_VAR_demo_voters_db_secrets=$demo" >> "$GITHUB_ENV"
+
+          chain=$(jq -cn --arg db "$CHAIN_DB_URI" '{chain_db_uri:$db}')
+          echo "TF_VAR_chain_node_secrets=$chain" >> "$GITHUB_ENV"
         env:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           AUTH_DB_URI: ${{ secrets.AUTH_DB_URI }}
           ELECTIONS_DB_URI: ${{ secrets.ELECTIONS_DB_URI }}
           DEMO_VOTERS_DB_API_KEY: ${{ secrets.DEMO_VOTERS_DB_API_KEY }}
+          CHAIN_DB_URI: ${{ secrets.CHAIN_DB_URI }}
 
       # ── Deploy ─────────────────────────────────────────────────────────────
       - name: Terraform init

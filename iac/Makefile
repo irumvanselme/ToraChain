@@ -94,7 +94,7 @@ apply: ## [STEP 4] Deploy: make apply [TAG=<sha>]  — defaults to current git H
 	@test "$(TAG)" != "latest" || { echo "ERROR: TAG=latest is forbidden — use an explicit git SHA" >&2; exit 1; }
 	@echo "Deploying images: TAG=$(TAG)"
 	TF_VAR_image_tags=$$(jq -cn --arg t "$(TAG)" \
-	  '{admin_fe:$$t,auditing_fe:$$t,auth:$$t,backend:$$t,chain_node:$$t,demo_voters_database:$$t,tracability:$$t,voting_fe:$$t}') \
+	  '{admin_fe:$$t,auditing_fe:$$t,auth:$$t,backend:$$t,chain_node:$$t,demo_voters_database:$$t,voting_fe:$$t}') \
 	$(TF) apply
 
 .PHONY: plan
@@ -102,7 +102,7 @@ plan: ## Dry-run apply:  make plan [TAG=<sha>]  — defaults to current git HEAD
 	@test -n "$(TAG)" || { echo "ERROR: not in a git repo and TAG is unset — pass TAG=<sha>" >&2; exit 1; }
 	@test "$(TAG)" != "latest" || { echo "ERROR: TAG=latest is forbidden — use an explicit git SHA" >&2; exit 1; }
 	TF_VAR_image_tags=$$(jq -cn --arg t "$(TAG)" \
-	  '{admin_fe:$$t,auditing_fe:$$t,auth:$$t,backend:$$t,chain_node:$$t,demo_voters_database:$$t,tracability:$$t,voting_fe:$$t}') \
+	  '{admin_fe:$$t,auditing_fe:$$t,auth:$$t,backend:$$t,chain_node:$$t,demo_voters_database:$$t,voting_fe:$$t}') \
 	$(TF) plan
 
 # ── Utilities ─────────────────────────────────────────────────────────────────

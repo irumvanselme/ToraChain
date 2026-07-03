@@ -45,8 +45,8 @@ resource "google_cloud_run_v2_service" "services" {
       # Sensitive env vars injected per service
       dynamic "env" {
         for_each = each.key == "auth" ? {
-          BETTER_AUTH_SECRET   = var.auth_secrets.better_auth_secret
-          AUTH_DB_URI = var.auth_secrets.auth_db_uri
+          BETTER_AUTH_SECRET = var.auth_secrets.better_auth_secret
+          AUTH_DB_URI        = var.auth_secrets.auth_db_uri
         } : {}
         content {
           name  = env.key
@@ -67,6 +67,16 @@ resource "google_cloud_run_v2_service" "services" {
       dynamic "env" {
         for_each = each.key == "demo_voters_database" ? {
           ELIGIBILITY_API_KEY = var.demo_voters_db_secrets.eligibility_api_key
+        } : {}
+        content {
+          name  = env.key
+          value = env.value
+        }
+      }
+
+      dynamic "env" {
+        for_each = each.key == "chain_node" ? {
+          CHAIN_DB_URI = var.chain_node_secrets.chain_db_uri
         } : {}
         content {
           name  = env.key

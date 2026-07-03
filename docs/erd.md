@@ -3,91 +3,111 @@
 The data model is split across three databases, one per service, so no service
 reaches into another's tables — they integrate over HTTP instead.
 
-- **Auth DB** — users per identity domain (`voter_*`, `admin_*`, `auditor_*`
-  table prefixes), sessions, JWTs, API keys, auditor organizations.
-- **Elections DB** — elections, candidates, eligibility, ballots, integrations.
-- **Chain DB** — persisted blocks per election (master node).
+- **Auth DB** — better-auth tables per identity domain (`voter_*`, `admin_*`,
+  `auditor_*` table prefixes): users, sessions, accounts, JWKS. Plus the
+  auditor organization tables (`auditor_organizations` with approval fields,
+  `auditor_members`, `auditor_invitations`) and the hashed API keys used by
+  the backend to call the `/core` API.
+- **Elections DB** — elections, candidates, voters, eligibilities, votes,
+  integrations (below).
+- **Chain DB** — blocks persisted by the master node (below).
 
 ## Elections data model
 
+All tables also carry `created_at` / `updated_at` timestamps. The
+`*_number` columns are 216-bit numeric identifiers (`numeric(78,0)`) that
+double as the entities' on-chain addresses.
+
 ```mermaid
 erDiagram
-    ELECTION ||--o{ CANDIDATE : has
-    ELECTION ||--o{ ELIGIBILITY : grants
-    ELECTION ||--o| ELECTION_INTEGRATION : configures
-    VOTER ||--o{ ELIGIBILITY : holds
-    ELIGIBILITY ||--o| VOTE : casts
-    CANDIDATE ||--o{ VOTE : receives
-    OBSERVER }o--o{ ELECTION : monitors
+    elections ||--o{ candidates : has
+    elections ||--o{ eligibilities : grants
+    elections ||--o| election_integrations : configures
+    elections ||--o{ votes : records
+    voters ||--o{ eligibilities : holds
+    eligibilities ||--o| votes : casts
+    candidates ||--o{ votes : receives
 
-    ELECTION {
+    elections {
         uuid election_id PK
-        bigint election_address UK
-        string title
-        string status
-        timestamp start_time
-        timestamp end_time
+        numeric election_number UK
+        text title
+        text description "nullable"
+        enum status "draft | enrolling_voters | scheduled | active | ended | archived | paused"
+        timestamptz start_time "nullable"
+        timestamptz end_time "nullable"
+        boolean deleted
     }
-    CANDIDATE {
+    candidates {
         uuid candidate_id PK
-        bigint candidate_address UK
         uuid election_id FK
-        string name
+        numeric candidate_number UK
+        text full_name
+        text manifesto "nullable"
+        boolean deleted
     }
-    VOTER {
+    voters {
         uuid voter_id PK
-        string email
-        string status
+        text email UK
+        text account_id "user id in the auth service, nullable"
     }
-    ELIGIBILITY {
+    eligibilities {
         uuid eligibility_id PK
-        bigint voting_address UK
+        numeric voting_number UK
         uuid voter_id FK
         uuid election_id FK
-        bool has_voted
+        boolean has_voted
+        text external_voter_id "id from the eligibility API, nullable"
+        boolean deleted
     }
-    VOTE {
+    votes {
         uuid vote_id PK
-        uuid eligibility_id FK
-        uuid candidate_id FK
-        timestamp cast_at
-    }
-    ELECTION_INTEGRATION {
-        uuid id PK
         uuid election_id FK
-        string type
-        jsonb config
-        jsonb form_fields
+        uuid candidate_id FK
+        uuid eligibility_id FK, UK "unique: one vote per eligibility"
+        numeric voting_number
+        text ciphertext "voter-sealed ballot (AES-GCM), nullable"
+        text commitment "SHA-256 of the ballot, anchored on-chain"
+        timestamptz cast_at
     }
-    OBSERVER {
-        uuid observer_id PK
-        string organization
+    election_integrations {
+        uuid integration_id PK
+        uuid election_id FK, UK "one integration per election"
+        text type "http_api"
+        jsonb config "url, method, api-key header"
+        jsonb form_fields "fields shown on the enrollment form"
     }
 ```
+
+Notable constraints:
+
+- `eligibilities` has a partial unique index on (`voter_id`, `election_id`)
+  where `deleted = false` — a voter holds at most one live eligibility per
+  election.
+- `votes.eligibility_id` is unique — the schema itself enforces one ballot
+  per eligibility.
 
 ## Blockchain data model
 
-Every recorded vote becomes a block; blocks are chained by hash per election.
+The master persists every accepted block to a single `blocks` table (Postgres
+via `CHAIN_DB_URI`; a JSON file in dev). Each election is its own chain:
+rows sharing an `election_id`, hash-linked through `prev_hash` (`"0"` for the
+genesis block). A block stores only the voter's number and the ballot
+**commitment** — never the plaintext choice.
 
 ```mermaid
 erDiagram
-    CHAIN ||--o{ BLOCK : contains
-    CHAIN {
-        bigint election_id PK
-    }
-    BLOCK {
-        int index PK
-        string hash
-        string previous_hash
-        timestamp created_at
-        bigint election
-        bigint voter
-        bigint candidate
+    blocks {
+        text election_id PK "composite PK with block_index"
+        int block_index PK
+        text voter_id
+        text commitment "SHA-256 of the sealed ballot"
+        bigint timestamp "epoch ms"
+        text prev_hash
+        text hash
     }
 ```
 
-See [uml/classDiagram.md](uml/classDiagram.md) for the object model
-(`ElectionsBlock`, `ElectionsBlockChain`) and the domain class diagram.
-
 > The source of truth for tables is each module's Drizzle `model.ts`
-> (`apps/backend/app/**/model.ts`) and the better-auth schema in `apps/auth`.
+> (`apps/backend/app/**/model.ts`), the better-auth schema in `apps/auth`,
+> and `apps/torachain-cli/src/storage/pg-store.ts` for the chain.

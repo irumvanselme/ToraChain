@@ -215,7 +215,7 @@ auditing-fe-lint: ## Lint auditing frontend
 
 .PHONY: example-voters-dev example-voters-seed
 
-example-voters-dev: ## Run the simple-voters-database example app (port 3002)
+example-voters-dev: ## Run the simple-voters-database example app (port 3003)
 	cd examples/simple-voters-database && bun run dev
 
 example-voters-seed: ## Seed the simple-voters-database with example data

@@ -32,6 +32,9 @@ sequenceDiagram
 - **Hashing** — goes through `ElectionBlock` (`src/chain/hash-bridge.ts`) so
   master and workers always agree; hashes are lowercase hex (`"0"` for genesis).
 - **Per-election chains** — each election has its own genesis block and chain.
+- **Block contents** — a block records only the voter's number and the ballot
+  **commitment** (SHA-256 of the voter-sealed ciphertext) — never the
+  plaintext choice, so the public chain leaks nothing about how anyone voted.
 
 ## Running
 
@@ -42,7 +45,9 @@ PORT=7104 MASTER_URL=http://localhost:7100 ELECTION=all make torachain-cli-worke
 ```
 
 Local dev needs the Pub/Sub **emulator** (`make torachain-cli-pubsub-emulator`
-from `iac/`, `PUBSUB_EMULATOR_HOST`) — Pub/Sub has no local fallback.
+from the repo root, then set `PUBSUB_EMULATOR_HOST` — see
+[`apps/torachain-cli/.env.example`](../apps/torachain-cli/.env.example)) —
+Pub/Sub has no local fallback.
 
 ## Viewer & deployment
 
@@ -50,4 +55,5 @@ Both roles serve a static chain viewer at `/` (from `src/web/`), deployed at
 `node.tora-chain-demo.iansel.me`. Credentials/IAM for the master and workers are
 defined in `iac/terraform/pubsub.tf` — see [infrastructure.md](infrastructure.md).
 
-Object model: [uml/classDiagram.md](uml/classDiagram.md).
+CLI flags, env vars, and scripts:
+[`apps/torachain-cli/README.md`](../apps/torachain-cli/README.md).

@@ -75,18 +75,24 @@ host rules, derived automatically from `locals.tf`.
 
 ## Deployment plan (reproduce it)
 
+The [`iac/Makefile`](../iac/Makefile) drives the whole flow (CD runs the same
+steps via `deploy.yaml`):
+
 ```bash
-# 1. Build & push images (see iac/docker/*.Dockerfile)
-#    handled by deploy.yaml, or manually via docker build/push to Artifact Registry
-
-# 2. Provision / update infrastructure
 cd iac/terraform
-cp terraform.tfvars.example terraform.tfvars   # fill project_id, region, secrets, image tags
-terraform init
-terraform plan
-terraform apply
+cp terraform.tfvars.example terraform.tfvars   # fill project_id, region, secrets
+cd ..
 
-# 3. Run chain workers (outside GCP) against the deployed master
+make init         # terraform init (once, or after provider changes)
+make bootstrap    # [1] Artifact Registry + DNS zone
+make nameservers  # [2] print the NS record to delegate at your DNS host
+make build-push   # [3] build & push all images (iac/docker/*.Dockerfile)
+make apply        # [4] Cloud Run + load balancer + DNS records + TLS cert
+```
+
+Then run chain workers (outside GCP) against the deployed master:
+
+```bash
 GOOGLE_APPLICATION_CREDENTIALS=worker-key.json \
   ./apps/torachain-cli/start \
   --master-url https://node.tora-chain-demo.iansel.me --election <id>

@@ -1,14 +1,15 @@
 # Elections API (`backend`)
 
 The elections/voting REST API for ToraChain — **Elysia** + **Drizzle ORM** on
-Bun, built on [`@tora-chain/be-common`](../packages/be-common/README.md)
+Bun, built on [`@tora-chain/be-common`](../../packages/be-common/README.md)
 (`Database`, `Logger`, `config`).
 
 Resources: **elections**, **candidates**, **voters** (eligibility), and
 **votes**. Each lives in `app/<module>/` as a controller → service → repository
 stack. Bodies are JSON, ids are UUIDs, timestamps are ISO 8601 UTC, and errors
-use `{ code, message, details }`. Voter eligibility is checked against the auth
-service's `/core` API.
+use `{ code, message, details }`. Voter identities are resolved via the auth
+service's `/core` API; per-election **eligibility** is delegated to an external
+provider (see [docs/eligibility-api-specs.md](../../docs/eligibility-api-specs.md)).
 
 See [docs/backend.md](../../docs/backend.md) for the full design write-up.
 

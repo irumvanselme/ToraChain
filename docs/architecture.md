@@ -92,5 +92,3 @@ sequenceDiagram
 | Consensus & ledger  | `apps/torachain-cli`                                  | [blockchain.md](blockchain.md)         |
 | Data model          | Drizzle `model.ts` per module                         | [erd.md](erd.md)                       |
 | Deploy / infra      | `iac/`                                                | [infrastructure.md](infrastructure.md) |
-
-The class and block-chain UML diagrams are in [uml/classDiagram.md](uml/classDiagram.md).

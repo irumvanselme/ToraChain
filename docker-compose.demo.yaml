@@ -1,13 +1,27 @@
-# Demo stack: two Postgres databases + the auth, backend, and admin-fe services.
-#
-# Everything is reached same-origin through the admin-fe dev server on :5173,
-# which proxies /admins/* -> auth and /api/* -> backend (so the better-auth
-# session cookie works). Only :5173 is published.
+# Full local demo stack — every ToraChain service with one command:
 #
 #   docker compose -f docker-compose.demo.yaml up --build
-#   open http://localhost:5173   (register an admin at /admins/register)
 #
-# NOT for production: secrets are inline and database data is ephemeral.
+# Then open (Chrome or Firefox — the apps live on *.localhost subdomains):
+#
+#   http://admin.localhost:3000     admin app     (sign in via "Default login")
+#   http://voting.localhost:3001    voting app    (register as a voter)
+#   http://auditing.localhost:3002  auditing app  (register as an auditor)
+#   http://localhost:7100           blockchain viewer (workers: 7101-7103)
+#   http://localhost:3003           example eligibility provider
+#
+# Host ports mirror the development URLs hardcoded in
+# packages/configs/src/links.ts (idp.localhost:8001, api.localhost:8000, …).
+# Browsers resolve *.localhost to 127.0.0.1; inside the Docker network the
+# auth and backend containers carry `idp.localhost` / `api.localhost` network
+# aliases so server-side calls (JWKS, /core lookups) resolve the same
+# hostnames the browser uses.
+#
+# On boot: both databases are migrated automatically and a demo admin is
+# created (admin@localhost.dev / Pa$$w0rd! — the dev "Default login" account
+# from @tora-chain/configs).
+#
+# NOT for production: secrets are inline and all data is ephemeral.
 
 name: torachain-demo
 
@@ -18,7 +32,13 @@ x-app: &app
   image: torachain-demo:latest
   restart: unless-stopped
 
+# Chain nodes talk to the local Pub/Sub emulator instead of real GCP.
+x-chain-env: &chain-env
+  GOOGLE_CLOUD_PROJECT: torachain-local
+  PUBSUB_EMULATOR_HOST: pubsub-emulator:8085
+
 services:
+  # ── Databases ──────────────────────────────────────────────────────────
   auth-db:
     image: postgres:17-alpine
     environment:
@@ -43,16 +63,34 @@ services:
       timeout: 5s
       retries: 10
 
+  # ── Google Cloud Pub/Sub emulator (blockchain transport) ───────────────
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud beta emulators pubsub start --project=torachain-local --host-port=0.0.0.0:8085
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8085"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ── Backends ───────────────────────────────────────────────────────────
   auth:
     <<: *app
     working_dir: /app/apps/auth
-    command: sh -c "bun run migrate:all && bun run start"
+    # Migrate, bootstrap the dev admin (idempotent — fails harmlessly if it
+    # already exists), then serve. $$ is compose-escaping for a literal $.
+    command: sh -c "bun run migrate:all && (bun run create-admin -- --name 'Admin User' --email admin@localhost.dev --password 'Pa$$$$w0rd!' || true) && bun run start"
     environment:
+      NODE_ENV: development
       BETTER_AUTH_SECRET: demo-secret-change-me
-      BETTER_AUTH_URL: http://localhost:5173
-      TRUSTED_ORIGINS: http://localhost:5173
       AUTH_DB_URI: postgres://auth:auth@auth-db:5432/auth
-      PORT: "3000"
+      PORT: "8001"
+    ports:
+      - "8001:8001" # http://idp.localhost:8001
+    networks:
+      default:
+        aliases:
+          - idp.localhost
     depends_on:
       auth-db:
         condition: service_healthy
@@ -62,23 +100,119 @@ services:
     working_dir: /app/apps/backend
     command: sh -c "bun run db:migrate && bun run start"
     environment:
+      NODE_ENV: development
       ELECTIONS_DB_URI: postgres://elections:elections@elections-db:5432/elections
-      AUTH_SERVICE_URL: http://auth:3000
-      TRUSTED_ORIGINS: http://localhost:5173
-      PORT: "3001"
+      PORT: "8000"
+      CHAIN_NODE_URL: http://chain-master:7100
+      # Optional: create an API key in the admin app and set it here to let
+      # the backend resolve voter identities via the auth /core API.
+      # AUTH_CORE_API_KEY: <paste-key-here>
+    ports:
+      - "8000:8000" # http://api.localhost:8000
+    networks:
+      default:
+        aliases:
+          - api.localhost
     depends_on:
       elections-db:
         condition: service_healthy
+      auth:
+        condition: service_started
 
+  # ── Frontends (dev servers; URLs resolved from @tora-chain/configs) ────
   admin-fe:
     <<: *app
     working_dir: /app/apps/admin-fe
-    command: bunx vite --host 0.0.0.0 --port 5173
-    environment:
-      AUTH_TARGET: http://auth:3000
-      API_TARGET: http://backend:3001
+    command: bun run dev -- --host 0.0.0.0
     ports:
-      - "5173:5173"
+      - "3000:3000" # http://admin.localhost:3000
     depends_on:
       - auth
       - backend
+
+  voting-fe:
+    <<: *app
+    working_dir: /app/apps/voting-fe
+    command: bun run dev -- -H 0.0.0.0
+    ports:
+      - "3001:3001" # http://voting.localhost:3001
+    depends_on:
+      - auth
+      - backend
+
+  auditing-fe:
+    <<: *app
+    working_dir: /app/apps/auditing-fe
+    command: bun run dev -- -H 0.0.0.0
+    ports:
+      - "3002:3002" # http://auditing.localhost:3002
+    depends_on:
+      - auth
+      - backend
+
+  # ── Example external eligibility provider ──────────────────────────────
+  # Configure an election's integration with url http://example-voters:3003/api/verify,
+  # api-key header `x-api-key: test-api-key-dev-only`, and form fields
+  # `email` + `national-id` (seeded voters: alice@example.com / NID-001-ALICE, …).
+  example-voters:
+    <<: *app
+    working_dir: /app/examples/simple-voters-database
+    command: sh -c "bun run seed && bun run dev -- -H 0.0.0.0"
+    environment:
+      ELIGIBILITY_API_KEY: test-api-key-dev-only
+    ports:
+      - "3003:3003" # http://localhost:3003
+
+  # ── Blockchain network (master + 3 workers = pBFT quorum) ──────────────
+  # The master requires 3 live worker subscribers before accepting votes.
+  # CHAIN_DB_URI is intentionally unset: the master falls back to a JSON
+  # file inside the container (fine for a demo, wiped with the container).
+  chain-master:
+    <<: *app
+    working_dir: /app/apps/torachain-cli
+    command: bun run src/start.ts --master --port 7100
+    environment: *chain-env
+    ports:
+      - "7100:7100" # chain viewer + POST /api/vote + GET /api/chain
+    depends_on:
+      pubsub-emulator:
+        condition: service_healthy
+
+  chain-worker-1:
+    <<: *app
+    working_dir: /app/apps/torachain-cli
+    command: bun run src/start.ts --port 7101 --master-url http://chain-master:7100
+    environment: *chain-env
+    ports:
+      - "7101:7101"
+    depends_on:
+      pubsub-emulator:
+        condition: service_healthy
+      chain-master:
+        condition: service_started
+
+  chain-worker-2:
+    <<: *app
+    working_dir: /app/apps/torachain-cli
+    command: bun run src/start.ts --port 7102 --master-url http://chain-master:7100
+    environment: *chain-env
+    ports:
+      - "7102:7102"
+    depends_on:
+      pubsub-emulator:
+        condition: service_healthy
+      chain-master:
+        condition: service_started
+
+  chain-worker-3:
+    <<: *app
+    working_dir: /app/apps/torachain-cli
+    command: bun run src/start.ts --port 7103 --master-url http://chain-master:7100
+    environment: *chain-env
+    ports:
+      - "7103:7103"
+    depends_on:
+      pubsub-emulator:
+        condition: service_healthy
+      chain-master:
+        condition: service_started

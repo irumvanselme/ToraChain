@@ -9,6 +9,8 @@ OpenAPI docs are served at `/docs`.
 ## Responsibilities
 
 - System of record for **elections, candidates, voters (eligibility), and votes**.
+- API routes require a Bearer JWT minted by the auth service (verified
+  against the issuing domain's JWKS).
 - Resolves voter identities against the auth `/core` API.
 - Delegates voter **eligibility** to an external HTTP provider per election
   (see [eligibility-api-specs.md](eligibility-api-specs.md)).

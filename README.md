@@ -8,58 +8,20 @@ pBFT node network, and independently auditable end to end.
 
 ## Architecture at a glance
 
-```mermaid
-flowchart LR
-    subgraph FE["Frontends"]
-        admin["Admin SPA<br/>(React + Vite)"]
-        voting["Voting App<br/>(Next.js)"]
-        audit["Auditing App<br/>(Next.js)"]
-    end
-
-    subgraph BE["Backend services"]
-        auth["Auth / IdP<br/>(Elysia + better-auth)"]
-        api["Elections API<br/>(Elysia + Drizzle)"]
-    end
-
-    subgraph CHAIN["Blockchain network"]
-        master["Chain Master<br/>(pBFT coordinator)"]
-        w1["Worker"]
-        w2["Worker"]
-        w3["Worker"]
-    end
-
-    ext["External Eligibility API<br/>(e.g. voter registry)"]
-    authdb[("Auth DB")]
-    apidb[("Elections DB")]
-    chaindb[("Chain DB")]
-    pubsub{{"Google Cloud Pub/Sub"}}
-
-    admin --> auth & api
-    voting --> auth & api
-    audit --> auth & api
-    api --> auth
-    api -- "check eligibility" --> ext
-    api -- "submit vote" --> master
-    master <--> pubsub
-    pubsub <--> w1 & w2 & w3
-
-    auth --- authdb
-    api --- apidb
-    master --- chaindb
-```
+![Architecture Detailed](./docs/assets/architecture-detailed.jpg)
 
 Full write-up: **[docs/architecture.md](docs/architecture.md)**.
 
 ## Workspaces
 
 | Workspace                                                            | Description                                                                | Docs                                                           |
-|----------------------------------------------------------------------|----------------------------------------------------------------------------|----------------------------------------------------------------|
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | [`apps/auth`](apps/auth/README.md)                                   | Identity for voters / admins / auditors                                    | [docs/auth.md](docs/auth.md)                                   |
 | [`apps/backend`](apps/backend/README.md)                             | Elections & voting REST API                                                | [docs/backend.md](docs/backend.md)                             |
 | [`apps/admin-fe`](apps/admin-fe/README.md)                           | Admin SPA (manage elections)                                               | [docs/frontends.md](docs/frontends.md)                         |
 | [`apps/voting-fe`](apps/voting-fe/README.md)                         | Voter app (enroll & cast a ballot)                                         | [docs/frontends.md](docs/frontends.md)                         |
 | [`apps/auditing-fe`](apps/auditing-fe/README.md)                     | Auditor app (verify results)                                               | [docs/frontends.md](docs/frontends.md)                         |
-| [`apps/torachain-cli`](apps/torachain-cli)                           | Blockchain node CLI (master + workers)                                     | [docs/blockchain.md](docs/blockchain.md)                       |
+| [`apps/torachain-cli`](apps/torachain-cli/README.md)                 | Blockchain node CLI (master + workers)                                     | [docs/blockchain.md](docs/blockchain.md)                       |
 | [`packages/*`](packages)                                             | Shared libs: `configs`, `be-common`, `fe-common`, `ui-components`, `specs` | —                                                              |
 | [`examples/simple-voters-database`](examples/simple-voters-database) | Reference eligibility-API provider                                         | [docs/eligibility-api-specs.md](docs/eligibility-api-specs.md) |
 
@@ -79,15 +41,24 @@ URLs are defined once in [`packages/configs/src/links.ts`](packages/configs/src/
 
 ## Quick start
 
-Run the whole stack (all apps **and** databases) with Docker — no Bun install
-needed:
+Run the whole stack with Docker — every app, both databases, the Pub/Sub
+emulator, and a 4-node blockchain network. No Bun install needed:
 
 ```bash
 docker compose -f docker-compose.demo.yaml up --build
-# open http://localhost:5173  →  register an admin at /admins/register
 ```
 
-Full instructions, including running services natively for development, are in
+Then open (use Chrome or Firefox — the apps live on `*.localhost` subdomains):
+
+| Open                           | To                                                           |
+| ------------------------------ | ------------------------------------------------------------ |
+| http://admin.localhost:3000    | manage elections — sign in with the **Default login** button |
+| http://voting.localhost:3001   | register as a voter, enroll, and cast a ballot               |
+| http://auditing.localhost:3002 | register as an auditor and verify results                    |
+| http://localhost:7100          | watch blocks land on the chain                               |
+
+A demo admin (`admin@localhost.dev` / `Pa$$w0rd!`) is created automatically on
+boot. Full instructions — including native (hot-reload) development — are in
 **[docs/setup.md](docs/setup.md)**.
 
 ## Documentation

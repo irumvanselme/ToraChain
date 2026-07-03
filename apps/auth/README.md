@@ -40,14 +40,14 @@ bun run dev                   # http://localhost:3000
 Validated at load by `app/env.ts` (Zod). The `baseURL` and `trustedOrigins`
 are **not** env vars — they come from `@tora-chain/configs`.
 
-| Var                  | Required | Notes                                                          |
-| -------------------- | -------- | -------------------------------------------------------------- |
-| `BETTER_AUTH_SECRET` | yes      | Signs sessions/JWTs across all three domains.                  |
-| `AUTH_DB_URI`        | yes      | Shared Postgres connection string (voter__/admin__/auditor_*). |
-| `PORT`               | no       | Default `3000`; dev `.env` uses `8001`.                        |
-| `NODE_ENV`           | no       | `development` vs `production`; selects the configs URL set.    |
-| `LOG_LEVEL`          | no       | Default `info` (via `@tora-chain/be-common`).                  |
-| `LOG_PRETTY`         | no       | Pretty logs; defaults on unless `NODE_ENV=production`.         |
+| Var                  | Required | Notes                                                                           |
+| -------------------- | -------- | ------------------------------------------------------------------------------- |
+| `BETTER_AUTH_SECRET` | yes      | Signs sessions/JWTs across all three domains.                                   |
+| `AUTH_DB_URI`        | yes      | Shared Postgres connection string (`voter_*` / `admin_*` / `auditor_*` tables). |
+| `PORT`               | no       | Default `3000`; dev `.env` uses `8001`.                                         |
+| `NODE_ENV`           | no       | `development` vs `production`; selects the configs URL set.                     |
+| `LOG_LEVEL`          | no       | Default `info` (via `@tora-chain/be-common`).                                   |
+| `LOG_PRETTY`         | no       | Pretty logs; defaults on unless `NODE_ENV=production`.                          |
 
 ## Scripts
 

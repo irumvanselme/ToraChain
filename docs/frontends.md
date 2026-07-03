@@ -18,11 +18,15 @@ and [`@tora-chain/ui-components`](../packages/ui-components/README.md).
   generated clients, no better-auth client SDK.
 - **Auth state** — `fe-common`'s `AuthProvider` / `RequireAuth` hit
   `{AUTH_BASE}/api/get-session` directly.
-- **Same-origin** — admin-fe proxies `/admins/*` → auth and `/api/*` → backend
-  so the session cookie works; production puts them behind one gateway.
-- **auditing-fe exception** — exchanges its session cookie for a short-lived JWT
-  (`app/api/token.ts` → better-auth `/token`) and sends `Authorization: Bearer`
-  to the backend audit endpoints.
+- **Cross-origin cookies** — each app calls auth and backend on their own
+  origins (`*.localhost` ports in dev, `*.tora-chain-demo.iansel.me` in demo);
+  the auth service issues `SameSite=None; Secure` session cookies and lists
+  every frontend in its `trustedOrigins`. There is no proxy.
+- **Backend calls carry a JWT** — `fe-common`'s token manager exchanges the
+  session cookie for a short-lived JWT at `{AUTH_BASE}/api/token`, caches it,
+  and refreshes/retries on 401; requests send `Authorization: Bearer`. All
+  three apps do this (auditing-fe wires it through its `AuditProvider`
+  together with the org-approval status).
 
 ## URLs
 

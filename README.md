@@ -78,5 +78,3 @@ boot. Full instructions — including native (hot-reload) development — are in
 | [Tech stack](docs/tech-stack.md)                                                                                      | Technologies used and why                    |
 | [Infrastructure](docs/infrastructure.md)                                                                              | IaC, GCP deployment, CI/CD                   |
 | [Auth](docs/auth.md) · [Backend](docs/backend.md) · [Frontends](docs/frontends.md) · [Blockchain](docs/blockchain.md) | Per-module deep dives                        |
-
-Contributor guide and repo conventions live in [AGENTS.md](AGENTS.md).

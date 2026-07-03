@@ -32,5 +32,5 @@ Identity provider for ToraChain, built on **Elysia + better-auth + Postgres**.
 | Admins      | cannot self-register; bootstrap with `bun run create-admin` |
 
 The multi-domain registry pattern is the core design idea — see the
-[architecture doc](architecture.md) and [AGENTS.md](../AGENTS.md) for the full
+[architecture doc](architecture.md) for the full
 rationale.

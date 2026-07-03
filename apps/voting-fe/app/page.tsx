@@ -86,7 +86,7 @@ export default function Home() {
         {/* Features */}
         <section
           id="features"
-          className="max-w-6xl mx-auto px-4 py-16 sm:py-20 scroll-mt-20"
+          className="container mx-auto px-1 py-16 sm:py-20 scroll-mt-20"
         >
           <div className="max-w-2xl mx-auto text-center flex flex-col gap-3 mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -132,7 +132,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-base-200">
-        <div className="max-w-6xl mx-auto px-4 py-6 text-sm text-base-content/60 text-center">
+        <div className="container mx-auto px-1 py-6 text-sm text-base-content/60 text-center">
           © Tora-Chain — Secure, verifiable, blockchain-backed voting.
         </div>
       </footer>

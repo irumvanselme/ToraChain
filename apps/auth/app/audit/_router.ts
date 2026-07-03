@@ -8,6 +8,7 @@ import { corePool } from "../core/db.ts";
 import { CoreHttpError } from "../core/errors.ts";
 import { AuditOrgRepository } from "./repository.ts";
 import { AuditOrgService } from "./service.ts";
+import { resolveAuditor } from "./session.ts";
 import {
   ApproveBody,
   AuditStatusSchema,
@@ -53,19 +54,19 @@ export function AuditorAuditRouter(appRegistry: AppRegistry) {
     .get(
       "/status",
       async ({ request }) => {
-        const session = await auditorsApp.auth.api.getSession({
-          headers: request.headers,
-        });
-        if (!session?.user) {
+        // Accept either a session cookie (browser) or a Bearer auditor JWT
+        // (forwarded by the backend, which never holds the session cookie).
+        const auditor = await resolveAuditor(auditorsApp, request);
+        if (!auditor) {
           throw CoreHttpError.unauthorized(
             "Auditor authentication is required.",
           );
         }
-        const org = await service.getStatusByUserId(session.user.id);
+        const org = await service.getStatusByUserId(auditor.id);
         return {
-          userId: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
+          userId: auditor.id,
+          name: auditor.name,
+          email: auditor.email,
           org,
         };
       },

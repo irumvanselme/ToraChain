@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   Alert,
   Badge,
@@ -58,52 +58,37 @@ const COLUMNS: Column<DomainUser>[] = [
   },
 ];
 
-export function UsersListPage() {
-  const {
-    userType,
-    q,
-    rows,
-    pagination,
-    loading,
-    error,
-    load,
-    search,
-    setSearch,
-    patchParams,
-  } = useListUsers();
+type ListUsers = ReturnType<typeof useListUsers>;
 
-  const [addingAdmin, setAddingAdmin] = useState(false);
+type TabContentProps = Pick<
+  ListUsers,
+  | "userType"
+  | "q"
+  | "rows"
+  | "pagination"
+  | "loading"
+  | "error"
+  | "load"
+  | "search"
+  | "setSearch"
+  | "patchParams"
+> & { onAddAdmin: () => void };
 
+function TabContent({
+  userType,
+  q,
+  rows,
+  pagination,
+  loading,
+  error,
+  load,
+  search,
+  setSearch,
+  patchParams,
+  onAddAdmin,
+}: TabContentProps) {
   return (
-    <div className="flex flex-col gap-6 py-6">
-      <PageHeader
-        title="Users"
-        description="Browse voter, admin, and auditor accounts."
-        actions={
-          userType === "admins" ? (
-            <Button onClick={() => setAddingAdmin(true)}>
-              <PlusIcon className="size-4" />
-              Add admin
-            </Button>
-          ) : undefined
-        }
-      />
-
-      <div role="tablist" className="tabs tabs-border">
-        {USER_TYPES.map((type) => (
-          <button
-            key={type}
-            role="tab"
-            type="button"
-            aria-selected={type === userType}
-            className={`tab${type === userType ? " tab-active" : ""}`}
-            onClick={() => patchParams({ type, page: "", q: "" })}
-          >
-            {TAB_LABELS[type]}
-          </button>
-        ))}
-      </div>
-
+    <div className="flex flex-col gap-4">
       <form
         className="flex w-full max-w-md items-center gap-2"
         onSubmit={(e) => {
@@ -121,7 +106,6 @@ export function UsersListPage() {
           <SearchIcon className="size-4" />
         </Button>
       </form>
-
       {loading ? (
         <div className="flex justify-center py-16">
           <Spinner size="lg" />
@@ -149,7 +133,7 @@ export function UsersListPage() {
                 Clear search
               </Button>
             ) : userType === "admins" ? (
-              <Button onClick={() => setAddingAdmin(true)}>
+              <Button onClick={onAddAdmin}>
                 <PlusIcon className="size-4" />
                 Add admin
               </Button>
@@ -176,13 +160,60 @@ export function UsersListPage() {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+export function UsersListPage() {
+  const listUsers = useListUsers();
+  const { userType, patchParams } = listUsers;
+
+  const [addingAdmin, setAddingAdmin] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-6 py-6">
+      <PageHeader
+        title="Users"
+        description="Browse voter, admin, and auditor accounts."
+        actions={
+          userType === "admins" ? (
+            <Button onClick={() => setAddingAdmin(true)}>
+              <PlusIcon className="size-4" />
+              Add admin
+            </Button>
+          ) : undefined
+        }
+      />
+
+      <div className="tabs tabs-lift">
+        {USER_TYPES.map((type) => (
+          <Fragment key={type}>
+            <input
+              type="radio"
+              name="users-tabs"
+              className="tab"
+              aria-label={TAB_LABELS[type]}
+              checked={type === userType}
+              onChange={() => patchParams({ type, page: "", q: "" })}
+            />
+            <div className="tab-content bg-base-100 border-base-300 p-6">
+              {type === userType && (
+                <TabContent
+                  {...listUsers}
+                  onAddAdmin={() => setAddingAdmin(true)}
+                />
+              )}
+            </div>
+          </Fragment>
+        ))}
+      </div>
 
       <CreateAdminModal
         open={addingAdmin}
         onClose={() => setAddingAdmin(false)}
         onCreated={() => {
           setAddingAdmin(false);
-          load();
+          listUsers.load();
         }}
       />
     </div>

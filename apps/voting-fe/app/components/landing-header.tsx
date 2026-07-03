@@ -13,7 +13,7 @@ export function LandingHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-base-300 bg-base-100/90 backdrop-blur">
-      <nav className="navbar max-w-6xl mx-auto px-4 min-h-14">
+      <nav className="navbar container mx-auto px-1 min-h-14">
         <div className="navbar-start">
           <Link
             href="/"

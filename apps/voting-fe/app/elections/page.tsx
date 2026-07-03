@@ -113,7 +113,7 @@ export default function ElectionsPage() {
   }, [load]);
 
   return (
-    <div className="flex flex-col gap-6 py-6 px-4 max-w-6xl mx-auto w-full">
+    <div className="flex flex-col gap-6 py-6 container mx-auto px-1 w-full">
       <PageHeader
         title="Elections"
         description="Elections you are eligible to participate in."

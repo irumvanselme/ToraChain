@@ -77,7 +77,7 @@ export function ElectionsListPage() {
   } = useListElections();
 
   return (
-    <div className="flex flex-col gap-6 py-6">
+    <div className="flex flex-col gap-6 py-6 px-2">
       <PageHeader
         title="Elections"
         description="Manage elections under your institution."

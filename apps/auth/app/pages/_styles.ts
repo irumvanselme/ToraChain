@@ -127,8 +127,10 @@ export const CSS = css`
   }
   .brand {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.85rem;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1.75rem;
   }
   .brand-lockup {
@@ -211,8 +213,10 @@ export const CSS = css`
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease-in-out;
   }
   .dev-login:hover {
+    color: white;
     background: rgba(79, 70, 229, 0.06);
   }
   button.loading {

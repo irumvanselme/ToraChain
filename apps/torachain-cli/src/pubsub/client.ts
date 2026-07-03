@@ -6,11 +6,46 @@ const ALREADY_EXISTS = 6;
 
 let client: PubSub | null = null;
 
+// Pub/Sub is required for every node (master publishes, workers subscribe) and
+// has no local fallback. If it isn't configured the underlying client silently
+// hangs trying to reach the GCP metadata server for credentials/project — so
+// we validate up front and fail fast with an actionable message instead.
+//
+// Two supported setups (see .env.example):
+//   • Emulator — PUBSUB_EMULATOR_HOST (+ GOOGLE_CLOUD_PROJECT)
+//   • Real GCP — GOOGLE_APPLICATION_CREDENTIALS (service-account key) +
+//     GOOGLE_CLOUD_PROJECT. On Cloud Run the attached service account supplies
+//     credentials automatically, so only the project is required there.
+function assertPubSubConfigured(): void {
+  const project = process.env["GOOGLE_CLOUD_PROJECT"];
+  if (!project) {
+    throw new Error(
+      "Pub/Sub is not configured: GOOGLE_CLOUD_PROJECT is unset. Set it in " +
+        "apps/torachain-cli/.env (see .env.example) — nodes cannot publish or " +
+        "subscribe without it.",
+    );
+  }
+
+  const usingEmulator = Boolean(process.env["PUBSUB_EMULATOR_HOST"]);
+  const hasKey = Boolean(process.env["GOOGLE_APPLICATION_CREDENTIALS"]);
+  // Outside Cloud Run (K_SERVICE is set there) a key or the emulator is
+  // required — ambient metadata-server auth isn't available on a laptop.
+  const onCloudRun = Boolean(process.env["K_SERVICE"]);
+  if (!usingEmulator && !hasKey && !onCloudRun) {
+    throw new Error(
+      "Pub/Sub is not configured: set GOOGLE_APPLICATION_CREDENTIALS to a " +
+        "service-account key (e.g. the dev key in .keys/) or PUBSUB_EMULATOR_HOST " +
+        "for the local emulator. See apps/torachain-cli/.env.example.",
+    );
+  }
+}
+
 // Lazily creates the shared Pub/Sub client. GOOGLE_CLOUD_PROJECT,
 // PUBSUB_EMULATOR_HOST, and GOOGLE_APPLICATION_CREDENTIALS are all honored
 // by the underlying client without any extra wiring here.
 export function pubsubClient(): PubSub {
   if (!client) {
+    assertPubSubConfigured();
     client = new PubSub({ projectId: process.env["GOOGLE_CLOUD_PROJECT"] });
   }
   return client;

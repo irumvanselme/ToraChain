@@ -11,6 +11,11 @@ end.
 
 > **Live demo:** https://tora-chain-demo.iansel.me · **Elections API docs:** https://api.tora-chain-demo.iansel.me/docs
 
+## Video
+
+![Video](./docs/assets/video-repo.mp4)
+
+
 ## Architecture at a glance
 
 ![Architecture Detailed](./docs/assets/architecture-detailed-compressed.jpg)

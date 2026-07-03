@@ -29,6 +29,8 @@ Full write-up: **[docs/architecture.md](docs/architecture.md)**.
 | [`apps/torachain-cli`](apps/torachain-cli/README.md)                 | Blockchain node CLI (master + workers)                                     | [docs/blockchain.md](docs/blockchain.md)                       |
 | [`packages/*`](packages)                                             | Shared libs: `configs`, `be-common`, `fe-common`, `ui-components`, `specs` | —                                                              |
 | [`examples/simple-voters-database`](examples/simple-voters-database) | Reference eligibility-API provider                                         | [docs/eligibility-api-specs.md](docs/eligibility-api-specs.md) |
+| [`iac`](iac)                                                         | Infrastructure as Code (Terraform, Docker, deploy scripts)                 | [docs/infrastructure.md](docs/infrastructure.md)               |
+| [`assets`](assets)                                                   | Common assets (logos, shared imagery)                                      | —                                                              |
 
 ## Deployed services
 

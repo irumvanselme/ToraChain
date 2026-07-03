@@ -32,15 +32,15 @@ OpenAPI docs are served at `/docs`.
 Validated at load by `app/env.ts` (Zod). The auth `/core` URL, chain-node base,
 and `trustedOrigins` are derived from `@tora-chain/configs`, **not** env vars.
 
-| Var                 | Required | Notes                                                             |
-| ------------------- | -------- | ----------------------------------------------------------------- |
-| `ELECTIONS_DB_URI`  | yes      | Postgres connection string.                                       |
-| `PORT`              | no       | Default `3001`; dev `.env` uses `8000`.                           |
-| `NODE_ENV`          | no       | `development` vs `production`; selects the configs URL set.       |
-| `AUTH_CORE_API_KEY` | no       | Enables voter lookups via the auth `/core` API (else disabled).   |
-| `CHAIN_NODE_URL`    | no       | Chain master URL; when set, cast votes are forwarded (audit).     |
-| `LOG_LEVEL`         | no       | Default `info` (via `@tora-chain/be-common`).                     |
-| `LOG_PRETTY`        | no       | Pretty logs; defaults on unless `NODE_ENV=production`.            |
+| Var                 | Required | Notes                                                           |
+| ------------------- | -------- | --------------------------------------------------------------- |
+| `ELECTIONS_DB_URI`  | yes      | Postgres connection string.                                     |
+| `PORT`              | no       | Default `3001`; dev `.env` uses `8000`.                         |
+| `NODE_ENV`          | no       | `development` vs `production`; selects the configs URL set.     |
+| `AUTH_CORE_API_KEY` | no       | Enables voter lookups via the auth `/core` API (else disabled). |
+| `CHAIN_NODE_URL`    | no       | Chain master URL; when set, cast votes are forwarded (audit).   |
+| `LOG_LEVEL`         | no       | Default `info` (via `@tora-chain/be-common`).                   |
+| `LOG_PRETTY`        | no       | Pretty logs; defaults on unless `NODE_ENV=production`.          |
 
 ## Scripts
 

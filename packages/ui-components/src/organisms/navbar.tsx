@@ -111,7 +111,9 @@ export function Navbar({
           )}
           {brand}
           {hasNav && (
-            <nav className={cn("items-center gap-1", bp.inline)}>{children}</nav>
+            <nav className={cn("items-center gap-1", bp.inline)}>
+              {children}
+            </nav>
           )}
         </div>
 

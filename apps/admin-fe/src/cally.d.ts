@@ -5,7 +5,10 @@ import type { DetailedHTMLProps, HTMLAttributes } from "react";
  * Cally registers the custom elements and augments `HTMLElementTagNameMap`,
  * but it does not describe them for React's JSX namespace — do that here.
  */
-type CalendarElement = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement>;
+type CalendarElement = DetailedHTMLProps<
+  HTMLAttributes<HTMLElement>,
+  HTMLElement
+>;
 
 type CalendarDateElement = CalendarElement & {
   value?: string;

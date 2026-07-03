@@ -10,12 +10,12 @@ See [docs/frontends.md](../../docs/frontends.md) for the shared frontend pattern
 
 ## Routes
 
-| Route | Auth | Purpose |
-| ----- | ---- | ------- |
-| `/` | public | Landing page + sign-in CTA |
-| `/elections` | `RequireAuth` | Elections list with status filters |
+| Route             | Auth          | Purpose                                               |
+| ----------------- | ------------- | ----------------------------------------------------- |
+| `/`               | public        | Landing page + sign-in CTA                            |
+| `/elections`      | `RequireAuth` | Elections list with status filters                    |
 | `/elections/[id]` | `RequireAuth` | Eligibility/enrollment, cast ballot, receipt, tallies |
-| `/verify` | `RequireAuth` | Paste a receipt to verify a vote |
+| `/verify`         | `RequireAuth` | Paste a receipt to verify a vote                      |
 
 ## Key flows
 

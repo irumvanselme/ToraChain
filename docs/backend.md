@@ -33,11 +33,11 @@ Wired together in `app/app.ts` (`buildServices` / `buildApp`).
 
 ## Key facts
 
-| Aspect | Detail |
-| ------ | ------ |
-| Env | `ELECTIONS_DB_URI` (required), `PORT`, `AUTH_CORE_API_KEY`, `CHAIN_NODE_URL` |
-| Migrations | Drizzle (`db:generate` / `db:migrate`), committed to the repo |
-| Chain client | `HttpChainNodeClient` when `CHAIN_NODE_URL` set, else `NullChainNodeClient` |
-| Data model | [erd.md](erd.md) |
+| Aspect       | Detail                                                                       |
+| ------------ | ---------------------------------------------------------------------------- |
+| Env          | `ELECTIONS_DB_URI` (required), `PORT`, `AUTH_CORE_API_KEY`, `CHAIN_NODE_URL` |
+| Migrations   | Drizzle (`db:generate` / `db:migrate`), committed to the repo                |
+| Chain client | `HttpChainNodeClient` when `CHAIN_NODE_URL` set, else `NullChainNodeClient`  |
+| Data model   | [erd.md](erd.md)                                                             |
 
 See [architecture.md](architecture.md) for the vote flow.

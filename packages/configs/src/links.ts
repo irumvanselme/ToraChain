@@ -52,6 +52,22 @@ export const chainNodeLink = link(
   "https://node.tora-chain-demo.iansel.me",
 );
 
+/**
+ * Where each identity domain's users belong after signing in, when the login
+ * page wasn't given an explicit `?redirect=` target: voters → voting app,
+ * admins → admin app, auditors → auditing app. Keyed by the string values of
+ * the auth service's `EUserType` (configs stays zero-dep, so we key by the
+ * literal strings rather than importing the enum).
+ */
+export const feLinkByUserType: Record<
+  "voters" | "admins" | "auditors",
+  string
+> = {
+  voters: votingFeLink,
+  admins: adminFeLink,
+  auditors: auditingFeLink,
+};
+
 export const DEV_LINKS: readonly DevLinkConfig[] = [
   {
     label: "Admin FE",

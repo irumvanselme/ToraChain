@@ -3,7 +3,7 @@ import { Html } from "@elysia/html";
 import { canSelfRegister, type EUserType } from "app/types.ts";
 import { Layout } from "./layout.tsx";
 import { devLoginScript, formScript } from "./script.ts";
-import { getEnvironmentFullName } from "@tora-chain/configs";
+import { feLinkByUserType, getEnvironmentFullName } from "@tora-chain/configs";
 
 export function Login({
   userType,
@@ -16,7 +16,10 @@ export function Login({
   devLogin?: { email: string; password: string };
 }) {
   const base = `/${userType}/api`;
-  const target = redirectTo ?? `/${userType}/profile`;
+  // With no explicit `?redirect=` target, send users to their domain's
+  // frontend (voters → voting app, admins → admin app, auditors → auditing
+  // app) rather than the auth service's own profile page.
+  const target = redirectTo ?? feLinkByUserType[userType];
   return (
     <Layout userType={userType} heading="Sign in">
       {devLogin && (

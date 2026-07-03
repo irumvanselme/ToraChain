@@ -39,11 +39,10 @@ export interface ElectionResults {
 }
 
 export interface BlockEntry {
-  blockIndex: number;
+  index: number;
   electionId: string;
-  votingNumber: string;
-  candidateId: string;
-  timestamp: string;
+  data: { voter: string; commitment: string };
+  timestamp: number;
   prevHash: string;
   hash: string;
 }

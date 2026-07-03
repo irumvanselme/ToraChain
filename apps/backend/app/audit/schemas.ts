@@ -33,11 +33,13 @@ export const ElectionResultsSchema = t.Object({
 });
 
 export const BlockEntrySchema = t.Object({
-  blockIndex: t.Number(),
+  index: t.Number(),
   electionId: t.String(),
-  votingNumber: t.String(),
-  candidateId: t.String(),
-  timestamp: t.String(),
+  data: t.Object({
+    voter: t.String(),
+    commitment: t.String(),
+  }),
+  timestamp: t.Number(),
   prevHash: t.String(),
   hash: t.String(),
 });

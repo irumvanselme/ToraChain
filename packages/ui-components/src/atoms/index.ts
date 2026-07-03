@@ -1,5 +1,6 @@
 export * from "./alert";
 export * from "./badge";
+export * from "./election-status-badge";
 export * from "./card";
 export * from "./input";
 export * from "./table";

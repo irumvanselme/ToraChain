@@ -21,12 +21,6 @@ function OrgGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-
-    const isDashboardPath =
-      !pathname.startsWith("/onboarding") &&
-      !pathname.startsWith("/pending") &&
-      pathname !== "/";
-
     if (!auditStatus) return;
 
     const org = auditStatus.org;
@@ -38,20 +32,16 @@ function OrgGate({ children }: { children: ReactNode }) {
     }
 
     if (org.approvalStatus === "pending" || org.approvalStatus === "rejected") {
-      // Not yet approved — redirect to pending status page
-      if (isDashboardPath) {
-        window.location.href = PENDING_URL;
-      }
+      // Not yet approved — redirect to the auth-service pending status page.
+      // This page lives on the auth service (external), never in this app, so
+      // always redirect regardless of the current path.
+      window.location.href = PENDING_URL;
       return;
     }
 
-    // Approved: if on a non-dashboard path, send them to the dashboard
-    if (
-      pathname === "/" ||
-      pathname === "/pending" ||
-      pathname === "/onboarding"
-    ) {
-      router.push("/dashboard");
+    // Approved: the only in-app landing page is "/", so send them onward.
+    if (pathname === "/") {
+      router.replace("/dashboard");
     }
   }, [loading, auditStatus, pathname, router]);
 

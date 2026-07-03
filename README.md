@@ -13,14 +13,14 @@ end.
 
 ## Architecture at a glance
 
-![Architecture Detailed](./docs/assets/architecture-detailed.jpg)
+![Architecture Detailed](./docs/assets/architecture-detailed-compressed.jpg)
 
 Full write-up: **[docs/architecture.md](docs/architecture.md)**.
 
 ## Workspaces
 
 | Workspace                                                            | Description                                                                | Docs                                                           |
-| -------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------- |
+|----------------------------------------------------------------------|----------------------------------------------------------------------------|----------------------------------------------------------------|
 | [`apps/auth`](apps/auth/README.md)                                   | Identity for voters / admins / auditors                                    | [docs/auth.md](docs/auth.md)                                   |
 | [`apps/backend`](apps/backend/README.md)                             | Elections & voting REST API                                                | [docs/backend.md](docs/backend.md)                             |
 | [`apps/admin-fe`](apps/admin-fe/README.md)                           | Admin SPA (manage elections)                                               | [docs/frontends.md](docs/frontends.md)                         |
@@ -36,7 +36,7 @@ URLs are defined once in [`packages/configs/src/links.ts`](packages/configs/src/
 (`getEnv()` resolves `development` vs `demo`).
 
 | Service           | Local (dev)                    | Demo                                       |
-| ----------------- | ------------------------------ | ------------------------------------------ |
+|-------------------|--------------------------------|--------------------------------------------|
 | Voting app        | http://voting.localhost:3001   | https://tora-chain-demo.iansel.me          |
 | Admin app         | http://admin.localhost:3000    | https://admin.tora-chain-demo.iansel.me    |
 | Auditing app      | http://auditing.localhost:3002 | https://auditing.tora-chain-demo.iansel.me |
@@ -56,7 +56,7 @@ docker compose -f docker-compose.demo.yaml up --build
 Then open (use Chrome or Firefox — the apps live on `*.localhost` subdomains):
 
 | Open                           | To                                                           |
-| ------------------------------ | ------------------------------------------------------------ |
+|--------------------------------|--------------------------------------------------------------|
 | http://admin.localhost:3000    | manage elections — sign in with the **Default login** button |
 | http://voting.localhost:3001   | register as a voter, enroll, and cast a ballot               |
 | http://auditing.localhost:3002 | register as an auditor and verify results                    |
@@ -69,7 +69,7 @@ boot. Full instructions — including native (hot-reload) development — are in
 ## Documentation
 
 | Doc                                                                                                                   | Contents                                     |
-| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+|-----------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
 | [Setup](docs/setup.md)                                                                                                | Run everything locally with Docker Compose   |
 | [Architecture](docs/architecture.md)                                                                                  | System design, request/vote flow, module map |
 | [ERD](docs/erd.md)                                                                                                    | Data model & entity relationships            |

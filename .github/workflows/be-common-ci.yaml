@@ -1,0 +1,32 @@
+name: be-common-ci
+
+on:
+  workflow_call:
+
+jobs:
+  ci:
+    name: format:check, lint & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: install dependencies
+        run: bun install --frozen-lockfile --filter @tora-chain/be-common
+
+      - name: formatting
+        working-directory: ./packages/be-common
+        run: bun run format:check
+
+      - name: linting
+        working-directory: ./packages/be-common
+        run: bun run lint
+
+      - name: test
+        working-directory: ./packages/be-common
+        run: bun run test --coverage

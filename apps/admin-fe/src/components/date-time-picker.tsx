@@ -85,7 +85,9 @@ export function DateTimePicker({
   const invalid = Boolean(error);
 
   return (
-    <label className="form-control w-full">
+    // A plain <div> (not <label>): wrapping the date button and time input in a
+    // single <label> would give the button a confusing composite accessible name.
+    <div className="form-control w-full">
       {label && <span className="label-text mb-1 font-medium">{label}</span>}
       <div className="flex gap-2">
         <button
@@ -140,6 +142,6 @@ export function DateTimePicker({
         />
       </div>
       {error && <span className="label-text-alt mt-1 text-error">{error}</span>}
-    </label>
+    </div>
   );
 }

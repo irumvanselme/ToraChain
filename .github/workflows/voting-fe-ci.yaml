@@ -36,4 +36,4 @@ jobs:
 
       - name: test
         working-directory: ./apps/voting-fe
-        run: bun run test
+        run: bun run test --coverage

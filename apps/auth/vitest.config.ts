@@ -15,5 +15,21 @@ export default defineConfig({
       BETTER_AUTH_SECRET: "test-secret",
       AUTH_DB_URI: "postgres://test:test@localhost:5432/tora_auth",
     },
+    coverage: {
+      provider: "v8",
+      include: ["app/**/*.{ts,tsx}"],
+      exclude: [
+        "app/**/*.test.{ts,tsx}",
+        // The HTTP bootstrap constructs the server and binds a port at import
+        // time; it is exercised end-to-end at runtime, not in unit tests.
+        "app/server.ts",
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
+    },
   },
 });

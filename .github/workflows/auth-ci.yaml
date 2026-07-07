@@ -33,4 +33,4 @@ jobs:
 
       - name: unit-tests
         working-directory: ./apps/auth
-        run: bun run test
+        run: bun run test --coverage

@@ -29,7 +29,7 @@ jobs:
 
       - name: test
         working-directory: ./apps/auditing-fe
-        run: bun run test
+        run: bun run test --coverage
 
       - name: build
         working-directory: ./apps/auditing-fe

@@ -6,6 +6,26 @@ on:
       - "**" # Runs on push to any branch
 
 jobs:
+  be-common:
+    name: be-common-ci
+    uses: ./.github/workflows/be-common-ci.yaml
+
+  configs:
+    name: configs-ci
+    uses: ./.github/workflows/configs-ci.yaml
+
+  specs:
+    name: specs-ci
+    uses: ./.github/workflows/specs-ci.yaml
+
+  fe-common:
+    name: fe-common-ci
+    uses: ./.github/workflows/fe-common-ci.yaml
+
+  ui-components:
+    name: ui-components-ci
+    uses: ./.github/workflows/ui-components-ci.yaml
+
   auth:
     name: auth-ci
     uses: ./.github/workflows/auth-ci.yaml
@@ -29,7 +49,19 @@ jobs:
 
   deploy:
     name: deploy
-    needs: [auth, backend, admin-fe, auditing-fe, voting-fe]
+    needs:
+      [
+        be-common,
+        configs,
+        specs,
+        fe-common,
+        ui-components,
+        auth,
+        backend,
+        admin-fe,
+        auditing-fe,
+        voting-fe,
+      ]
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yaml
     secrets: inherit

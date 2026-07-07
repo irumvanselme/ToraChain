@@ -15,7 +15,6 @@ end.
 
 [Video](https://drive.google.com/file/d/1NIr9bJ7WzyV_cZHkMz1k5c1vKsO8iFoC/view?usp=sharing)
 
-
 ## Architecture at a glance
 
 ![Architecture Detailed](./docs/assets/architecture-detailed-compressed.jpg)
@@ -36,6 +35,36 @@ Full write-up: **[docs/architecture.md](docs/architecture.md)**.
 | [`examples/simple-voters-database`](examples/simple-voters-database) | Reference eligibility-API provider                                         | [docs/eligibility-api-specs.md](docs/eligibility-api-specs.md) |
 | [`iac`](iac)                                                         | Infrastructure as Code (Terraform, Docker, deploy scripts)                 | [docs/infrastructure.md](docs/infrastructure.md)               |
 | [`assets`](assets)                                                   | Common assets (logos, shared imagery)                                      | —                                                              |
+
+## Testing strategy
+
+An elections system lives or dies on trust, so every workspace is tested and
+the full gate runs in CI on every push. Full guidelines, commands, and
+analysis: **[docs/testing-guidelines-and-strategy.md](docs/testing-guidelines-and-strategy.md)**.
+
+| Layer                                    | What it proves                                                        | Status (2026-07-07)                        |
+| ---------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------ |
+| **Unit** (Vitest, co-located)            | Each module in isolation — services, controllers, hashing, components | **851 tests / 111 files — all passing** ✅ |
+| **Integration** (Vitest + real Postgres) | Backend HTTP API end to end, migrations rebuilt from zero             | **14 tests / 4 files — all passing** ✅    |
+| **Manual acceptance**                    | Full multi-actor election lifecycle on the deployed demo              | 7-stage script, run before each release    |
+| **E2E** _(planned)_                      | Browser flows against the Docker demo stack                           | Playwright, next iteration                 |
+
+Key strategies, and how they help us fix problems fast:
+
+- **In-memory fakes + dependency injection** — controller tests drive the
+  real Elysia HTTP pipeline with only the database faked, so a failure names
+  the exact layer (route, service, or repository) at fault.
+- **Edge cases & varied inputs** — deterministic clocks for election
+  open/close windows, `test.each` tables from a `bigint` to 1 MB of data,
+  duplicate-vote (`409 ALREADY_VOTED`) and tampered-block rejection paths.
+- **Snapshot-guarded hashing** — any change to block hashing breaks a
+  snapshot before it can desynchronise master and worker nodes in production.
+- **Cross-environment runs** — macOS dev machines, Ubuntu CI runners, and the
+  Linux Docker demo stack all execute the same suites; CI must be green
+  before `main` can deploy.
+
+Run it yourself: `make test` (or `make ci` for the full format → types → lint
+→ test gate).
 
 ## Deployed services
 
@@ -81,5 +110,6 @@ boot. Full instructions — including native (hot-reload) development — are in
 | [Architecture](docs/architecture.md)                                                                                  | System design, request/vote flow, module map |
 | [ERD](docs/erd.md)                                                                                                    | Data model & entity relationships            |
 | [Tech stack](docs/tech-stack.md)                                                                                      | Technologies used and why                    |
+| [Testing](docs/testing-guidelines-and-strategy.md)                                                                    | Testing strategy, guidelines & results       |
 | [Infrastructure](docs/infrastructure.md)                                                                              | IaC, GCP deployment, CI/CD                   |
 | [Auth](docs/auth.md) · [Backend](docs/backend.md) · [Frontends](docs/frontends.md) · [Blockchain](docs/blockchain.md) | Per-module deep dives                        |

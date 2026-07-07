@@ -42,12 +42,12 @@ An elections system lives or dies on trust, so every workspace is tested and
 the full gate runs in CI on every push. Full guidelines, commands, and
 analysis: **[docs/testing-guidelines-and-strategy.md](docs/testing-guidelines-and-strategy.md)**.
 
-| Layer                                    | What it proves                                                        | Status (2026-07-07)                        |
-| ---------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------ |
-| **Unit** (Vitest, co-located)            | Each module in isolation — services, controllers, hashing, components | **851 tests / 111 files — all passing**  |
-| **Integration** (Vitest + real Postgres) | Backend HTTP API end to end, migrations rebuilt from zero             | **14 tests / 4 files — all passing**   |
-| **Manual acceptance**                    | Full multi-actor election lifecycle on the deployed demo              | 7-stage script, run before each release    |
-| **E2E** _(planned)_                      | Browser flows against the Docker demo stack                           | Playwright, next iteration                 |
+| Layer                                    | What it proves                                                        | Status (2026-07-07)                     |
+| ---------------------------------------- | --------------------------------------------------------------------- | --------------------------------------- |
+| **Unit** (Vitest, co-located)            | Each module in isolation — services, controllers, hashing, components | **851 tests / 111 files — all passing** |
+| **Integration** (Vitest + real Postgres) | Backend HTTP API end to end, migrations rebuilt from zero             | **14 tests / 4 files — all passing**    |
+| **Manual acceptance**                    | Full multi-actor election lifecycle on the deployed demo              | 7-stage script, run before each release |
+| **E2E** _(planned)_                      | Browser flows against the Docker demo stack                           | Playwright, next iteration              |
 
 Key strategies, and how they help us fix problems fast:
 

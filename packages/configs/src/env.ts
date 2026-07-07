@@ -2,18 +2,19 @@ const ENVIRONMENTS = ["development", "demo"] as const;
 
 export type Environment = (typeof ENVIRONMENTS)[number];
 
+interface ImportMetaEnv {
+  readonly NODE_ENV: string;
+  readonly VITE_NODE_ENV: string;
+}
+
 export function getEnv(): Environment {
   let localEnv: string | undefined;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  if (import.meta.env) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    localEnv = import.meta.env.VITE_NODE_ENV || import.meta.env.NODE_ENV;
+  const importMetaObj = import.meta as object;
+  if (importMetaObj && "env" in importMetaObj && importMetaObj.env) {
+    const importMetaEnv = importMetaObj.env as ImportMetaEnv;
+    localEnv = importMetaEnv.VITE_NODE_ENV || importMetaEnv.NODE_ENV;
   } else {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    localEnv = process.env.NODE_ENV;
+    localEnv = process ? process.env.NODE_ENV : undefined;
   }
 
   if (localEnv == "production") {
@@ -26,7 +27,7 @@ export function getEnv(): Environment {
 
   if (!localEnv || !ENVIRONMENTS.includes(localEnv as Environment)) {
     throw new Error(
-        `Invalid NODE_ENV ${localEnv}. Must be one of ${ENVIRONMENTS.join(", ")}`,
+      `Invalid NODE_ENV ${localEnv}. Must be one of ${ENVIRONMENTS.join(", ")}`,
     );
   }
 

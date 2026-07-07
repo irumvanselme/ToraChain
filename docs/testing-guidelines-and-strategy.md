@@ -162,19 +162,19 @@ All suites green, locally and in CI:
 
 | Workspace                    | Files   | Tests   | Result  |
 | ---------------------------- | ------- | ------- | ------- |
-| `apps/auth`                  | 15      | 101     | ✅ pass |
-| `apps/backend` (unit)        | 18      | 131     | ✅ pass |
-| `apps/backend` (integration) | 4       | 14      | ✅ pass |
-| `apps/torachain-cli`         | 3       | 31      | ✅ pass |
-| `apps/admin-fe`              | 23      | 232     | ✅ pass |
-| `apps/auditing-fe`           | 12      | 72      | ✅ pass |
-| `apps/voting-fe`             | 1       | 1       | ✅ pass |
-| `packages/configs`           | 7       | 25      | ✅ pass |
-| `packages/be-common`         | 4       | 58      | ✅ pass |
-| `packages/fe-common`         | 6       | 53      | ✅ pass |
-| `packages/ui-components`     | 21      | 136     | ✅ pass |
-| `packages/specs`             | 1       | 11      | ✅ pass |
-| **Total**                    | **115** | **865** | ✅ pass |
+| `apps/auth`                  | 15      | 101     | pass |
+| `apps/backend` (unit)        | 18      | 131     | pass |
+| `apps/backend` (integration) | 4       | 14      | pass |
+| `apps/torachain-cli`         | 3       | 31      | pass |
+| `apps/admin-fe`              | 23      | 232     | pass |
+| `apps/auditing-fe`           | 12      | 72      | pass |
+| `apps/voting-fe`             | 1       | 1       | pass |
+| `packages/configs`           | 7       | 25      | pass |
+| `packages/be-common`         | 4       | 58      | pass |
+| `packages/fe-common`         | 6       | 53      | pass |
+| `packages/ui-components`     | 21      | 136     | pass |
+| `packages/specs`             | 1       | 11      | pass |
+| **Total**                    | **115** | **865** | pass |
 
 The distribution mirrors the project's risk profile: the deepest suites sit on
 the vote-integrity path (backend 145 tests, auth 101, chain hashing/blocks 31)

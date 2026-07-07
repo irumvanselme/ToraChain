@@ -14,6 +14,10 @@ export class ElectionBlock {
     this._hash = hash(blockData);
   }
 
+  /**
+   * A worker re-computes the hash of every received block;
+   * a mismatch means the block was tampered with in transit, and it is rejected.
+   */
   public IsValid(): boolean {
     const blockData = [
       this.index,

@@ -33,7 +33,7 @@ jobs:
 
       - name: unit-tests
         working-directory: ./apps/backend
-        run: bun run test
+        run: bun run test --coverage
 
   integration:
     name: test:integration

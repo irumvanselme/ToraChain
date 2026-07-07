@@ -48,4 +48,4 @@ export interface SerializedBlock {
   hash: string;
 }
 
-export interface NewBlockPayload extends SerializedBlock {}
+export type NewBlockPayload = SerializedBlock;

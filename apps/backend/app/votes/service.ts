@@ -186,8 +186,8 @@ export class VotesService {
 
     // Anchor the vote on the blockchain network (fire-and-forget audit trail).
     // We publish the hiding commitment — never the plaintext candidate — so the
-    // public chain viewer cannot enumerate individual votes. Legacy ballots
-    // without a client commitment fall back to a server-side hash so the chain
+    // public chain viewer cannot list individual votes. Legacy ballots
+    // without a client commitment fall back to a server-side hash, so the chain
     // still records a block, binding voter + candidate + cast time.
     this.chainNode.submitVote({
       electionId,

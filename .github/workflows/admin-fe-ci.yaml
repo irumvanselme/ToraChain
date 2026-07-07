@@ -37,4 +37,4 @@ jobs:
 
       - name: test
         working-directory: ./apps/admin-fe
-        run: bun run test
+        run: bun run test --coverage

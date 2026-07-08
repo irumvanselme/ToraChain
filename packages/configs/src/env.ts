@@ -9,12 +9,17 @@ interface ImportMetaEnv {
 
 export function getEnv(): Environment {
   let localEnv: string | undefined;
-  const importMetaObj = import.meta as object;
-  if (importMetaObj && "env" in importMetaObj && importMetaObj.env) {
-    const importMetaEnv = importMetaObj.env as ImportMetaEnv;
-    localEnv = importMetaEnv.VITE_NODE_ENV || importMetaEnv.NODE_ENV;
-  } else {
-    localEnv = process ? process.env.NODE_ENV : undefined;
+  try {
+    const importMetaObj = import.meta as object;
+    if (importMetaObj && "env" in importMetaObj && importMetaObj.env) {
+      const importMetaEnv = importMetaObj.env as ImportMetaEnv;
+      localEnv = importMetaEnv.VITE_NODE_ENV || importMetaEnv.NODE_ENV;
+    } else {
+      localEnv = process ? process.env.NODE_ENV : undefined;
+    }
+  } catch (e) {
+    console.error("Failed to read NODE_ENV from import.meta.env", e);
+    localEnv = "development";
   }
 
   if (localEnv == "production") {

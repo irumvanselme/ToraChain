@@ -19,7 +19,7 @@ export function getEnv(): Environment {
     }
   } catch (e) {
     console.error("Failed to read NODE_ENV from import.meta.env", e);
-    localEnv = "development";
+    localEnv = "demo";
   }
 
   if (localEnv == "production") {

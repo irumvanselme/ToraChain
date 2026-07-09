@@ -67,7 +67,7 @@ erDiagram
         uuid eligibility_id FK, UK "unique: one vote per eligibility"
         numeric voting_number
         text ciphertext "voter-sealed ballot (AES-GCM), nullable"
-        text commitment "SHA-256 of the ballot, anchored on-chain"
+        text commitment "SHA-256 of the ballot, anchored on-chain, nullable"
         timestamptz cast_at
     }
     election_integrations {
@@ -79,13 +79,24 @@ erDiagram
     }
 ```
 
-Notable constraints:
+Notable constraints and indexes:
 
+- `election_number`, `candidate_number`, and `voting_number` are all
+  `NOT NULL` and carry a unique constraint (`numeric(78,0)`).
 - `eligibilities` has a partial unique index on (`voter_id`, `election_id`)
   where `deleted = false` — a voter holds at most one live eligibility per
-  election.
+  election. Its `created_at`/`updated_at` are millisecond precision so keyset
+  pagination cursors round-trip exactly.
 - `votes.eligibility_id` is unique — the schema itself enforces one ballot
   per eligibility.
+- Foreign keys cascade on delete: `candidates`, `eligibilities`, and `votes`
+  all reference `elections(election_id)` with `ON DELETE CASCADE`; `votes` also
+  cascades from `candidates` and `eligibilities`, and `eligibilities` from
+  `voters`.
+- Lookup indexes: `elections_status_idx` (`status`),
+  `candidates_election_idx` (`election_id`),
+  `eligibilities_election_idx` (`election_id`),
+  `votes_election_idx` (`election_id`).
 
 ## Blockchain data model
 

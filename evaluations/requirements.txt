@@ -1,0 +1,8 @@
+# Tora-Chain evaluation harness — Python dependencies.
+# Install into a virtualenv:  python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+requests>=2.31
+matplotlib>=3.8
+cryptography>=42.0
+# Optional: only needed for the `reset` step that deletes prior evaluation data
+# directly from Postgres. The harness degrades gracefully if it is absent.
+psycopg[binary]>=3.1

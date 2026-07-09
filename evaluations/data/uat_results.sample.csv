@@ -1,0 +1,9 @@
+task,role,completion_rate
+Register and sign in,Voter,100
+Complete eligibility form and enroll,Voter,93
+Cast a ballot and save the receipt,Voter,100
+Verify the vote from the receipt,Voter,87
+Create and activate an election,Admin,100
+Approve an auditor organization,Admin,100
+Verify results and download the chain,Auditor,95
+SUS,,82

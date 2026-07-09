@@ -1,0 +1,11 @@
+# Python virtualenv
+.venv/
+__pycache__/
+*.pyc
+
+# Generated evaluation artifacts (charts, results, caption sheet)
+out/*
+!out/.gitkeep
+
+# Your filled-in pilot data (keep the .sample.csv template committed)
+data/uat_results.csv

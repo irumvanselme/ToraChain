@@ -53,6 +53,10 @@ describe("page components", () => {
     expect(html).toContain("/voters/api/sign-in/email");
     // Voters can self-register, so the register link appears.
     expect(html).toContain("/voters/register");
+    // A required terms-acceptance checkbox gates submission.
+    expect(html).toContain('id="accept-terms"');
+    expect(html).toContain("/legal/terms-and-conditions");
+    expect(html).toContain("/legal/privacy-policy");
   });
 
   test("Login without dev credentials omits the dev button and honors a redirect", async () => {
@@ -72,6 +76,9 @@ describe("page components", () => {
 
     const voter = await render(Register({ userType: EUserType.VOTERS }));
     expect(voter).toContain("/voters/login");
+    // The register form also requires accepting the terms.
+    expect(voter).toContain('id="accept-terms"');
+    expect(voter).toContain("/legal/terms-and-conditions");
   });
 
   test("ResetPassword renders the request-reset form", async () => {
@@ -130,6 +137,8 @@ describe("client scripts", () => {
     expect(script).toContain('"dev-login"');
     expect(script).toContain('"dev@x.dev"');
     expect(script).toContain("requestSubmit");
+    // Dev login ticks the required terms box so submission isn't blocked.
+    expect(script).toContain("accept-terms");
   });
 
   test("profileScript wires session, sign-out, and login redirect", () => {

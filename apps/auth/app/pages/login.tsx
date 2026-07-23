@@ -2,6 +2,7 @@ import { Html } from "@elysia/html";
 
 import { canSelfRegister, type EUserType } from "app/types.ts";
 import { Layout } from "./layout.tsx";
+import { TermsCheckbox } from "./_terms.tsx";
 import { devLoginScript, formScript } from "./script.ts";
 import { feLinkByUserType, getEnvironmentFullName } from "@tora-chain/configs";
 
@@ -46,6 +47,7 @@ export function Login({
             required
           />
         </label>
+        <TermsCheckbox />
         <button type="submit">Sign in</button>
         <p class="message"></p>
       </form>

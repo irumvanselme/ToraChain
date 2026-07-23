@@ -3,6 +3,7 @@ import { Html } from "@elysia/html";
 import type { EUserType } from "app/types.ts";
 import { EUserType as UserTypeEnum } from "app/types.ts";
 import { Layout } from "./layout.tsx";
+import { TermsCheckbox } from "./_terms.tsx";
 import { formScript } from "./script.ts";
 
 export function Register({ userType }: { userType: EUserType }) {
@@ -33,6 +34,7 @@ export function Register({ userType }: { userType: EUserType }) {
             required
           />
         </label>
+        <TermsCheckbox />
         <button type="submit">Create account</button>
         <p class="message"></p>
       </form>

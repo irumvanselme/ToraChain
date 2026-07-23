@@ -92,11 +92,15 @@ export const DEV_BANNER_CSS = css`
 export const CSS = css`
   :root {
     color-scheme: light dark;
-    /* ToraChain brand palette (see assets/logo-*.svg). */
+    /* ToraChain brand palette (the logo mark/wordmark colors, see _logos.ts). */
     --brand-slate: #374a59;
-    --brand-slate-dark: #2c3b47;
     --brand-sky: #84beef;
-    --accent: var(--brand-slate);
+    /* Primary action color. Matches the daisyUI "corporate" theme primary used
+       across voting-fe and admin-fe, so buttons/links/focus read the same blue
+       everywhere. Values are the theme's exact oklch, not a converted hex. */
+    --brand-primary: oklch(58% 0.158 241.966);
+    --brand-primary-hover: oklch(48% 0.158 241.966);
+    --accent: var(--brand-primary);
     --border: #d1d5db;
   }
   * {
@@ -196,7 +200,7 @@ export const CSS = css`
     cursor: pointer;
   }
   button:hover:not(:disabled) {
-    background: var(--brand-slate-dark);
+    background: var(--brand-primary-hover);
   }
   button:disabled {
     opacity: 0.6;
@@ -217,7 +221,8 @@ export const CSS = css`
   }
   .dev-login:hover {
     color: white;
-    background: rgba(79, 70, 229, 0.06);
+    background: var(--brand-primary);
+    border-color: var(--brand-primary);
   }
   button.loading {
     color: transparent;
@@ -254,6 +259,52 @@ export const CSS = css`
   }
   .message.success {
     color: #15803d;
+  }
+  /* Terms acceptance: horizontal row, unlike the stacked field labels. */
+  .terms {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  /* Custom checkbox: transparent background with an accent border/checkmark,
+     overriding the global filled input styling above. */
+  .terms input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    margin-top: 0.15rem;
+    padding: 0;
+    width: 1.15rem;
+    height: 1.15rem;
+    flex-shrink: 0;
+    background: transparent;
+    border: 1.5px solid var(--accent);
+    border-radius: 4px;
+    display: inline-grid;
+    place-content: center;
+    cursor: pointer;
+  }
+  .terms input[type="checkbox"]::after {
+    content: "";
+    width: 0.35rem;
+    height: 0.65rem;
+    border: solid var(--accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+    opacity: 0;
+  }
+  .terms input[type="checkbox"]:checked::after {
+    opacity: 1;
+  }
+  .terms input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .terms a {
+    color: var(--accent);
+    text-decoration: underline;
   }
   .links {
     margin-top: 1.75rem;

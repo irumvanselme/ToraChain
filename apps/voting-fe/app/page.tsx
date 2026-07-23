@@ -9,6 +9,7 @@ import {
 
 import { LandingHeader } from "./components/landing-header";
 import { SignInCta } from "./components/sign-in-cta";
+import { SiteFooter } from "./components/site-footer";
 
 const FEATURES = [
   {
@@ -131,11 +132,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-base-200">
-        <div className="container mx-auto px-1 py-6 text-sm text-base-content/60 text-center">
-          © Tora-Chain — Secure, verifiable, blockchain-backed voting.
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

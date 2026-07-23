@@ -24,7 +24,7 @@ Full write-up: **[docs/architecture.md](docs/architecture.md)**.
 ## Workspaces
 
 | Workspace                                                            | Description                                                                | Docs                                                           |
-| -------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------- |
+|----------------------------------------------------------------------|----------------------------------------------------------------------------|----------------------------------------------------------------|
 | [`apps/auth`](apps/auth/README.md)                                   | Identity for voters / admins / auditors                                    | [docs/auth.md](docs/auth.md)                                   |
 | [`apps/backend`](apps/backend/README.md)                             | Elections & voting REST API                                                | [docs/backend.md](docs/backend.md)                             |
 | [`apps/admin-fe`](apps/admin-fe/README.md)                           | Admin SPA (manage elections)                                               | [docs/frontends.md](docs/frontends.md)                         |

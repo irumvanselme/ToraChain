@@ -132,6 +132,7 @@ export const CSS = css`
   .brand {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 0.85rem;
     justify-content: space-between;
     align-items: center;
@@ -309,6 +310,8 @@ export const CSS = css`
   .links {
     margin-top: 1.75rem;
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
     justify-content: space-between;
     font-size: 1rem;
   }
@@ -339,5 +342,29 @@ export const CSS = css`
   .field-value {
     font-size: 1.125rem;
     word-break: break-word;
+  }
+  /* Small devices: tighten spacing and let the justified rows (brand header,
+     footer links) break onto their own lines instead of clinging to opposite
+     edges of a cramped card. */
+  @media (max-width: 480px) {
+    body {
+      padding: 1rem;
+    }
+    .card {
+      padding: 1.75rem 1.25rem;
+    }
+    .brand {
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 0.6rem;
+    }
+    h1 {
+      font-size: 1.6rem;
+    }
+    .links {
+      flex-direction: column;
+      justify-content: flex-start;
+    }
   }
 `;

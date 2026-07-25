@@ -71,15 +71,15 @@ The master persists each block to the `blocks` table. The composite primary key
 `(election_id, block_index)` makes inserts idempotent, so replayed Pub/Sub
 messages never duplicate a block.
 
-| Column        | Type      | Notes                                             |
-| ------------- | --------- | ------------------------------------------------- |
-| `election_id` | `TEXT`    | PK part 1 — one chain per election                |
-| `block_index` | `INTEGER` | PK part 2 — position in that election's chain     |
-| `voter_id`    | `TEXT`    | maps to `SerializedBlock.data.voter`              |
-| `commitment`  | `TEXT`    | SHA-256 hex commitment to the encrypted ballot    |
-| `timestamp`   | `BIGINT`  | epoch millis                                      |
-| `prev_hash`   | `TEXT`    | hash of the previous block (`"0"` for genesis)    |
-| `hash`        | `TEXT`    | this block's hash (lowercase hex)                 |
+| Column        | Type      | Notes                                          |
+| ------------- | --------- | ---------------------------------------------- |
+| `election_id` | `TEXT`    | PK part 1 — one chain per election             |
+| `block_index` | `INTEGER` | PK part 2 — position in that election's chain  |
+| `voter_id`    | `TEXT`    | maps to `SerializedBlock.data.voter`           |
+| `commitment`  | `TEXT`    | SHA-256 hex commitment to the encrypted ballot |
+| `timestamp`   | `BIGINT`  | epoch millis                                   |
+| `prev_hash`   | `TEXT`    | hash of the previous block (`"0"` for genesis) |
+| `hash`        | `TEXT`    | this block's hash (lowercase hex)              |
 
 ## Notes
 

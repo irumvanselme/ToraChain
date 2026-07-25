@@ -140,7 +140,7 @@ sequenceDiagram
 The "verification key" is the **AES-256-GCM key** embedded in the voter's
 receipt string; it never touches the server. Verification is a **client-side**
 process: one authenticated backend read, local decryption (a successful decrypt
-*is* the key-match proof), and an **independent** blockchain cross-check that
+_is_ the key-match proof), and an **independent** blockchain cross-check that
 deliberately bypasses the backend so a dishonest backend cannot fake the anchor.
 
 ```mermaid

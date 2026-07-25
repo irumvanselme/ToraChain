@@ -76,7 +76,7 @@ auditors self-register.
 ## How admin, voter and auditor relate
 
 The domains are **isolated identity stores** — no foreign keys tie a voter to an
-admin. The relationships between them are *behavioural*, and they all converge
+admin. The relationships between them are _behavioural_, and they all converge
 on the **admin** as the governing role:
 
 - an **admin** lists/creates accounts in every domain;

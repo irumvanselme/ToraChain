@@ -159,4 +159,4 @@ classDiagram
 > The source of truth for these classes is each module's `model.ts` under
 > `apps/backend/app/` (`elections`, `candidates`, `voters`, `votes`,
 > `integrations`).
-</content>
+> </content>

@@ -9,10 +9,11 @@ const TERMS_URL = `${votingFeLink}/legal/terms-and-conditions`;
 const PRIVACY_URL = `${votingFeLink}/legal/privacy-policy`;
 
 /**
- * Required "I accept the Terms & Conditions" checkbox. It carries no `name`, so
- * it is excluded from the submitted JSON body, and `required`, so the browser's
- * native form validation blocks submission until it is checked. The form does
- * nothing until the box is ticked.
+ * Required "I accept the Terms & Conditions" checkbox, used on registration
+ * only — signing in does not re-ask for consent already given at sign-up. It
+ * carries no `name`, so it is excluded from the submitted JSON body, and
+ * `required`, so the browser's native form validation blocks submission until
+ * it is checked. The form does nothing until the box is ticked.
  */
 export function TermsCheckbox() {
   return (

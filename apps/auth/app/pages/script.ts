@@ -69,12 +69,8 @@ export function devLoginScript(opts: {
   button.addEventListener("click", () => {
     const email = form.querySelector('[name="email"]');
     const password = form.querySelector('[name="password"]');
-    // Accept the terms on the user's behalf so the required checkbox doesn't
-    // block the one-click dev login (dev-only convenience).
-    const terms = form.querySelector("#accept-terms");
     if (email) email.value = ${JSON.stringify(email)};
     if (password) password.value = ${JSON.stringify(password)};
-    if (terms) terms.checked = true;
     form.requestSubmit();
   });
 })();

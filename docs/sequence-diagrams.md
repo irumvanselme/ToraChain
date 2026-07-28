@@ -90,7 +90,7 @@ sequenceDiagram
     participant PS as Pub/Sub<br/>(NEW_BLOCK topic)
     participant W as Chain Worker(s)
 
-    note over V: sealBallot() — encrypt locally<br/>ciphertext = AES-GCM(candidate)<br/>commitment = SHA-256(ciphertext)<br/>AES key kept in receipt, never sent
+    note over V: sealBallot() — encrypt locally<br/>ciphertext = AES-GCM(candidate)<br/>commitment = SHA-256(ciphertext)<br/>AES key kept by the voter, never sent
 
     V->>BE: POST /elections/:id/voter/:voterId/vote<br/>{candidateId, ciphertext, commitment} (JWT, protect: voters)
 
@@ -102,11 +102,12 @@ sequenceDiagram
     note over BE: re-derive sha256Hex(ciphertext)<br/>must equal client commitment (else 400)
     end
 
-    BE->>BDB: TX: UPDATE eligibilities SET has_voted=true<br/>(atomic; 0 rows → 409 ALREADY_VOTED)<br/>INSERT INTO votes (...)
-    BDB-->>BE: castAt
+    BE->>BDB: TX: UPDATE eligibilities SET has_voted=true<br/>(atomic; 0 rows → 409 ALREADY_VOTED)<br/>INSERT INTO votes (election, candidate, ciphertext, commitment)<br/>— no eligibility/voter reference is stored
+    BDB-->>BE: voteId, castAt
 
     BE-)CN: POST /api/vote (fire-and-forget)<br/>{electionId, votingNumber, commitment}
-    BE-->>V: 201 {accepted, votingNumber, castAt}
+    BE-->>V: 201 {accepted, voteId, votingNumber, castAt}
+    note over V: receipt = `voteId:key` — saved/QR'd by the voter
 
     rect rgb(240, 240, 255)
     note over CN, W: Chain side (async, decoupled from the voter)
@@ -124,8 +125,14 @@ sequenceDiagram
   `commitment` must be supplied together. The server trusts only its own
   re-derived `sha256Hex(ciphertext)`.
 - The double-vote guard is an atomic conditional `UPDATE` inside the same
-  transaction as the `INSERT`; the `votes` table also has a unique constraint on
-  `eligibility_id`.
+  transaction as the `INSERT`. It is the *only* guard: the `votes` row records
+  nothing about the eligibility that cast it — no `eligibility_id`, no
+  `voting_number` — so that reading the database cannot reveal who voted for
+  whom. The flip deliberately leaves `updated_at` alone too, since a stamp
+  matching `votes.cast_at` would give the link back by timing.
+- The response carries the new `voteId`. The voter's receipt is
+  `<voteId>:<AES key>`, and it is the only thing that can later reach this
+  ballot.
 - On-chain block `data = { voter: <votingNumber>, commitment }` — no candidate,
   no plaintext ever leaves the encrypted receipt.
 - `HttpChainNodeClient.submitVote` swallows all errors (`.catch()`); when
@@ -153,24 +160,24 @@ sequenceDiagram
     participant CN as Chain Master Node
 
     V->>FE: paste receipt string
-    note over FE: parseReceipt() decodes locally →<br/>{electionId, voterId, votingNumber,<br/>key (AES), commitment}
+    note over FE: parseReceipt() splits locally →<br/>{voteId, key (AES)}
 
-    FE->>BE: GET /elections/:id/voter/:voterId/vote/verify<br/>(JWT, protect: voters)
-    note over BE: ownership gate —<br/>eligibility.accountId == requester (else 403)
-    BE->>BDB: findByEligibility(eligibilityId)
-    BDB-->>BE: {countedCandidateId, votingNumber,<br/>ciphertext, commitment, castAt} (404 if none)
+    FE->>BE: GET /votes/:voteId/verify<br/>(JWT, protect: voters)
+    note over BE: no ownership gate is possible —<br/>the DB stores no voter → vote link.<br/>Holding the unguessable voteId is the capability.
+    BE->>BDB: findById(voteId)
+    BDB-->>BE: {voteId, electionId, countedCandidateId,<br/>ciphertext, commitment, castAt} (404 if none)
     BE-->>FE: VerifyResult
 
     rect rgb(235, 255, 240)
     note over FE: Client-side checks (no server)
-    note over FE: 1. commitment: SHA-256(ciphertext)<br/>== stored.commitment == receipt.commitment
-    note over FE: 2. decrypt: openBallot(ciphertext, receipt.key)<br/>AES-GCM auth fail ⇒ wrong key (KEY MATCH proof)
+    note over FE: 1. commitment: SHA-256(ciphertext)<br/>== stored.commitment
+    note over FE: 2. decrypt: openBallot(ciphertext, receipt.key)<br/>AES-GCM auth fail ⇒ wrong key (KEY MATCH proof)<br/>recovers electionId, votingNumber, candidate
     note over FE: 3. candidate: record.candidateId<br/>== countedCandidateId
     end
 
     FE->>CN: GET /api/chain?electionId=... (CORS open, no auth)
     CN-->>FE: full chain
-    note over FE: 4. find block where data.voter == votingNumber<br/>compare block.data.commitment == receipt.commitment<br/>→ match / mismatch / absent / unreachable
+    note over FE: 4. find block where data.voter == votingNumber<br/>(from the decrypted ballot — the server no longer has it)<br/>compare block.data.commitment == stored.commitment<br/>→ match / mismatch / absent / unreachable
 
     FE-->>V: aggregated report (pass / warn / fail)
 ```
@@ -180,8 +187,10 @@ sequenceDiagram
 - There is no "submit key, get yes/no" endpoint. The backend never sees the AES
   key and never hash-compares it; the successful AES-GCM decryption in the
   browser is the key-match step.
-- The verify endpoint is gated to the owning account (`403 FORBIDDEN`
-  otherwise), so a leaked voting number alone cannot read someone else's vote.
+- The verify endpoint is addressed by `voteId`, not by voter, and cannot be
+  gated to an owner: the backend deliberately keeps no record of whose ballot
+  is whose. The unguessable random `voteId` is the capability, and what it
+  returns is a ciphertext nobody can open without the receipt key.
 - The blockchain read goes **directly** from the browser to the chain node
   (`GET /api/chain`, CORS `*`), independent of the backend, so the anchor
   cross-check is trustworthy even if the backend lies.

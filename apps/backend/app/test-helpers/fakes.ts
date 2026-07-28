@@ -335,27 +335,39 @@ export class InMemoryVotersRepository implements VotersRepository {
 // ---- Votes ---------------------------------------------------------------
 
 export class InMemoryVotesRepository implements VotesRepository {
-  records: (RecordVoteInput & { castAt: Date })[] = [];
+  // `eligibilityId` is kept here only to emulate the guarded `has_voted` flip;
+  // `storedRow()` models what the database actually persists.
+  records: (RecordVoteInput & { voteId: string; castAt: Date })[] = [];
 
   constructor(private readonly voters: InMemoryVotersRepository) {}
+
+  /** The columns a real `votes` row carries — no voter-linked field among them. */
+  storedRow(voteId: string) {
+    const rec = this.records.find((r) => r.voteId === voteId);
+    if (!rec) return null;
+    const { eligibilityId: _dropped, ...stored } = rec;
+    return stored;
+  }
 
   async recordVote(input: RecordVoteInput) {
     const eligibility = this.voters.eligibilities.get(input.eligibilityId);
     if (!eligibility || eligibility.hasVoted) return null;
-    await this.voters.updateEligibility(input.eligibilityId, {
-      hasVoted: true,
-    });
+    // Note: unlike `updateEligibility`, the real flip leaves `updatedAt`
+    // untouched so it cannot be correlated with `castAt`.
+    eligibility.hasVoted = true;
     const castAt = nextDate();
-    this.records.push({ ...input, castAt });
-    return { castAt };
+    const voteId = randomUUID();
+    this.records.push({ ...input, voteId, castAt });
+    return { voteId, castAt };
   }
 
-  async findByEligibility(eligibilityId: string): Promise<VoteReceipt | null> {
-    const rec = this.records.find((r) => r.eligibilityId === eligibilityId);
+  async findById(voteId: string): Promise<VoteReceipt | null> {
+    const rec = this.records.find((r) => r.voteId === voteId);
     if (!rec) return null;
     return {
+      voteId: rec.voteId,
+      electionId: rec.electionId,
       candidateId: rec.candidateId,
-      votingNumber: rec.votingNumber,
       ciphertext: rec.ciphertext ?? null,
       commitment: rec.commitment ?? null,
       castAt: rec.castAt,

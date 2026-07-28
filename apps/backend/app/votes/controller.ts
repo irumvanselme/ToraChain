@@ -7,6 +7,7 @@ import {
   CastResultSchema,
   Params,
   VerifyResultSchema,
+  VoteParams,
 } from "./schemas.ts";
 import type { VotesService } from "./service.ts";
 import type { AuthGuard } from "../auth/protect.ts";
@@ -70,26 +71,23 @@ export function VotesController(service: VotesService, auth: AuthGuard) {
       },
     )
     .get(
-      "/elections/:id/voter/:voterId/vote/verify",
-      ({ params, auth }) =>
-        service.verify(params.id, params.voterId, auth.userId),
+      "/votes/:voteId/verify",
+      ({ params }) => service.verify(params.voteId),
       {
         protect: ["voters"],
-        params: Params,
+        params: VoteParams,
         response: {
           200: VerifyResultSchema,
-          // Malformed ids.
+          // Malformed vote id.
           400: ErrorSchema,
-          // Not the voter's own vote, or NOT_ELIGIBLE.
-          403: ErrorSchema,
-          // RESOURCE_NOT_FOUND (election, voter, or no recorded vote).
+          // RESOURCE_NOT_FOUND (no vote with that id).
           404: ErrorSchema,
           500: ErrorSchema,
         },
         detail: {
           summary: "Verify vote",
           description:
-            "Returns the stored side of the requesting voter's own vote — the counted candidate (plaintext), the encrypted ballot record (`ciphertext`), and its on-chain `commitment` — so the voter's client can decrypt the receipt locally and confirm it matches. Gated to the vote's owner: `403 FORBIDDEN` for anyone else. `404` if no vote was recorded.",
+            "Returns the stored side of one ballot — the counted candidate (plaintext), the encrypted ballot record (`ciphertext`), and its on-chain `commitment` — so the voter's client can decrypt the receipt locally and confirm it matches. Addressed by the `voteId` from the voter's receipt (`<voteId>:<key>`) rather than by voter: the database deliberately records no link between a voter and their ballot, so no such lookup exists. The id is an unguessable random UUID and the ciphertext is useless without the receipt key. `404` if no vote has that id.",
         },
       },
     );

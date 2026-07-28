@@ -22,17 +22,21 @@ export interface BallotRecord {
   castTime: string;
 }
 
-/** The self-contained receipt a voter saves or downloads as a QR code. */
+/**
+ * The receipt a voter saves or downloads as a QR code: `<voteId>:<key>`.
+ *
+ * These two halves are all the verification flow needs, and deliberately all
+ * it gets. The backend stores no link between a voter and their ballot — that
+ * is what stops anyone reading its database from seeing who voted for whom —
+ * so `voteId` is the only handle that reaches the stored vote, and `key` (which
+ * the server never sees) is the only thing that opens it. Everything else the
+ * verify page shows comes out of the decrypted {@link BallotRecord}.
+ */
 export interface Receipt {
-  /** Schema version, for forward compatibility. */
-  v: 1;
-  electionId: string;
-  voterId: string;
-  votingNumber: string;
+  /** Id of the recorded ballot, returned by the server at cast time. */
+  voteId: string;
   /** Base64 raw AES-256 key — the secret that unlocks the ciphertext. */
   key: string;
-  /** SHA-256 hex commitment (also stored server-side and on-chain). */
-  commitment: string;
 }
 
 export interface SealedBallot {
@@ -40,8 +44,12 @@ export interface SealedBallot {
   ciphertext: string;
   /** SHA-256 hex of `ciphertext`. */
   commitment: string;
-  /** The printable/QR-encodable receipt string the voter keeps. */
-  receiptString: string;
+  /**
+   * Base64 raw AES key. Pair it with the `voteId` the cast response returns
+   * (see {@link formatReceipt}) — the key exists only in this browser until
+   * the voter saves the receipt.
+   */
+  key: string;
 }
 
 const IV_BYTES = 12;
@@ -95,39 +103,39 @@ export async function idToBigInt(id: string): Promise<bigint> {
 
 // ---- receipt encoding ----------------------------------------------------
 
-function encodeReceipt(receipt: Receipt): string {
-  return toBase64(new TextEncoder().encode(JSON.stringify(receipt)));
+const UUID_RE = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+
+/** Build the receipt string a voter keeps: the vote id and its key. */
+export function formatReceipt(voteId: string, key: string): string {
+  return `${voteId}:${key}`;
 }
 
-/** Parse and validate a receipt string (throws on malformed input). */
+/** Parse and validate a `<voteId>:<key>` receipt (throws on malformed input). */
 export function parseReceipt(raw: string): Receipt {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(new TextDecoder().decode(fromBase64(raw.trim())));
-  } catch {
+  // The base64 key can itself contain no ':', so splitting on the first one is
+  // unambiguous.
+  const trimmed = raw.trim();
+  const separator = trimmed.indexOf(":");
+  if (separator === -1) {
     throw new Error("This does not look like a valid vote receipt.");
   }
-  const r = parsed as Partial<Receipt>;
-  if (
-    !r ||
-    r.v !== 1 ||
-    typeof r.electionId !== "string" ||
-    typeof r.voterId !== "string" ||
-    typeof r.votingNumber !== "string" ||
-    typeof r.key !== "string" ||
-    typeof r.commitment !== "string"
-  ) {
-    throw new Error("This receipt is missing required fields.");
+
+  const voteId = trimmed.slice(0, separator);
+  const key = trimmed.slice(separator + 1);
+  if (!UUID_RE.test(voteId) || key.length === 0) {
+    throw new Error("This does not look like a valid vote receipt.");
   }
-  return r as Receipt;
+
+  return { voteId, key };
 }
 
 // ---- seal / open ---------------------------------------------------------
 
 /**
  * Encrypt a ballot record under a fresh AES-256-GCM key and produce the sealed
- * ballot (ciphertext + commitment for the server) plus the receipt string (with
- * the key) for the voter.
+ * ballot (ciphertext + commitment for the server) plus the key for the voter.
+ * The caller pairs that key with the `voteId` the cast response returns to form
+ * the receipt — see {@link formatReceipt}.
  */
 export async function sealBallot(record: BallotRecord): Promise<SealedBallot> {
   const key = await crypto.subtle.generateKey(
@@ -135,11 +143,11 @@ export async function sealBallot(record: BallotRecord): Promise<SealedBallot> {
     true,
     ["encrypt", "decrypt"],
   );
-  const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
+  const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES)); // Initialization Vector
   const encoded = new TextEncoder().encode(JSON.stringify(record));
   const sealed = new Uint8Array(
     await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded),
-  );
+  ); // Encrypted record
 
   const combined = new Uint8Array(iv.length + sealed.length);
   combined.set(iv);
@@ -149,16 +157,7 @@ export async function sealBallot(record: BallotRecord): Promise<SealedBallot> {
   const commitment = await sha256Hex(ciphertext);
   const rawKey = new Uint8Array(await crypto.subtle.exportKey("raw", key));
 
-  const receipt: Receipt = {
-    v: 1,
-    electionId: record.electionId,
-    voterId: record.voterId,
-    votingNumber: record.votingNumber,
-    key: toBase64(rawKey),
-    commitment,
-  };
-
-  return { ciphertext, commitment, receiptString: encodeReceipt(receipt) };
+  return { ciphertext, commitment, key: toBase64(rawKey) };
 }
 
 /**

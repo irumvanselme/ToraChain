@@ -68,8 +68,6 @@ classDiagram
         +string voteId
         +string electionId
         +string candidateId
-        +string eligibilityId
-        +string votingNumber
         +string ciphertext
         +string commitment
         +Date castAt

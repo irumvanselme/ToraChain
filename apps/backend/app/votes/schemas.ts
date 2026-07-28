@@ -23,6 +23,9 @@ export const BallotSchema = t.Object({
 
 export const CastResultSchema = t.Object({
   accepted: t.Literal(true),
+  // First half of the voter's receipt (`<voteId>:<key>`); the only handle that
+  // leads back to this ballot, as nothing in the database links it to a voter.
+  voteId: t.String({ format: "uuid" }),
   votingNumber: t.String(),
   castAt: t.String({ format: "date-time" }),
 });
@@ -38,7 +41,8 @@ export const CastBodySchema = t.Object({
 });
 
 export const VerifyResultSchema = t.Object({
-  votingNumber: t.String(),
+  voteId: t.String({ format: "uuid" }),
+  electionId: t.String({ format: "uuid" }),
   countedCandidateId: t.String({ format: "uuid" }),
   ciphertext: t.Union([t.String(), t.Null()]),
   commitment: t.Union([t.String(), t.Null()]),
@@ -48,4 +52,9 @@ export const VerifyResultSchema = t.Object({
 export const Params = t.Object({
   id: t.String({ format: "uuid" }),
   voterId: t.String({ format: "uuid" }),
+});
+
+/** Verification is addressed by ballot, not by voter — see `service.verify`. */
+export const VoteParams = t.Object({
+  voteId: t.String({ format: "uuid" }),
 });

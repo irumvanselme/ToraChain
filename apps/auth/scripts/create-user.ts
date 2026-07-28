@@ -209,6 +209,7 @@ export async function main(options: CreateUserOptions = {}): Promise<void> {
   }
 
   const app = APP_BY_USER_TYPE[userType]();
+  console.log({ name, email, password })
   try {
     const { user } = await app.auth.api.createUser({
       body: { name, email, password },

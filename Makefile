@@ -11,6 +11,7 @@
 # ===========================================================================
 
 .PHONY: help install dev build test lint lint-fix format format-check check-types migrate ci clean \
+	prepare-for-demo seed \
 	torachain-cli-master torachain-cli-worker torachain-cli-network \
 	torachain-cli-test torachain-cli-check-types torachain-cli-pubsub-emulator
 
@@ -52,6 +53,12 @@ format-check: backend-format-check auth-format-check ## Check formatting (backen
 check-types: backend-check-types auth-check-types admin-fe-check-types torachain-cli-check-types ## Type-check all typed projects
 
 migrate: backend-db-migrate auth-migrate ## Run all database migrations
+
+prepare-for-demo: ## Push all schemas + create the demo accounts (idempotent; FORCE=1 for non-interactive)
+	bun run scripts/prepare-for-demo.ts $${FORCE:+--force}
+
+seed: ## Create the test election (needs the services running)
+	bun run scripts/seed.ts
 
 ci: format-check check-types lint test ## Run the full CI gate locally
 

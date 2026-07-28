@@ -100,22 +100,25 @@ docker run -d --name tora-elections-db -p 5433:5432 \
 cp apps/auth/.env.example    apps/auth/.env      # set BETTER_AUTH_SECRET + AUTH_DB_URI
 cp apps/backend/.env.example apps/backend/.env   # set ELECTIONS_DB_URI
 
-# 3. Apply migrations
-cd apps/auth    && bun run migrate:all && cd -
-cd apps/backend && bun run db:migrate  && cd -
+# 3. Apply migrations and create the demo accounts in one go (admin + three
+#    voters + auditor, all with password Pa$$w0rd!, which makes the frontends'
+#    "Default login" buttons work). Safe to re-run.
+make prepare-for-demo
 
-# 4. Bootstrap the first admin (self-registration is disabled for admins;
-#    using the dev credentials makes the "Default login" button work)
-cd apps/auth && bun run create-admin -- \
-  --name "Admin User" --email admin@localhost.dev --password 'Pa$$w0rd!' && cd -
+# …or do those two steps by hand:
+#   cd apps/auth    && bun run migrate:all && cd -
+#   cd apps/backend && bun run db:migrate  && cd -
+#   # self-registration is disabled for admins, so bootstrap the first one:
+#   cd apps/auth && bun run create-admin -- \
+#     --name "Admin User" --email admin@localhost.dev --password 'Pa$$w0rd!' && cd -
 
-# 5. Start the Pub/Sub emulator (needed by the chain nodes; requires gcloud)
+# 4. Start the Pub/Sub emulator (needed by the chain nodes; requires gcloud)
 make torachain-cli-pubsub-emulator
 # …or without gcloud installed:
 #   docker run -d -p 8085:8085 gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators \
 #     gcloud beta emulators pubsub start --project=torachain-local --host-port=0.0.0.0:8085
 
-# 6. Run everything (backend, auth, 3 frontends, example provider,
+# 5. Run everything (backend, auth, 3 frontends, example provider,
 #    chain master + 3 workers)
 make dev
 ```

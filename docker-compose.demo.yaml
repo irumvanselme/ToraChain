@@ -77,14 +77,19 @@ services:
   auth:
     <<: *app
     working_dir: /app/apps/auth
-    # Migrate, bootstrap the dev admin (idempotent — fails harmlessly if it
-    # already exists), then serve. $$ is compose-escaping for a literal $.
-    command: sh -c "bun run migrate:all && (bun run create-admin -- --name 'Admin User' --email admin@localhost.dev --password 'Pa$$$$w0rd!' || true) && bun run start"
+    # Migrate, bootstrap the dev admin (idempotent via --skip-existing), then
+    # serve. The credentials come from CREATE_USER_* below rather than the
+    # command line, so the password never passes through `sh` quoting.
+    command: sh -c "bun run migrate:all && bun run create-admin -- --skip-existing && bun run start"
     environment:
       NODE_ENV: development
       BETTER_AUTH_SECRET: demo-secret-change-me
       AUTH_DB_URI: postgres://auth:auth@auth-db:5432/auth
       PORT: "8001"
+      CREATE_USER_NAME: Admin User
+      CREATE_USER_EMAIL: admin@localhost.dev
+      # $$ is compose-escaping for a literal $, so this is `Pa$$w0rd!`.
+      CREATE_USER_PASSWORD: Pa$$$$w0rd!
     ports:
       - "8001:8001" # http://idp.localhost:8001
     networks:

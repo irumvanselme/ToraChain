@@ -15,6 +15,7 @@
     "lint:fix": "eslint . --fix",
     "health-check": "bun run scripts/health-check.ts",
     "create-admin": "bun run scripts/create-admin.ts",
+    "create-user": "bun run scripts/create-user.ts",
     "gen:logos": "bun run scripts/gen-logos.ts",
     "generate:voters": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx better-auth generate --config app/auth/voters.ts --output migrations/voters.sql -y",
     "generate:admins": "RUNNING_DB_MIGRATIONS_SCRIPTS=true bunx better-auth generate --config app/auth/admins.ts --output migrations/admins.sql -y",

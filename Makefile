@@ -63,8 +63,7 @@ seed: ## Create the test election (needs the services running)
 ci: format-check check-types lint test ## Run the full CI gate locally
 
 clean: ## Remove build artifacts and installed dependencies
-	rm -rf node_modules */node_modules packages/*/node_modules \
-		apps/admin-fe/dist apps/auditing-fe/.next apps/voting-fe/.next
+	rm -rf apps/admin-fe/dist apps/auditing-fe/.next apps/voting-fe/.next
 
 prepare-assets:
 	cp -r ./assets ./apps/admin-fe/public/_assets     					&& \

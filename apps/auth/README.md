@@ -60,7 +60,21 @@ bun run generate:all         # regenerate migrations from auth configs
 bun run migrate:all          # apply migrations to the database
 bun run health-check
 bun run create-admin         # bootstrap an admin account (self-registration is disabled)
+bun run create-user          # same, for any domain: --user-type voters|admins|auditors
 ```
+
+`create-admin`/`create-user` take `--name`/`--email`/`--password`, and also read
+`CREATE_USER_{TYPE,NAME,EMAIL,PASSWORD}` from the environment or the password
+from stdin via `--password-stdin`. Prefer those last two for passwords with
+shell metacharacters (`$`, `!`, a leading `-`, …) — nothing needs quoting and
+the secret stays out of `ps` and shell history:
+
+```bash
+printf '%s' 'Pa$$w0rd!' | bun run create-user -- \
+  --user-type voters --name "Jane Doe" --email jane@example.com --password-stdin
+```
+
+Add `--skip-existing` to make a re-run a no-op instead of an error.
 
 Adding a domain: add the `EUserType` value, a `*App` class, and register it in
 `AuthServer.buildApp()` — the routers pick it up automatically.

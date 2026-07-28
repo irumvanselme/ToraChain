@@ -75,12 +75,15 @@ export interface Ballot {
 
 export interface CastResult {
   accepted: true;
+  /** Half of the voter's `<voteId>:<key>` receipt — see `lib/receipt.ts`. */
+  voteId: string;
   votingNumber: string;
   castAt: string;
 }
 
 export interface VerifyResult {
-  votingNumber: string;
+  voteId: string;
+  electionId: string;
   countedCandidateId: string;
   ciphertext: string | null;
   commitment: string | null;
@@ -171,17 +174,18 @@ export function castVote(
 }
 
 /**
- * Fetch the stored side of the voter's own vote (counted candidate + encrypted
- * ballot + on-chain commitment) so the client can decrypt the receipt locally
- * and confirm it matches. Gated server-side to the vote's owner.
+ * Fetch the stored side of one ballot (counted candidate + encrypted ballot +
+ * on-chain commitment) so the client can decrypt the receipt locally and
+ * confirm it matches.
+ *
+ * Addressed by the `voteId` from the voter's receipt, not by voter: the backend
+ * keeps no link between a voter and their ballot, so there is no "my vote"
+ * lookup to make. Possession of the unguessable id is the authorisation, and
+ * what comes back stays sealed without the receipt key.
  */
 export function verifyVote(
-  electionId: string,
-  voterId: string,
+  voteId: string,
   signal?: AbortSignal,
 ): Promise<VerifyResult> {
-  return request<VerifyResult>(
-    `/elections/${electionId}/voter/${voterId}/vote/verify`,
-    { signal },
-  );
+  return request<VerifyResult>(`/votes/${voteId}/verify`, { signal });
 }

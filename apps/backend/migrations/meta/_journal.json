@@ -29,6 +29,13 @@
       "when": 1783060694267,
       "tag": "0003_clear_the_twelve",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785214086204,
+      "tag": "0004_anonymize_votes",
+      "breakpoints": true
     }
   ]
 }

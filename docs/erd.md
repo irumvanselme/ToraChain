@@ -25,7 +25,6 @@ erDiagram
     elections ||--o| election_integrations : configures
     elections ||--o{ votes : records
     voters ||--o{ eligibilities : holds
-    eligibilities ||--o| votes : casts
     candidates ||--o{ votes : receives
 
     elections {
@@ -64,8 +63,6 @@ erDiagram
         uuid vote_id PK
         uuid election_id FK
         uuid candidate_id FK
-        uuid eligibility_id FK, UK "unique: one vote per eligibility"
-        numeric voting_number
         text ciphertext "voter-sealed ballot (AES-GCM), nullable"
         text commitment "SHA-256 of the ballot, anchored on-chain, nullable"
         timestamptz cast_at
@@ -87,12 +84,20 @@ Notable constraints and indexes:
   where `deleted = false` — a voter holds at most one live eligibility per
   election. Its `created_at`/`updated_at` are millisecond precision so keyset
   pagination cursors round-trip exactly.
-- `votes.eligibility_id` is unique — the schema itself enforces one ballot
-  per eligibility.
+- `votes` holds **no** column that resolves to a voter — no `eligibility_id`,
+  no `voting_number`. Either would join back to `eligibilities.voter_id` and
+  put the voter one hop from `candidate_id`, handing anyone who can read the
+  database the full "who voted for whom" list. The voter's own link to their
+  ballot lives outside the database, in the receipt they keep:
+  `<vote_id>:<AES key>`.
+- One ballot per eligibility is enforced on the `eligibilities` side, by the
+  conditional `has_voted` update that shares a transaction with the vote insert.
+  That flip also leaves `updated_at` untouched, so an eligibility cannot be
+  matched to a vote by comparing it against `votes.cast_at`.
 - Foreign keys cascade on delete: `candidates`, `eligibilities`, and `votes`
   all reference `elections(election_id)` with `ON DELETE CASCADE`; `votes` also
-  cascades from `candidates` and `eligibilities`, and `eligibilities` from
-  `voters`.
+  cascades from `candidates`, and `eligibilities` from `voters`. Deleting a
+  voter no longer removes their ballot — nothing records which one it was.
 - Lookup indexes: `elections_status_idx` (`status`),
   `candidates_election_idx` (`election_id`),
   `eligibilities_election_idx` (`election_id`),

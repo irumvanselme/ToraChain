@@ -45,8 +45,10 @@ export default function VerifyPage() {
     try {
       const receipt = parseReceipt(input);
 
-      // 1. Ask the backend for the stored side of this exact vote.
-      const stored = await verifyVote(receipt.electionId, receipt.voterId);
+      // 1. Ask the backend for the stored side of this exact ballot. The vote
+      //    id in the receipt is the only handle that reaches it — the backend
+      //    stores no link from a voter to their vote, by design.
+      const stored = await verifyVote(receipt.voteId);
 
       if (!stored.ciphertext || !stored.commitment) {
         setError(
@@ -57,22 +59,22 @@ export default function VerifyPage() {
 
       const checks: CheckLine[] = [];
 
-      // 2. The receipt's commitment must equal what the server stored, and both
-      //    must be an honest SHA-256 of the stored ciphertext.
+      // 2. The stored commitment must be an honest SHA-256 of the stored
+      //    ciphertext — that is the value anchored on-chain in step 4.
       const recomputed = await sha256Hex(stored.ciphertext);
-      const commitmentConsistent =
-        recomputed === stored.commitment &&
-        stored.commitment === receipt.commitment;
+      const commitmentConsistent = recomputed === stored.commitment;
       checks.push({
         status: commitmentConsistent ? "pass" : "fail",
         label: "Commitment matches the stored encrypted ballot",
         detail: commitmentConsistent
           ? undefined
-          : "The server's stored commitment does not match your receipt or its ciphertext.",
+          : "The server's stored commitment is not a hash of the ciphertext it returned.",
       });
 
       // 3. Decrypt the stored ciphertext with the receipt key and confirm the
-      //    candidate it names is exactly the one the backend counted.
+      //    candidate it names is exactly the one the backend counted. AES-GCM
+      //    is authenticated, so a successful decrypt also proves this is the
+      //    very ciphertext this browser sealed — nothing was swapped.
       let record: BallotRecord | null = null;
       try {
         record = await openBallot(stored.ciphertext, receipt.key);
@@ -95,14 +97,33 @@ export default function VerifyPage() {
             ? `Your ballot and the tally both record: ${candidateName}`
             : "The candidate the backend counted differs from the one inside your encrypted ballot.",
         });
+
+        // The ballot must be the one recorded against the election the server
+        // filed it under.
+        const electionMatch = record.electionId === stored.electionId;
+        checks.push({
+          status: electionMatch ? "pass" : "fail",
+          label: "Ballot belongs to the election it was recorded under",
+          detail: electionMatch
+            ? undefined
+            : "The election inside your encrypted ballot differs from the one holding this vote.",
+        });
       }
 
       // 4. Independently cross-check the commitment on the blockchain node.
-      const onChain = await checkOnChain(
-        receipt.electionId,
-        receipt.votingNumber,
-        receipt.commitment,
-      );
+      //    The voting number comes out of the decrypted ballot: only the
+      //    receipt holder can produce it, and the server no longer stores it
+      //    next to the vote.
+      const onChain = record
+        ? await checkOnChain(
+            record.electionId,
+            record.votingNumber,
+            stored.commitment,
+          )
+        : ({
+            status: "unreachable",
+            error: "Ballot could not be opened.",
+          } as const);
       if (onChain.status === "match") {
         checks.push({
           status: "pass",
@@ -138,16 +159,15 @@ export default function VerifyPage() {
 
       setReport({
         candidateName,
-        votingNumber: receipt.votingNumber,
+        // Recovered from the ballot the receipt just decrypted.
+        votingNumber: record?.votingNumber ?? "—",
         castAt: stored.castAt,
         checks,
         overall,
       });
     } catch (err: unknown) {
-      if (err instanceof ApiError && err.status === 403) {
-        setError(
-          "You can only verify a vote from your own receipt while signed in as that voter.",
-        );
+      if (err instanceof ApiError && err.status === 401) {
+        setError("Sign in as a voter to verify a receipt.");
       } else if (err instanceof ApiError && err.status === 404) {
         setError("No vote was found for this receipt.");
       } else {

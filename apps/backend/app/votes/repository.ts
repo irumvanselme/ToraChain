@@ -7,8 +7,13 @@ import { votes } from "./model.ts";
 export interface RecordVoteInput {
   electionId: string;
   candidateId: string;
+  /**
+   * Only used to claim the voter's single ballot (the guarded `has_voted`
+   * flip). It is deliberately **not** stored on the vote row — persisting it
+   * would re-create the `votes → eligibilities → voter` join this schema
+   * exists to prevent.
+   */
   eligibilityId: string;
-  votingNumber: string;
   // Vote-verification receipt data (optional — omitted by legacy clients).
   ciphertext?: string;
   commitment?: string;
@@ -24,8 +29,9 @@ export interface CandidateTally {
  * the encrypted ballot and the candidate that was actually counted.
  */
 export interface VoteReceipt {
+  voteId: string;
+  electionId: string;
   candidateId: string;
-  votingNumber: string;
   ciphertext: string | null;
   commitment: string | null;
   castAt: Date;
@@ -34,24 +40,37 @@ export interface VoteReceipt {
 export interface VotesRepository {
   /**
    * Atomically record a ballot and flip the eligibility's `has_voted` flag.
-   * Returns the cast timestamp, or `null` if the voter had already voted
-   * (the guarded update matched no rows).
+   * Returns the new vote id and cast timestamp, or `null` if the voter had
+   * already voted (the guarded update matched no rows).
    */
-  recordVote(input: RecordVoteInput): Promise<{ castAt: Date } | null>;
+  recordVote(input: RecordVoteInput): Promise<{
+    voteId: string;
+    castAt: Date;
+  } | null>;
   tallies(electionId: string): Promise<CandidateTally[]>;
-  /** The voter's own recorded vote, resolved by their eligibility. */
-  findByEligibility(eligibilityId: string): Promise<VoteReceipt | null>;
+  /** A vote by its id — the capability handed to the voter in their receipt. */
+  findById(voteId: string): Promise<VoteReceipt | null>;
 }
 
 export class DrizzleVotesRepository implements VotesRepository {
   constructor(private readonly db: NodePgDatabase) {}
 
-  async recordVote(input: RecordVoteInput): Promise<{ castAt: Date } | null> {
+  async recordVote(
+    input: RecordVoteInput,
+  ): Promise<{ voteId: string; castAt: Date } | null> {
     return this.db.transaction(async (tx) => {
-      // Guarded flip — only succeeds if the voter has not already voted.
+      // Guarded flip — only succeeds if the voter has not already voted. This
+      // is what enforces one ballot per eligibility now that the vote row
+      // carries no reference back to it: the row lock serialises concurrent
+      // casts and the loser re-reads `has_voted = true` and matches nothing.
+      //
+      // `updated_at` is intentionally left alone. Bumping it would stamp the
+      // eligibility with the moment the ballot was cast, and lining that up
+      // against `votes.cast_at` would re-identify the voter by timing — the
+      // same leak the dropped `eligibility_id` column represented.
       const flipped = await tx
         .update(eligibilities)
-        .set({ hasVoted: true, updatedAt: new Date() })
+        .set({ hasVoted: true })
         .where(
           and(
             eq(eligibilities.eligibilityId, input.eligibilityId),
@@ -67,28 +86,27 @@ export class DrizzleVotesRepository implements VotesRepository {
         .values({
           electionId: input.electionId,
           candidateId: input.candidateId,
-          eligibilityId: input.eligibilityId,
-          votingNumber: input.votingNumber,
           ciphertext: input.ciphertext ?? null,
           commitment: input.commitment ?? null,
         })
-        .returning({ castAt: votes.castAt });
+        .returning({ voteId: votes.voteId, castAt: votes.castAt });
 
-      return { castAt: vote!.castAt };
+      return { voteId: vote!.voteId, castAt: vote!.castAt };
     });
   }
 
-  async findByEligibility(eligibilityId: string): Promise<VoteReceipt | null> {
+  async findById(voteId: string): Promise<VoteReceipt | null> {
     const [row] = await this.db
       .select({
+        voteId: votes.voteId,
+        electionId: votes.electionId,
         candidateId: votes.candidateId,
-        votingNumber: votes.votingNumber,
         ciphertext: votes.ciphertext,
         commitment: votes.commitment,
         castAt: votes.castAt,
       })
       .from(votes)
-      .where(eq(votes.eligibilityId, eligibilityId))
+      .where(eq(votes.voteId, voteId))
       .limit(1);
     return row ?? null;
   }

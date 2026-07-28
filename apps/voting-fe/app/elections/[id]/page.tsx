@@ -42,7 +42,7 @@ import {
   type FormField,
 } from "@/app/api/integrations";
 import { ApiError } from "@/app/api/errors";
-import { sealBallot } from "@/app/lib/receipt";
+import { formatReceipt, sealBallot } from "@/app/lib/receipt";
 import { VoteReceipt } from "@/app/components/vote-receipt";
 import { formatDateTime } from "../../lib/format";
 
@@ -248,8 +248,12 @@ export default function ElectionDetailPage({
         ciphertext: sealed.ciphertext,
         commitment: sealed.commitment,
       });
+
       setVoteResult(result);
-      setReceiptString(sealed.receiptString);
+      // The receipt can only be assembled now: the key came from this browser,
+      // the vote id from the server, and nothing stored server-side ties the
+      // two to this voter.
+      setReceiptString(formatReceipt(result.voteId, sealed.key));
       setConfirmOpen(false);
       const updated = await getBallot(id, voterId);
       setBallot(updated);

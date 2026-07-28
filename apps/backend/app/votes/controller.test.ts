@@ -86,9 +86,48 @@ describe("POST /elections/:id/voter/:voterId/vote", () => {
       },
     );
     expect(res.status).toBe(201);
+    const body = await readJson(res);
+    expect(body).toMatchObject({ accepted: true, votingNumber: "5001" });
+    // The voter needs the id to build their `<voteId>:<key>` receipt — it is
+    // their only route back to a ballot the database cannot tie to them.
+    expect(body.voteId).toMatch(/^[0-9a-f-]{36}$/);
+  });
+});
+
+describe("GET /votes/:voteId/verify", () => {
+  async function cast() {
+    const { election, voter, candidate } = activeSetup();
+    const res = await req(
+      `/elections/${election.electionId}/voter/${voter.voterId}/vote`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ candidateId: candidate.candidateId }),
+      },
+    );
+    return { election, candidate, voteId: (await readJson(res)).voteId };
+  }
+
+  test("returns the stored side of the ballot for the receipt's vote id", async () => {
+    const { election, candidate, voteId } = await cast();
+    const res = await req(`/votes/${voteId}/verify`);
+    expect(res.status).toBe(200);
     expect(await readJson(res)).toMatchObject({
-      accepted: true,
-      votingNumber: "5001",
+      voteId,
+      electionId: election.electionId,
+      countedCandidateId: candidate.candidateId,
     });
+  });
+
+  test("404 for an unknown vote id", async () => {
+    await cast();
+    const res = await req(`/votes/99999999-9999-9999-9999-999999999999/verify`);
+    expect(res.status).toBe(404);
+    expect((await readJson(res)).code).toBe("RESOURCE_NOT_FOUND");
+  });
+
+  test("400 for a malformed vote id", async () => {
+    const res = await req("/votes/not-a-uuid/verify");
+    expect(res.status).toBe(400);
   });
 });

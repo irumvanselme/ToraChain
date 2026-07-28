@@ -31,12 +31,19 @@ export interface CastBallotInput {
 
 export interface CastBallotResult {
   accepted: true;
+  /**
+   * Id of the recorded ballot. Half of the voter's receipt
+   * (`<voteId>:<key>`) — the only handle that leads back to their vote, since
+   * the database stores no link between a voter and their ballot.
+   */
+  voteId: string;
   votingNumber: string;
   castAt: string;
 }
 
 export interface VerifyResult {
-  votingNumber: string;
+  voteId: string;
+  electionId: string;
   /** The candidate that was actually recorded/counted (plaintext). */
   countedCandidateId: string;
   /** The voter's encrypted ballot record; null for pre-verification votes. */
@@ -166,11 +173,12 @@ export class VotesService {
       commitment = expected;
     }
 
+    // `eligibilityId` claims the voter's one ballot; it is not persisted on the
+    // vote row, so the stored ballot stays unlinkable to this voter.
     const recorded = await this.votes.recordVote({
       electionId,
       candidateId: input.candidateId,
       eligibilityId: eligibility.eligibilityId,
-      votingNumber: eligibility.votingNumber,
       ciphertext: input.ciphertext,
       commitment,
     });
@@ -201,51 +209,38 @@ export class VotesService {
 
     return {
       accepted: true,
+      voteId: recorded.voteId,
       votingNumber: eligibility.votingNumber,
       castAt: recorded.castAt.toISOString(),
     };
   }
 
   /**
-   * Returns the stored side of a voter's own vote so their client can verify
-   * it: the candidate that was actually counted (plaintext) plus the encrypted
+   * Returns the stored side of one ballot so the voter's client can verify it:
+   * the candidate that was actually counted (plaintext) plus the encrypted
    * ballot record and its on-chain commitment. The AES key never reaches the
    * server, so the ciphertext is opaque here — only the voter holding the
    * receipt key can open it and confirm it names the same candidate.
    *
-   * Gated to the owning voter: a caller may only read the receipt for a vote
-   * tied to their own auth account, so a leaked voting number cannot expose
-   * someone else's counted candidate.
+   * Authorisation is by *possession of the vote id*, the first half of the
+   * receipt (`<voteId>:<key>`) handed to the voter at cast time. We cannot gate
+   * this on the caller's identity instead: the database intentionally records
+   * no link between a voter and their ballot, which is precisely what stops
+   * anyone reading the database from reconstructing who voted for whom. The id
+   * is an unguessable random UUID, and the ciphertext it returns is useless
+   * without the receipt key.
    */
-  async verify(
-    electionId: string,
-    voterId: string,
-    requesterAccountId: string,
-  ): Promise<VerifyResult> {
-    const eligibility = await this.requireEligibility(electionId, voterId);
-
-    if (
-      !eligibility.accountId ||
-      eligibility.accountId !== requesterAccountId
-    ) {
-      throw AppError.forbidden("You may only verify your own vote.", {
-        electionId,
-        voterId,
+  async verify(voteId: string): Promise<VerifyResult> {
+    const receipt = await this.votes.findById(voteId);
+    if (!receipt) {
+      throw AppError.notFound(`No vote was found for receipt ${voteId}.`, {
+        voteId,
       });
     }
 
-    const receipt = await this.votes.findByEligibility(
-      eligibility.eligibilityId,
-    );
-    if (!receipt) {
-      throw AppError.notFound(
-        `No vote has been recorded for voter ${voterId} in election ${electionId}.`,
-        { electionId, voterId },
-      );
-    }
-
     return {
-      votingNumber: receipt.votingNumber,
+      voteId: receipt.voteId,
+      electionId: receipt.electionId,
       countedCandidateId: receipt.candidateId,
       ciphertext: receipt.ciphertext,
       commitment: receipt.commitment,

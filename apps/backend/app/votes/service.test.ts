@@ -134,10 +134,43 @@ describe("cast", () => {
       candidateId: candidate.candidateId,
     });
     expect(result).toMatchObject({ accepted: true, votingNumber: "5001" });
+    expect(result.voteId).toBeTruthy();
     expect(result.castAt).toMatch(/Z$/);
 
     const ballot = await service.getBallot(election.electionId, voter.voterId);
     expect(ballot.voter.hasVoted).toBe(true);
+  });
+
+  test("the stored ballot holds nothing that points back at the voter", async () => {
+    const { election, voter, eligibility, candidate } =
+      activeElectionWithVoter();
+    const result = await service.cast(election.electionId, voter.voterId, {
+      candidateId: candidate.candidateId,
+    });
+
+    // Whatever a database reader can see must not name the voter, their
+    // eligibility, or their voting number — otherwise `candidate_id` sitting
+    // in the same row tells them who voted for whom.
+    const stored = votesRepo.storedRow(result.voteId);
+    expect(stored).toBeTruthy();
+    const serialized = JSON.stringify(stored);
+    expect(serialized).not.toContain(voter.voterId);
+    expect(serialized).not.toContain(eligibility.eligibilityId);
+    expect(serialized).not.toContain(eligibility.votingNumber);
+  });
+
+  test("does not touch the eligibility's updatedAt, which would time-link it to the vote", async () => {
+    const { election, voter, eligibility, candidate } =
+      activeElectionWithVoter();
+    const before = eligibility.updatedAt;
+
+    await service.cast(election.electionId, voter.voterId, {
+      candidateId: candidate.candidateId,
+    });
+
+    const after = voters.eligibilities.get(eligibility.eligibilityId);
+    expect(after?.hasVoted).toBe(true);
+    expect(after?.updatedAt).toEqual(before);
   });
 
   test("409 ALREADY_VOTED on a second ballot", async () => {
@@ -313,45 +346,42 @@ describe("verify", () => {
     return { election, voter, candidate };
   }
 
-  test("returns the counted candidate and receipt for the owning voter", async () => {
+  test("returns the counted candidate and receipt for the vote id in the receipt", async () => {
     const { election, voter, candidate } = votedSetup();
     const ciphertext = "encrypted-ballot-record";
     const commitment = sha256Hex(ciphertext);
-    await service.cast(election.electionId, voter.voterId, {
+    const { voteId } = await service.cast(election.electionId, voter.voterId, {
       candidateId: candidate.candidateId,
       ciphertext,
       commitment,
     });
 
-    const result = await service.verify(
-      election.electionId,
-      voter.voterId,
-      ACCOUNT,
-    );
+    const result = await service.verify(voteId);
     expect(result).toMatchObject({
-      votingNumber: "5001",
+      voteId,
+      electionId: election.electionId,
       countedCandidateId: candidate.candidateId,
       ciphertext,
       commitment,
     });
   });
 
-  test("403 FORBIDDEN when the caller is not the vote's owner", async () => {
+  test("never echoes back anything that identifies the voter", async () => {
     const { election, voter, candidate } = votedSetup();
-    await service.cast(election.electionId, voter.voterId, {
+    const { voteId } = await service.cast(election.electionId, voter.voterId, {
       candidateId: candidate.candidateId,
     });
-    await expectError(
-      () => service.verify(election.electionId, voter.voterId, "someone-else"),
-      "FORBIDDEN",
-      403,
-    );
+
+    const result = await service.verify(voteId);
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain(voter.voterId);
+    expect(serialized).not.toContain("5001");
   });
 
-  test("404 when the voter has not voted yet", async () => {
-    const { election, voter } = votedSetup();
+  test("404 for a vote id that does not exist", async () => {
+    votedSetup();
     await expectError(
-      () => service.verify(election.electionId, voter.voterId, ACCOUNT),
+      () => service.verify("99999999-9999-9999-9999-999999999999"),
       "RESOURCE_NOT_FOUND",
       404,
     );

@@ -1,4 +1,5 @@
 import express from "express";
+import type { Server } from "node:http";
 import { randomUUID } from "node:crypto";
 import type { Message, Subscription } from "@google-cloud/pubsub";
 import {
@@ -8,35 +9,47 @@ import {
   type SerializedBlock,
   type NewBlockPayload,
 } from "@tora-chain/specs";
-import { JsonBlockStore } from "../storage/json-store.ts";
-import { hexToBigInt, computeBlockHash } from "../chain/hash-bridge.ts";
+import {
+  BlockChain,
+  type IBlockChainStorageService,
+} from "../blockchain/index.ts";
 import { serveViewer } from "../web/viewer.ts";
 import { ensureTopic, ensureSubscription } from "../pubsub/client.ts";
+import { SerialQueue } from "./serial-queue.ts";
 
 const MASTER_RETRY_DELAY_MS = 2_000;
 
 // A worker is a pure subscriber: it syncs the existing chain from the master
-// over HTTP, then subscribes to NEW_BLOCK and only receives. It re-hashes each
-// block locally and rejects mismatches, but never publishes anything back.
+// over HTTP, then subscribes to NEW_BLOCK and only receives. Every block it is
+// handed goes through the election's BlockChain, which re-hashes it locally and
+// rejects mismatches. It never publishes anything back.
 export class WorkerNode {
   readonly nodeId: string;
-  private readonly store: JsonBlockStore;
   private connected = false;
 
   private newBlockSub!: Subscription;
+  private viewer: Server | null = null;
+
+  // One in-memory chain per election followed (a worker on ALL_ELECTIONS
+  // follows several). Promises are cached rather than chains so two blocks for
+  // a new election arriving at once share a single load.
+  private readonly chains = new Map<string, Promise<BlockChain>>();
+
+  // Received blocks are taken in one at a time: appending reads the tip before
+  // it writes, and pub/sub delivers concurrently.
+  private readonly incoming = new SerialQueue();
 
   constructor(
     private readonly port: number,
     private readonly masterUrl: string,
-    private readonly electionId: string = ALL_ELECTIONS,
-    dbPath?: string,
+    private readonly electionId: string,
+    private readonly storage: IBlockChainStorageService,
   ) {
     this.nodeId = `worker-${randomUUID().slice(0, 8)}`;
-    this.store = new JsonBlockStore(dbPath ?? `chain-worker-${port}.json`);
   }
 
   async start(): Promise<void> {
-    await this.store.init();
+    await this.storage.init();
     this.startViewer();
 
     console.log(
@@ -51,7 +64,14 @@ export class WorkerNode {
   }
 
   async stop(): Promise<void> {
-    await Promise.allSettled([this.newBlockSub?.delete()]);
+    const viewer = this.viewer;
+    this.viewer = null;
+    viewer?.closeIdleConnections();
+    await Promise.allSettled([
+      this.newBlockSub?.delete(),
+      viewer && new Promise<void>((resolve) => viewer.close(() => resolve())),
+      this.storage.close(),
+    ]);
   }
 
   // Local viewer so anyone running a node can watch the chain in a browser.
@@ -66,16 +86,19 @@ export class WorkerNode {
         electionId: this.electionId,
         masterUrl: this.masterUrl,
         connected: this.connected,
-        blockCount: await this.store.count(),
+        blockCount: await this.storage.count(),
+        // Re-hashes and re-links every block this worker holds, so the viewer
+        // can show that the replica still verifies end to end.
+        chainsValid: await this.chainsValid(),
       });
     });
 
     app.get("/api/chain", async (_req, res) => {
       res.set("Access-Control-Allow-Origin", "*");
-      res.json({ blocks: await this.store.getAll() });
+      res.json({ blocks: await this.storage.getAll() });
     });
 
-    app.listen(this.port, () => {
+    this.viewer = app.listen(this.port, () => {
       console.log(
         `[worker] ${this.nodeId} viewer at http://localhost:${this.port}`,
       );
@@ -117,7 +140,18 @@ export class WorkerNode {
       { filter: newBlockFilter(this.electionId) },
     );
     this.newBlockSub.on("message", (message: Message) => {
-      const payload = JSON.parse(message.data.toString()) as NewBlockPayload;
+      let payload: NewBlockPayload;
+      try {
+        payload = JSON.parse(message.data.toString()) as NewBlockPayload;
+      } catch {
+        // Ack it anyway: redelivering something we cannot parse would only
+        // have us fail on it again.
+        console.error(
+          `[worker] ${this.nodeId} received an unparsable message — dropped`,
+        );
+        message.ack();
+        return;
+      }
       void this.handleNewBlock(payload).finally(() => message.ack());
     });
     this.newBlockSub.on("error", (err) =>
@@ -128,38 +162,71 @@ export class WorkerNode {
     );
   }
 
-  private expectedHash(block: SerializedBlock): string {
-    return computeBlockHash(
-      block.index,
-      BigInt(block.data.voter),
-      // commitment is a hex string — pass it verbatim (never through BigInt,
-      // which would throw on non-0x hex and drop leading zeros).
-      block.data.commitment,
-      block.timestamp,
-      hexToBigInt(block.prevHash),
-    ).toString(16);
+  // The election's chain, rebuilt from this worker's own storage on first use.
+  // A worker never invents a genesis block — it only replicates the master's.
+  private chainFor(electionId: string): Promise<BlockChain> {
+    let chain = this.chains.get(electionId);
+    if (!chain) {
+      chain = BlockChain.load(electionId, this.storage);
+      this.chains.set(electionId, chain);
+    }
+    return chain;
   }
 
-  private isValid(block: SerializedBlock): boolean {
-    if (block.index === 0) return block.hash === "0"; // genesis
-    try {
-      return this.expectedHash(block) === block.hash;
-    } catch {
+  private follows(electionId: string): boolean {
+    return this.electionId === ALL_ELECTIONS || this.electionId === electionId;
+  }
+
+  private async chainsValid(): Promise<boolean> {
+    const chains = await Promise.all(this.chains.values());
+    return chains.every((chain) => chain.isValid());
+  }
+
+  /**
+   * Hand one block to its chain, which verifies it locally before persisting.
+   * Returns whether this worker's copy of the chain grew.
+   */
+  private async ingest(
+    block: SerializedBlock,
+    source: "sync" | "pubsub",
+  ): Promise<boolean> {
+    // Guard the one field that decides which chain a block belongs to, so a
+    // junk payload can never open a chain of its own.
+    if (typeof block?.electionId !== "string") {
+      console.error(
+        `[worker] ${this.nodeId} dropped a block with no election id from ${source}`,
+      );
       return false;
+    }
+    if (!this.follows(block.electionId)) return false;
+
+    const chain = await this.chainFor(block.electionId);
+    const result = await this.incoming.run(() => chain.accept(block));
+
+    switch (result.status) {
+      case "appended":
+        return true;
+      case "out-of-order":
+        // Kept: its hash checks out, and the missing parent still arrives —
+        // Pub/Sub makes no ordering promise.
+        console.warn(
+          `[worker] ${this.nodeId} block ${block.index} of ${block.electionId} arrived before its parent`,
+        );
+        return true;
+      case "duplicate":
+        return false;
+      case "rejected":
+        console.error(
+          `[worker] ${this.nodeId} rejected block ${block.index} of ${block.electionId} from ${source}: ${result.reason}`,
+        );
+        return false;
     }
   }
 
   private async syncChain(blocks: SerializedBlock[]): Promise<void> {
     let synced = 0;
     for (const block of blocks) {
-      if (!this.isValid(block)) {
-        console.error(
-          `[worker] Sync: invalid hash for block ${block.index} of ${block.electionId} — skipping`,
-        );
-        continue;
-      }
-      await this.store.append(block);
-      synced++;
+      if (await this.ingest(block, "sync")) synced++;
     }
 
     if (synced > 0) {
@@ -168,22 +235,16 @@ export class WorkerNode {
       );
     }
     console.log(
-      `[worker] ${this.nodeId} chain ready: ${await this.store.count()} blocks`,
+      `[worker] ${this.nodeId} chain ready: ${await this.storage.count()} blocks`,
     );
   }
 
   // Published block received from the subscription: verify, then persist.
   private async handleNewBlock(payload: NewBlockPayload): Promise<void> {
-    if (!this.isValid(payload)) {
-      console.error(
-        `[worker] ${this.nodeId} received block ${payload.index} of ${payload.electionId} with unexpected hash — rejected`,
+    if (await this.ingest(payload, "pubsub")) {
+      console.log(
+        `[worker] ${this.nodeId} wrote block ${payload.index} (hash=${payload.hash.slice(0, 12)}…)`,
       );
-      return;
     }
-
-    await this.store.append(payload);
-    console.log(
-      `[worker] ${this.nodeId} wrote block ${payload.index} (hash=${payload.hash.slice(0, 12)}…)`,
-    );
   }
 }

@@ -16,3 +16,15 @@ export function hash(data: any) {
   hasher.end();
   return BigInt("0x" + hasher.digest("hex"));
 }
+
+// Hashes travel between nodes as lowercase hex strings ("0" for the genesis
+// sentinel) — see packages/specs. In memory they are always bigints; these two
+// functions are the only place the two forms meet.
+
+export function bigIntToHex(value: bigint): string {
+  return value.toString(16);
+}
+
+export function hexToBigInt(hex: string): bigint {
+  return BigInt("0x" + hex);
+}

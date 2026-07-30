@@ -62,5 +62,26 @@ bun run test          # vitest run
 bun run check-types   # tsc --noEmit
 ```
 
-Core chain logic (blocks, hashing) lives in `src/blockchain/`; Pub/Sub wiring in
-`src/pubsub/`; node roles in `src/node/`.
+## Layout
+
+Core chain logic lives in `src/blockchain/`; Pub/Sub wiring in `src/pubsub/`;
+node roles in `src/node/`; storage services in `src/storage/`.
+
+`src/blockchain/` is where blocks are built, hashed and verified — the node
+roles never do any of that by hand:
+
+| Piece                       | Role                                                                    |
+| --------------------------- | ----------------------------------------------------------------------- |
+| `BlockChain`                | One election's chain, in memory. `addBlock` (master), `accept` (worker) |
+| `ElectionBlock`             | A block: computes its hash, `IsValid()`, `next()`, `follows()`          |
+| `ElectionsBlockData`        | Voter id + ballot commitment                                            |
+| `IBlockChainStorageService` | Persistence port a chain is constructed with                            |
+
+A `BlockChain` is given its storage service as a dependency
+(`BlockChain.load(electionId, storage)`) and persists every block it appends.
+JSON (`SerializedBlock` from `@tora-chain/specs`) is the persistence and wire
+format only — `serialize()` / `deserialize()` are the boundary, and nothing
+above it reads or writes chain JSON as a working data structure.
+
+Swapping storage is a one-line change at `src/start.ts`: `PostgresBlockStore`,
+`JsonBlockStore`, or anything else implementing the interface.

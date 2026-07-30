@@ -1,3 +1,5 @@
+import type { BlockData } from "@tora-chain/specs";
+
 export class ElectionsBlockData {
   constructor(
     private readonly voter: bigint,
@@ -7,7 +9,12 @@ export class ElectionsBlockData {
     private readonly commitment: string,
   ) {}
 
-  public toJSON() {
+  /** Rebuild block data from its persisted / wire form. */
+  static fromJSON(json: BlockData): ElectionsBlockData {
+    return new ElectionsBlockData(BigInt(json.voter), json.commitment);
+  }
+
+  public toJSON(): BlockData {
     return {
       voter: this.voter.toString(),
       commitment: this.commitment,

@@ -100,7 +100,7 @@ measurement.
   `idp.localhost:8001`, `api.localhost:8000`, chain master `localhost:7100`,
   worker `localhost:7101`). Override with `EVAL_*` env vars if needed.
 - The block hash port lives in `toraeval/crypto.py` and is verified against
-  `apps/torachain-cli/src/chain/hash-bridge.ts`.
+  `apps/torachain-cli/src/blockchain/` (`identity.ts` + `block.ts`).
 - Auth follows the real flow: voters/auditors self-register; the admin is
   bootstrapped with `apps/auth`'s `create-admin` script if it doesn't exist,
   then a session cookie is exchanged for a JWT at `/{domain}/api/token`.

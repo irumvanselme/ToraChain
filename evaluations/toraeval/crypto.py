@@ -4,7 +4,7 @@ Two things are reproduced here so the harness can verify the real system rather
 than trust it:
 
 1. The blockchain block hash — a byte-for-byte port of
-   ``apps/torachain-cli/src/blockchain`` + ``src/chain/hash-bridge.ts``. This
+   ``apps/torachain-cli/src/blockchain`` (``block.ts`` + ``identity.ts``). This
    lets a Python "worker" re-hash blocks pulled from the master's public
    ``GET /api/chain`` and detect tampering exactly as ``ElectionBlock.IsValid``
    does (report §5.4.1).

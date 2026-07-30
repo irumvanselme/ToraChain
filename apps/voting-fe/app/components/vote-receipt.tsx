@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Alert, Button } from "@tora-chain/ui-components";
-import { Check, Copy, Download, ShieldCheck } from "lucide-react";
+import { Check, Copy, Download, Lock, ShieldCheck } from "lucide-react";
 
 // Presents the vote-verification receipt produced at cast time: a QR code, the
 // raw receipt string, and copy / download actions. The receipt embeds the AES
@@ -17,6 +17,7 @@ interface VoteReceiptProps {
 export function VoteReceipt({ receiptString, votingNumber }: VoteReceiptProps) {
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -51,6 +52,7 @@ export function VoteReceipt({ receiptString, votingNumber }: VoteReceiptProps) {
     a.download = `tora-vote-receipt-${votingNumber}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+    setSaved(true);
   };
 
   const handleDownloadQr = () => {
@@ -59,6 +61,7 @@ export function VoteReceipt({ receiptString, votingNumber }: VoteReceiptProps) {
     a.href = qr;
     a.download = `tora-vote-receipt-${votingNumber}.png`;
     a.click();
+    setSaved(true);
   };
 
   return (
@@ -69,10 +72,22 @@ export function VoteReceipt({ receiptString, votingNumber }: VoteReceiptProps) {
       </div>
 
       <Alert tone="warning" className="text-sm">
-        Save this receipt now. It contains a secret key that only you hold — it
-        is the <strong>only</strong> way to later verify your vote, and it is
-        not stored anywhere by Tora-Chain. Anyone with this receipt can read
-        your vote, so keep it private.
+        <div className="flex flex-col gap-2">
+          <p>
+            <strong>Save this receipt now — you cannot get it back.</strong> It
+            contains a secret key that exists only on this device, and
+            Tora-Chain never stores it. Once you lose it, or leave this page
+            without saving it, it is gone for good: nobody — not you, not an
+            administrator, not us — can recreate it or issue you a new one, and
+            you will not be able to verify this vote again.
+          </p>
+          <p>
+            Keep it private and secure: anyone who gets hold of it can read how
+            you voted. Store it somewhere only you can reach — a password
+            manager or an encrypted note — and do not share it, post it, or send
+            it to anyone who asks for it.
+          </p>
+        </div>
       </Alert>
 
       <div className="flex flex-col sm:flex-row gap-4 items-center">
@@ -126,6 +141,19 @@ export function VoteReceipt({ receiptString, votingNumber }: VoteReceiptProps) {
               </Button>
             )}
           </div>
+
+          {/* The file has left the page — remind them what they are now
+              holding, and that there is no second copy anywhere. */}
+          {saved && (
+            <p className="flex items-start gap-1.5 text-xs text-base-content/70">
+              <Lock className="size-4 shrink-0" />
+              <span>
+                Saved to your device. This file is the only copy that will ever
+                exist — move it somewhere private and secure, and do not send it
+                to anyone.
+              </span>
+            </p>
+          )}
         </div>
       </div>
     </div>

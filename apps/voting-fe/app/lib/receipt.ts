@@ -86,7 +86,7 @@ export async function sha256Hex(input: string): Promise<string> {
  * The blockchain identifies a voter's block by `idToBigInt(votingNumber)` — the
  * first 16 bytes of SHA-256(votingNumber) as a big-endian unsigned integer.
  * Re-implemented here so the browser can locate the right on-chain block.
- * Mirrors `apps/torachain-cli/src/chain/hash-bridge.ts::idToBigInt`.
+ * Mirrors `apps/torachain-cli/src/blockchain/identity.ts::idToBigInt`.
  */
 export async function idToBigInt(id: string): Promise<bigint> {
   const digest = new Uint8Array(

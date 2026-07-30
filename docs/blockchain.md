@@ -33,9 +33,17 @@ sequenceDiagram
 - **Publisher / subscriber only** — there is no consensus round, quorum, or
   presence tracking. The master is the single source of truth and publishes
   every committed block; workers replicate what they receive.
-- **Hashing** — goes through `ElectionBlock` (`src/chain/hash-bridge.ts`) so
-  master and workers always agree; hashes are lowercase hex (`"0"` for genesis).
-  A worker that computes a different hash for a received block rejects it.
+- **One chain implementation** — both roles drive `BlockChain`
+  (`src/blockchain/`): the master appends votes with `addBlock`, a worker takes
+  in what it receives with `accept`. Blocks are only ever built, hashed and
+  verified there.
+- **Hashing** — goes through `ElectionBlock` so master and workers always
+  agree; hashes are lowercase hex (`"0"` for genesis). A worker that computes a
+  different hash for a received block rejects it.
+- **Storage is injected** — a `BlockChain` is constructed with an
+  `IBlockChainStorageService` (Postgres, a JSON file, memory in tests) and
+  persists every block it appends. JSON is the persistence/wire format only,
+  never the structure the chain logic works with.
 - **Per-election chains** — each election has its own genesis block and chain.
   A worker filters its subscription to one election (or `all`).
 - **Block contents** — a block records only the voter's number and the ballot

@@ -125,7 +125,7 @@ sequenceDiagram
   `commitment` must be supplied together. The server trusts only its own
   re-derived `sha256Hex(ciphertext)`.
 - The double-vote guard is an atomic conditional `UPDATE` inside the same
-  transaction as the `INSERT`. It is the *only* guard: the `votes` row records
+  transaction as the `INSERT`. It is the _only_ guard: the `votes` row records
   nothing about the eligibility that cast it — no `eligibility_id`, no
   `voting_number` — so that reading the database cannot reveal who voted for
   whom. The flip deliberately leaves `updated_at` alone too, since a stamp

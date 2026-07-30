@@ -11,27 +11,39 @@ classDiagram
 
     %% ── Core chain entities (src/blockchain) ─────────────────────────
     class BlockChain {
-        -bigint election
+        -string election
         -ElectionBlock[] blocks
-        +addBlock(block: ElectionBlockInput) void
-        +getGenesisBlock(election: bigint)$ ElectionBlock
+        -IBlockChainStorageService storage
+        +load(election, storage, options)$ Promise~BlockChain~
+        +deserialize(blocks: SerializedBlock[])$ ElectionBlock[]
+        +serialize() SerializedBlock[]
+        +addBlock(input: ElectionBlockInput) Promise~ElectionBlock~
+        +accept(block: SerializedBlock) Promise~AcceptResult~
+        +isValid() boolean
+        +get tip() ElectionBlock
     }
 
     class ElectionBlock {
         -number index
+        -string election
         -ElectionsBlockData data
         -number timestamp
         -bigint hashOfPreviousBlock
         -bigint _hash
+        +genesis(election, timestamp)$ ElectionBlock
+        +fromJSON(json: SerializedBlock)$ ElectionBlock
+        +next(data, timestamp) ElectionBlock
         +IsValid() boolean
-        +toJSON() object
+        +follows(previous: ElectionBlock) boolean
+        +toJSON() SerializedBlock
         +get hash() bigint
     }
 
     class ElectionsBlockData {
         -bigint voter
         -string commitment
-        +toJSON() object
+        +fromJSON(json: BlockData)$ ElectionsBlockData
+        +toJSON() BlockData
     }
 
     class ElectionBlockInput {
@@ -39,6 +51,19 @@ classDiagram
         +bigint voter
         +string commitment
     }
+
+    class IBlockChainStorageService {
+        <<interface>>
+        +init() Promise~void~
+        +append(block: SerializedBlock) Promise~void~
+        +getAll(electionId?) Promise~SerializedBlock[]~
+        +getLatest(electionId) Promise~SerializedBlock~
+        +count() Promise~number~
+        +close() Promise~void~
+    }
+
+    class PostgresBlockStore
+    class JsonBlockStore
 
     %% ── Persisted wire format (@tora-chain/specs) ────────────────────
     class SerializedBlock {
@@ -61,8 +86,13 @@ classDiagram
     BlockChain "1" o-- "*" ElectionBlock : holds
     ElectionBlock "1" *-- "1" ElectionsBlockData : contains
     BlockChain ..> ElectionBlockInput : accepts
+    BlockChain o-- "1" IBlockChainStorageService : persists through
+    IBlockChainStorageService <|.. PostgresBlockStore : implements
+    IBlockChainStorageService <|.. JsonBlockStore : implements
     SerializedBlock "1" *-- "1" BlockData : contains
+    BlockData "1" --o "1" ElectionsBlockData : serialized as
     ElectionBlock ..> SerializedBlock : serialized as
+    IBlockChainStorageService ..> SerializedBlock : stores
 ```
 
 ## The `blocks` table (Postgres)
@@ -88,8 +118,16 @@ messages never duplicate a block.
   storage format (`SerializedBlock` / `BlockData`) uses strings so master and
   workers hash the identical form. `commitment` is always a string —
   round-tripping it through `bigint` would drop leading zeros and diverge the
-  hash.
-- **Per-election chains.** A `BlockChain` is scoped to one `election` and seeds
-  itself with a genesis block; real votes are appended via `addBlock`.
-- **Tamper detection.** A worker re-hashes every received block and rejects a
-  mismatch (`ElectionBlock.IsValid()`).
+  hash. `serialize()` / `deserialize()` are the only crossing points: JSON is
+  what gets persisted and published, never what the logic works with.
+- **Per-election chains.** A `BlockChain` is scoped to one `election`; the
+  first `addBlock` opens it with that election's genesis block.
+- **Injected storage.** A chain is loaded with an `IBlockChainStorageService`
+  (`BlockChain.load(electionId, storage)`) and persists each block before
+  holding it, so a tip always exists somewhere other nodes can see.
+- **Tamper detection.** `ElectionBlock.fromJSON` keeps the hash a block claims;
+  `IsValid()` re-computes it and a worker's `accept()` refuses the mismatch.
+  `BlockChain.isValid()` does the same across a whole chain, links included.
+- **Genesis.** Index `0`, hash fixed at `"0"` by the protocol — it commits to no
+  predecessor, so there is nothing to hash. Anything else at index `0` is
+  rejected.

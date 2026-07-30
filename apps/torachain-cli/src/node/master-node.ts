@@ -1,16 +1,17 @@
 import express from "express";
-import { createServer } from "node:http";
+import { createServer, type Server } from "node:http";
 import { randomUUID } from "node:crypto";
 import type { Topic } from "@google-cloud/pubsub";
 import { TOPICS, type SerializedBlock } from "@tora-chain/specs";
-import type { BlockStore } from "../storage/store.ts";
-import { ensureTopic } from "../pubsub/client.ts";
 import {
+  BlockChain,
   idToBigInt,
-  hexToBigInt,
-  computeBlockHash,
-} from "../chain/hash-bridge.ts";
+  type ElectionBlock,
+  type IBlockChainStorageService,
+} from "../blockchain/index.ts";
+import { ensureTopic } from "../pubsub/client.ts";
 import { serveViewer } from "../web/viewer.ts";
+import { SerialQueue } from "./serial-queue.ts";
 
 interface VoteInput {
   electionId: string;
@@ -20,27 +21,34 @@ interface VoteInput {
   commitment: string;
 }
 
-// The master is the sole publisher: on each vote it builds the next block,
-// persists it, and publishes it to the NEW_BLOCK topic. Workers subscribe and
-// only receive — there is no consensus round or quorum requirement.
+// The master is the sole publisher: on each vote it appends a block to that
+// election's BlockChain — which builds, hashes and persists it — and publishes
+// the result to the NEW_BLOCK topic. Workers subscribe and only receive; there
+// is no consensus round or quorum requirement.
 export class MasterNode {
   readonly nodeId: string;
 
   private newBlockTopic!: Topic;
+  private httpServer: Server | null = null;
+
+  // One in-memory chain per election, loaded from storage on first use.
+  // Promises are cached rather than chains so two concurrent first votes for
+  // the same election share a single load.
+  private readonly chains = new Map<string, Promise<BlockChain>>();
 
   // Votes are committed one at a time so concurrent votes for the same
   // election can't both build on the same latest block.
-  private voteQueue: Promise<void> = Promise.resolve();
+  private readonly votes = new SerialQueue();
 
   constructor(
     private readonly port: number,
-    private readonly store: BlockStore,
+    private readonly storage: IBlockChainStorageService,
   ) {
     this.nodeId = `master-${randomUUID().slice(0, 8)}`;
   }
 
   async start(): Promise<void> {
-    await this.store.init();
+    await this.storage.init();
     await this.connectPubSub();
 
     const app = express();
@@ -61,7 +69,7 @@ export class MasterNode {
       }
 
       try {
-        const block = await this.enqueue(() =>
+        const block = await this.votes.run(() =>
           this.commit({ electionId, votingNumber, commitment }),
         );
         res
@@ -78,7 +86,7 @@ export class MasterNode {
       res.json({
         nodeId: this.nodeId,
         role: "master",
-        blockCount: await this.store.count(),
+        blockCount: await this.storage.count(),
       });
     });
 
@@ -87,22 +95,37 @@ export class MasterNode {
     // the whole point of the chain is to be an untrusted-backend cross-check.
     app.get("/api/chain", async (req, res) => {
       res.set("Access-Control-Allow-Origin", "*");
+      // Read straight from storage rather than the in-memory chains: every
+      // block is persisted before it is held, so the two agree — and an
+      // unknown electionId here must not spin up a chain for it.
       const electionId = req.query["electionId"];
       res.json({
-        blocks: await this.store.getAll(
+        blocks: await this.storage.getAll(
           typeof electionId === "string" ? electionId : undefined,
         ),
       });
     });
 
     const httpServer = createServer(app);
-    httpServer.listen(this.port, () => {
-      console.log(`[master] ${this.nodeId} listening on :${this.port}`);
+    this.httpServer = httpServer;
+    await new Promise<void>((resolve) => {
+      httpServer.listen(this.port, () => {
+        console.log(`[master] ${this.nodeId} listening on :${this.port}`);
+        resolve();
+      });
     });
   }
 
   async stop(): Promise<void> {
-    await this.store.close();
+    const httpServer = this.httpServer;
+    this.httpServer = null;
+    if (httpServer) {
+      // Drop keep-alive connections that are just sitting there, or close()
+      // would wait on browsers holding an idle viewer connection open.
+      httpServer.closeIdleConnections();
+      await new Promise<void>((resolve) => httpServer.close(() => resolve()));
+    }
+    await this.storage.close();
   }
 
   // ── Pub/Sub wiring ───────────────────────────────────────────────────────────
@@ -113,72 +136,39 @@ export class MasterNode {
 
   // Publish a committed block; the "electionId" attribute lets each worker's
   // subscription filter for just the election it cares about.
-  private publish(block: SerializedBlock): void {
+  private publish(block: ElectionBlock): void {
+    const serialized = block.toJSON();
     void this.newBlockTopic.publishMessage({
-      json: block,
-      attributes: { electionId: block.electionId },
+      json: serialized,
+      attributes: { electionId: serialized.electionId },
     });
   }
 
-  private enqueue<T>(job: () => Promise<T>): Promise<T> {
-    const result = this.voteQueue.then(job, job);
-    this.voteQueue = result.then(
-      () => undefined,
-      () => undefined,
-    );
-    return result;
-  }
-
-  private async ensureGenesis(electionId: string): Promise<SerializedBlock> {
-    const latest = await this.store.getLatest(electionId);
-    if (latest) return latest;
-
-    const genesis: SerializedBlock = {
-      index: 0,
-      electionId,
-      data: { voter: "0", commitment: "0" },
-      timestamp: Date.now(),
-      prevHash: "0",
-      hash: "0",
-    };
-    await this.store.append(genesis);
-    this.publish(genesis);
-    return genesis;
+  // The election's chain, loaded once and kept in memory. Every block it
+  // appends — the genesis block included — is published as a side effect.
+  private chainFor(electionId: string): Promise<BlockChain> {
+    let chain = this.chains.get(electionId);
+    if (!chain) {
+      chain = BlockChain.load(electionId, this.storage, {
+        onAppend: (block) => this.publish(block),
+      });
+      this.chains.set(electionId, chain);
+    }
+    return chain;
   }
 
   private async commit(vote: VoteInput): Promise<SerializedBlock> {
-    const latest = await this.ensureGenesis(vote.electionId);
-    const nextIndex = latest.index + 1;
-    const timestamp = Date.now();
+    const chain = await this.chainFor(vote.electionId);
+    const block = await chain.addBlock({
+      voter: idToBigInt(vote.votingNumber),
+      commitment: vote.commitment,
+    });
 
-    const voterBigInt = idToBigInt(vote.votingNumber);
-    const hash = computeBlockHash(
-      nextIndex,
-      voterBigInt,
-      vote.commitment,
-      timestamp,
-      hexToBigInt(latest.hash),
-    ).toString(16);
-
-    const block: SerializedBlock = {
-      index: nextIndex,
-      electionId: vote.electionId,
-      data: {
-        voter: voterBigInt.toString(),
-        commitment: vote.commitment,
-      },
-      timestamp,
-      prevHash: latest.hash,
-      hash,
-    };
-
-    await this.store.append(block);
-    this.publish(block);
-
+    const serialized = block.toJSON();
     console.log(
-      `[master] Committed block ${block.index} for ${block.electionId} (hash=${block.hash.slice(0, 12)}…)`,
+      `[master] Committed block ${serialized.index} for ${serialized.electionId} (hash=${serialized.hash.slice(0, 12)}…)`,
     );
 
-    return block;
+    return serialized;
   }
 }

@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import { ALL_ELECTIONS } from "@tora-chain/specs";
+import type { IBlockChainStorageService } from "./blockchain/index.ts";
 import { MasterNode } from "./node/master-node.ts";
 import { WorkerNode } from "./node/worker-node.ts";
 import { JsonBlockStore } from "./storage/json-store.ts";
@@ -35,20 +36,22 @@ function registerShutdown(stop: () => Promise<void>): void {
   process.on("SIGTERM", () => void shutdown());
 }
 
+// Each node role is handed the storage service its chains persist through —
+// Postgres for a master with CHAIN_DB_URI set, a local JSON file otherwise.
 if (values["master"]) {
   const dbUri = process.env["CHAIN_DB_URI"] || undefined;
-  let store;
+  let storage: IBlockChainStorageService;
   if (dbUri) {
-    store = new PostgresBlockStore(dbUri);
+    storage = new PostgresBlockStore(dbUri);
   } else {
     console.warn(
       "[master] CHAIN_DB_URI is not set — persisting to a local JSON file instead of Postgres",
     );
-    store = new JsonBlockStore(
+    storage = new JsonBlockStore(
       values["db-path"] ?? `chain-master-${port}.json`,
     );
   }
-  const node = new MasterNode(port, store);
+  const node = new MasterNode(port, storage);
   await node.start();
   registerShutdown(() => node.stop());
 } else {
@@ -63,7 +66,7 @@ if (values["master"]) {
     port,
     masterUrl,
     values["election"] ?? ALL_ELECTIONS,
-    values["db-path"],
+    new JsonBlockStore(values["db-path"] ?? `chain-worker-${port}.json`),
   );
   await node.start();
   registerShutdown(() => node.stop());

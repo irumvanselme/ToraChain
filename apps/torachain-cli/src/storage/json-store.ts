@@ -1,10 +1,11 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { SerializedBlock } from "@tora-chain/specs";
-import type { BlockStore } from "./store.ts";
+import type { IBlockChainStorageService } from "../blockchain/index.ts";
 
 // Stores the chain as a pretty-printed JSON array so non-technical users can
-// open the file and read it directly.
-export class JsonBlockStore implements BlockStore {
+// open the file and read it directly. JSON is only this file's storage format —
+// the chain itself works with ElectionBlock objects.
+export class JsonBlockStore implements IBlockChainStorageService {
   private blocks: SerializedBlock[] = [];
 
   constructor(private readonly filePath: string) {}
@@ -30,11 +31,6 @@ export class JsonBlockStore implements BlockStore {
   async getAll(electionId?: string): Promise<SerializedBlock[]> {
     if (!electionId) return [...this.blocks];
     return this.blocks.filter((b) => b.electionId === electionId);
-  }
-
-  async getLatest(electionId: string): Promise<SerializedBlock | null> {
-    const chain = this.blocks.filter((b) => b.electionId === electionId);
-    return chain.length > 0 ? chain[chain.length - 1]! : null;
   }
 
   async count(): Promise<number> {

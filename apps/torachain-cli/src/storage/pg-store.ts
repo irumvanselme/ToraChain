@@ -1,6 +1,6 @@
 import pg from "pg";
 import type { SerializedBlock } from "@tora-chain/specs";
-import type { BlockStore } from "./store.ts";
+import type { IBlockChainStorageService } from "../blockchain/index.ts";
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS blocks (
@@ -52,7 +52,7 @@ function toBlock(row: BlockRow): SerializedBlock {
   };
 }
 
-export class PostgresBlockStore implements BlockStore {
+export class PostgresBlockStore implements IBlockChainStorageService {
   private readonly pool: pg.Pool;
 
   constructor(uri: string) {
@@ -97,15 +97,6 @@ export class PostgresBlockStore implements BlockStore {
           "SELECT * FROM blocks ORDER BY election_id ASC, block_index ASC",
         );
     return result.rows.map(toBlock);
-  }
-
-  async getLatest(electionId: string): Promise<SerializedBlock | null> {
-    const result = await this.pool.query<BlockRow>(
-      "SELECT * FROM blocks WHERE election_id = $1 ORDER BY block_index DESC LIMIT 1",
-      [electionId],
-    );
-    const row = result.rows[0];
-    return row ? toBlock(row) : null;
   }
 
   async count(): Promise<number> {

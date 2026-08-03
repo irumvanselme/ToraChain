@@ -46,7 +46,19 @@ function assertPubSubConfigured(): void {
 export function pubsubClient(): PubSub {
   if (!client) {
     assertPubSubConfigured();
-    client = new PubSub({ projectId: process.env["GOOGLE_CLOUD_PROJECT"] });
+    client = new PubSub({
+      projectId: process.env["GOOGLE_CLOUD_PROJECT"],
+      // Against the emulator the connection is insecure and unauthenticated,
+      // but google-gax still resolves the universe domain before creating a
+      // stub — which falls back to application-default credentials and probes
+      // the GCE metadata server, spamming `MetadataLookupWarning` on every
+      // stub. Pinning the domain short-circuits that lookup. It also makes the
+      // client treat the endpoint as a real GCP one, so emulatorMode has to be
+      // forced back on to keep the insecure channel credentials.
+      ...(process.env["PUBSUB_EMULATOR_HOST"]
+        ? { universeDomain: "googleapis.com", emulatorMode: true }
+        : {}),
+    });
   }
   return client;
 }
